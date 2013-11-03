@@ -10,7 +10,10 @@ DESCRIPTION = ""
 setup(
     name=DISTNAME,
     version='0.1.0dev',
-    packages=['dspy',],
+    packages=[
+        'dspy',
+        'dspy.cmd'],
+    scripts=['dspy/cmd/cut.py'],
     license=LICENSE,
     url=URL,
     maintainer_email=EMAIL,

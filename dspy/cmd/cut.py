@@ -1,3 +1,4 @@
+#! python
 """
 Reads a csv file or stdin, keeps/removes selected columns.
 Prints to stdout or a file.
@@ -33,7 +34,6 @@ def main():
     parser.add_argument(
         'infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin,
         help='Convert this file.  If not specified, read from stdin.')
-
     parser.add_argument(
         '-o', '--outfile', default=sys.stdout, type=argparse.FileType('w'),
         help='Write to OUT_FILE rather than sys.stdout.')

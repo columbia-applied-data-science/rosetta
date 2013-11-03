@@ -10,6 +10,9 @@ TESTDIR=dspy/tests
 
 all: clean test
 
+install:
+	$(PYTHON) setup.py install
+
 clean-ctags:
 	rm -f tags
 

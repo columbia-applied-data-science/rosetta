@@ -6,7 +6,7 @@ from datetime import datetime
 
 from dspy.common import BadDataError
 from dspy import common
-from dspy.cmd import concat_csv, join_csv, subsample, cut
+from dspy.cmd import concat_csv, join_csv, subsample, cut, row_filter
 
 
 """
@@ -56,6 +56,49 @@ class TestCut(unittest.TestCase):
             delimiter='|')
         result = self.outfile.getvalue()
         self.assertEqual('age|name\r\n1|ian\r\n2|daniel\r\n3|chang\r\n', result)
+
+    def tearDown(self):
+        self.outfile.close()
+
+
+class TestRowFilter(unittest.TestCase):
+    """
+    Tests the implementation (but not the interface) of row_filter.py
+    """
+    def setUp(self):
+        self.outfile = StringIO()
+        self.infile = StringIO(
+            "course|enrollment\n" "algebra|1\n" "analysis|2\n")
+
+    def test_contains_1(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'contains', 'a', '|')
+        benchmark = 'course|enrollment\r\n' "algebra|1\r\n" "analysis|2\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
+    def test_contains_2(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'contains', 'alg', '|')
+        benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
+    def test_not_contains(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'not_contains', 'alg', '|')
+        benchmark = 'course|enrollment\r\n' "analysis|2\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
+    def test_equals_1(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'contains', 'algebra', '|')
+        benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
+    def test_not_equals_1(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'not_equals', 'analysis', '|')
+        benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
 
     def tearDown(self):
         self.outfile.close()

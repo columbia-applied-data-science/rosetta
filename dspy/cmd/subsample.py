@@ -1,27 +1,23 @@
 #!/usr/bin/env python
-from optparse import OptionParser
-import sys
+"""
+Subsample files or stdin and write to stdout.  Optionally subsample in the
+space of different values of a KEY_COLUMN.  When doing this, every time a
+new key value appears, decide whether or not to keep all rows containing
+this value.
+"""
+import argparse
 import csv
+import sys
 from numpy.random import rand
 from numpy.random import seed as randomseed
 
-from .. import common
+from dspy import common
 
 
 def main():
-    r"""
-    DESCRIPTION
-    -----------
-    Subsample files or stdin and write to stdout.  Optionally subsample in the
-    space of different values of a KEY_COLUMN.  When doing this, every time a
-    new key value appears, decide whether or not to keep all rows containing
-    this value.
+    epilog = r"""
 
-
-    NOTES
-    -----
     Assumes the first row is a header.
-
 
     EXAMPLES
     ---------
@@ -34,57 +30,43 @@ def main():
     Subsample, keeping 10% of different values in the 'height' column
     $ python subsample.py -r 0.1 -k height data.csv
     """
-    usage = "usage: %prog [options] dataset"
-    usage += '\n'+main.__doc__
-    parser = OptionParser(usage=usage)
-    parser.add_option(
-        "-r", "--subsample_rate",
-        help="Subsample subsample_rate, 0 <= r <= 1.  E.g. r = 0.1 keeps 10% "
-        "of rows. [default: %default] ",
-        action="store", dest='subsample_rate', type=float, default=0.01)
-    parser.add_option(
-        "-d", "--delimiter",
-        help="Use DELIMITER as the column delimiter.  [default: %default]",
-        action="store", dest='delimiter', default=',')
-    parser.add_option(
+    parser = argparse.ArgumentParser(
+        description=globals()['__doc__'], epilog=epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument(
+        'infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin,
+        help='Convert this file.  If not specified, read from stdin.')
+    parser.add_argument(
+        '-o', '--outfile', default=sys.stdout, type=argparse.FileType('w'),
+        help='Write to OUT_FILE rather than sys.stdout.')
+
+    parser.add_argument(
+        "-r", "--subsample_rate", type=float, default=0.01,
+        help="Subsample subsample_rate, 0 <= r <= 1.  E.g. r = 0.1 keeps 10 "
+        "percent of rows. [default: %(default)s] ")
+    parser.add_argument(
+        "-d", "--delimiter", default=',',
+        help="Use DELIMITER as the column delimiter.  [default: %(default)s]")
+    parser.add_argument(
         "-k", "--key_column",
-        help="Subsample in the space of values of key_column.  "
-        "[default: %default]",
-        action="store", dest="key_column", default=None)
-    parser.add_option(
-        "-s", "--seed",
-        help="Integer to seed the random number generator with. "
-        "[default: %default] ",
-        action="store", dest='seed', type=int, default=None)
-    parser.add_option(
-        "-o", "--outfilename",
-        help="Write to this file rather than stdout.  [default: %default]",
-        action="store", dest='outfilename', default=None)
+        help="Subsample in the space of values of key_column.  ")
 
-    (opt, args) = parser.parse_args()
+    parser.add_argument(
+        "-s", "--seed", type=int,
+        help="Integer to seed the random number generator with. ")
 
-    ### Parse args
-    # Raise an exception if the length of args is greater than 1
-    assert len(args) <= 1
-    # If an argument is given, then it is the 'infilename'
-    # If no arguments are given, set infilename equal to None
-    infilename = args[0] if args else None
+    # Parse args
+    args = parser.parse_args()
 
-    ## Handle the options
     # Deal with tabs
-    if opt.delimiter in ['t', '\\t', '\t', 'tab']:
-        opt.delimiter = '\t'
-
-    ## Get the infile/outfile
-    infile, outfile = common.get_inout_files(infilename, opt.outfilename)
+    if args.delimiter in ['t', '\\t', '\t', 'tab']:
+        args.delimiter = '\t'
 
     ## Call the function that does the real work
     subsample(
-        infile, outfile, opt.subsample_rate, opt.delimiter,
-        opt.key_column, opt.seed)
-
-    ## Close the files iff not stdin, stdout
-    common.close_files(infile, outfile)
+        args.infile, args.outfile, args.subsample_rate, args.delimiter,
+        args.key_column, args.seed)
 
 
 def subsample(infile, outfile, subsample_rate=0.01, delimiter=',',
