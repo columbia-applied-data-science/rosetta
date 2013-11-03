@@ -1,3 +1,4 @@
+#! python
 """
 Reads a csv file or stdin, keeps/removes selected columns.
 Prints to stdout or a file.

@@ -1,4 +1,5 @@
 recursive-include dspy *
+recursive-include dspy/cmd *
 
 include MANIFEST.in
 include LICENSE
