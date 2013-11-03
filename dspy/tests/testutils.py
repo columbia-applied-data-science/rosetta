@@ -10,17 +10,8 @@ from dspy.cmd import concat_csv, join_csv, subsample, cut
 
 
 """
-To run, from the test/ directory, type:
-$ python -m unittest test_utils
-
-OR for verbose output
-$ python -m unittest -v test_utils
-
-OR to run only the methods in TestCut
-$ python -m unittest test_utils.TestCut
-
-OR to run only the TestCut.test_cut_file_keepname method
-$ python -m unittest test_utils.TestCut.test_cut_file_keepname
+To run, from the dspy/ directory, type:
+    make test
 """
 
 

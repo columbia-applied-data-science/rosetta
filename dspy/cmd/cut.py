@@ -2,15 +2,13 @@
 Reads a csv file or stdin, keeps/removes selected columns.
 Prints to stdout or a file.
 """
-
-#!/usr/bin/env python
 import argparse
 import sys
 import csv
 # Set the limit to 1 billion columns
 #csv.field_size_limit(10000000)
 
-import jrl_utils.src.common as common
+from dspy import common
 
 
 def main():

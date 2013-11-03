@@ -1,18 +1,18 @@
-#!/usr/bin/env python
-from optparse import OptionParser
+"""
+Removes rows in csv file (or stdin) with header where columns meet
+certain criteria.
+"""
+import argparse
 import sys
 import csv
 # Set the limit to 1 billion columns
 #csv.field_size_limit(10000000)
 
-import jrl_utils.src.common as common
-from jrl_utils.src.common import BadDataError
+import dspy.common as common# import common
 
 
 def _cli():
-    r"""
-    Removes rows in csv file (or stdin) with header where columns don't meet certain
-    criteria.
+    epilog = r"""
 
     Examples
     ---------
@@ -28,13 +28,22 @@ def _cli():
     Keep rows in curriculum.csv where the subject doesn't equal the word 'algebra'
     $ python row_filter.py -n subject -e algebra curriculum.csv
     """
-    usage = "usage: %prog [options] files"
-    usage += '\n'+_cli.__doc__
-    parser = OptionParser(usage=usage)
-    parser.add_option(
+    parser = argparse.ArgumentParser(
+        description=globals()['__doc__'], epilog=epilog,
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+
+    parser.add_argument(
+        'infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin,
+        help='Convert this file.  If not specified, read from stdin.')
+
+    parser.add_argument(
+        '-o', '--outfile', default=sys.stdout, type=argparse.FileType('w'),
+        help='Write to OUT_FILE rather than sys.stdout.')
+
+    parser.add_argument(
         "-d", "--delimiter",
-        help="Use DELIMITER as the column delimiter.  [default: %default]",
-        action="store", dest='delimiter', default=',')
+        help="Use DELIMITER as the column delimiter.  [default: %(default)s]",
+        default=',')
     parser.add_option(
         "-n", "--name",
         help="Name of the columm to filter on.  [default: %default]",

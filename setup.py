@@ -1,10 +1,10 @@
 from distutils.core import setup
 
-DISTNAME = 'DsPy'
+DISTNAME = 'DSpy'
 LICENSE = 'BSD'
 MAINTAINER = "The DsPy Development Team"
-EMAIL = "dspy_team@gmail.com"
-URL = "https://github.com/declassengine/declass"
+EMAIL = ""
+URL = "https://github.com/columbia-applied-data-science/dspy"
 DESCRIPTION = ""
 
 setup(
