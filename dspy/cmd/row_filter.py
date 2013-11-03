@@ -8,7 +8,7 @@ import csv
 # Set the limit to 1 billion columns
 #csv.field_size_limit(10000000)
 
-import dspy.common as common# import common
+from dspy import common
 
 
 def _cli():
@@ -72,11 +72,11 @@ def _cli():
             match_str = args.__dict__[mode]
             break
 
-    column_filter(
+    filter_file(
         args.infile, args.outfile, args.name, mode, match_str, args.delimiter)
 
 
-def column_filter(infile, outfile, name, mode, match_str, delimiter):
+def filter_file(infile, outfile, name, mode, match_str, delimiter):
     """
     Module interface.  See _cli for doc.  Add doc later if needed.
     """
