@@ -39,9 +39,9 @@ def word_tokenize(text, L=1, numeric=True):
     return word_list
 
 
-
 def is_stopword(string):
     return string.lower() in stopwords_eng
+
 
 def is_letter(s):
     try:
