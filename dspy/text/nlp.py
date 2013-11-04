@@ -1,20 +1,31 @@
 import re
 
+from itertools import izip, chain
+
 
 ###############################################################################
 # Globals
 ###############################################################################
-stopwords_eng = set('a,able,about,across,after,all,almost,also,am,among,an,and,any,are,as,at,be,because,been,but,by,can,cannot,could,dear,did,do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,only,or,other,our,own,rather,said,say,says,she,should,since,so,some,than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,with,would,yet,you,your'.split(','))
+stopwords_eng = set('a,able,about,across,after,all,almost,also,am,among,an,'
+        'and,any,are,as,at,be,because,been,but,by,can,cannot,could,dear,did,'
+        'do,does,either,else,ever,every,for,from,get,got,had,has,have,he,her,'
+        'hers,him,his,how,however,i,if,in,into,is,it,its,just,least,let,like,'
+        'likely,may,me,might,most,must,my,neither,no,nor,not,of,off,often,on,'
+        'only,or,other,our,own,rather,said,say,says,she,should,since,so,some,'
+        'than,that,the,their,them,then,there,these,they,this,tis,to,too,twas,'
+        'us,wants,was,we,were,what,when,where,which,while,who,whom,why,will,'
+        'with,would,yet,you,your'.split(','))
 
 
 def word_tokenize(text, L=1, numeric=True):
     """
     Word tokenizer to replace the nltk.word_tokenize()
+    
     Paramters
     ---------
-    text: string
-    L: int, min length of word to return
-    numeric: bool, True if you want to include numerics
+    text : string
+    L : int, min length of word to return
+    numeric : bool, True if you want to include numerics
     """
     text = re.sub(
         r'(?:\s|\[|\]|\(|\)|\{|\}|\.|;|,|:|\n|\r|\?|\!)', r'  ', text)
@@ -37,3 +48,44 @@ def is_letter(s):
         return len(s)==1 and s.isalpha()
     except:
         return False
+
+
+def bigram_tokenize_iter(text, skip_regex=r'\.|,|:|;|\?|!', L=1, 
+        numeric=True):
+    """
+    Bigram tokenizer generator function.
+    
+    Paramters
+    ---------
+    text : string
+    skip_regex : string, or raw string, regular expression
+        if a word pair is seperated by a match of the regular expression the 
+        pair will be ingored; for example, r'\.|,|:|;|\?|!' makes sure no word
+        pairs separated by basic punctation are included; to inlcude all word 
+        pairs let skip_regex='' 
+    L : int 
+        min length of word to return
+    numeric : bool
+        True if you want to include numerics
+
+    Returns
+    -------
+    bigram_iter : iterator
+    """
+    text_frags = re.split(skip_regex, text)
+    word_lists = [word_tokenize(frag, L, numeric) for frag in text_frags]
+    bigram_iter = izip(word_lists[0], word_lists[0][1:])
+    for words in word_lists[1:]:
+        bigram_iter = chain(bigram_iter, izip(words, words[1:]))
+    return bigram_iter
+
+
+
+def bigram_tokenize(text, skip_regex=r'\.|,|:|;|\?|!', L=1, 
+        numeric=True):
+    """
+    Same as bigram_tokenize_iter, except returns a list.
+    """
+    bigram_iter = bigram_tokenize_iter(text, skip_regex, L, numeric)
+    return [bg for bg in bigram_iter]
+
