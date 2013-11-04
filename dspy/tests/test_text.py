@@ -11,7 +11,7 @@ from numpy.testing import assert_allclose
 import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
-from dspy.text_proc import text_processors, streamers, vw_helpers
+from dspy.text import text_processors, streamers, vw_helpers
 
 
 class TestTokenizerBasic(unittest.TestCase):

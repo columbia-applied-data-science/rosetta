@@ -7,8 +7,8 @@ import sys
 
 import pandas as pd
 
-from dspy.text_proc import text_processors
-from dspy.common import smart_open
+from . import text_processors
+from ..common import smart_open
 
 
 def parse_varinfo(varinfo_file):

@@ -11,9 +11,9 @@ import nltk
 import numpy as np
 import pandas as pd
 
-from dspy import common
-from dspy.common import lazyprop, smart_open
-from dspy.common_abc import SaveLoad
+from .. import common
+from ..common import lazyprop, smart_open
+from ..common_abc import SaveLoad
 from . import filefilter, nlp
 
 

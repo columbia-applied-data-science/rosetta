@@ -19,6 +19,10 @@ You can check the latest sources with the command::
 
     git clone git://github.com/columbia-applied-data-science/dspy
 
+### Contributing
+
+Read `CONTRIBUTING.md`
+
 Dependencies
 ------------
 
