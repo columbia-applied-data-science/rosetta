@@ -14,9 +14,9 @@ SCRIPTS = [
     ['concat_csv.py', 'cut.py', 'join_csv.py',
     'row_filter.py', 'split.py', 'subsample.py']]
 
-PACKAGES = [
+PACKAGES = ['dspy'] + [
     'dspy/' + name for name in 
-    ['cmd', 'modeling', 'parallel', 'tests', 'text', 'workflow']]
+    ['cmd', 'modeling', 'parallel', 'text', 'workflow']]
 
 setup(
     name=DISTNAME,
