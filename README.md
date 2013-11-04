@@ -1,7 +1,7 @@
 DSpy
-=======
+====
 
-Tools for Data Science.
+Tools, wrappers, etc... for data science with a concentration on text processing
 
 * Utilities to move data from one Data Structure to another
 * Strong focus on stream processing of text

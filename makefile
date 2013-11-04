@@ -8,8 +8,6 @@ CTAGS ?= ctags
 
 TESTDIR=dspy/tests
 
-all: clean test
-
 install:
 	$(PYTHON) setup.py install
 
@@ -17,8 +15,7 @@ clean-ctags:
 	rm -f tags
 
 clean: clean-ctags
-	$(PYTHON) setup.py clean
-	rm -rf dist
+	$(PYTHON) setup.py clean --all
 
 tests: test  # Common misname...
 
