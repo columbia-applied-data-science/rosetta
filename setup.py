@@ -3,7 +3,7 @@ from distutils.core import setup
 DISTNAME = 'DSpy'
 LICENSE = 'BSD'
 MAINTAINER = "The DsPy Development Team"
-EMAIL = ""
+EMAIL = "ianlangmore@gmail.com"
 URL = "https://github.com/columbia-applied-data-science/dspy"
 DESCRIPTION = ""
 
