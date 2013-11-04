@@ -108,7 +108,7 @@ class BasePlotter2D(object):
         pl.contourf(xx, yy, Z, N, cmap=cmap, **contourf_kwargs)
 
         self._add_x_names()
-                
+
     def _revise_vmin_vmax(self, values):
         """
         Resets self.vmin, self.vmax to the new smallest/largest values seen.
@@ -195,7 +195,7 @@ class ClassifierPlotter2D(BasePlotter2D):
 
         # All possible values of y
         classes = sorted(list(np.unique(y)))
-        
+
         # Plot each class with a different marker
         for i, yval in enumerate(classes):
             marker = (

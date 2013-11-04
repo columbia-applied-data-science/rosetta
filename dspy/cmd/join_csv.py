@@ -52,7 +52,7 @@ def _cli():
         type=argparse.FileType('w'),
         help='Write to OUT_FILE rather than sys.stdout.')
     optional_grp.add_argument(
-        '-s', '--sep', default=',', 
+        '-s', '--sep', default=',',
         help='Delimiter to use.  Regular expressions are accepted.'
         '  [default: %(default)s]')
     optional_grp.add_argument(
@@ -126,7 +126,7 @@ def _parse_null_fill(null_fill):
         new_null_fill.append((name, value))
 
     return new_null_fill
-        
+
 
 def _format_null_fill_name(name):
     if re.sub('[\w_]', '', name) != '':

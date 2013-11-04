@@ -182,7 +182,7 @@ class TestConcatCSV(unittest.TestCase):
         concat_csv._concat(self.outfile, paths, sep, index, header, axis)
         result = self.outfile.getvalue()
         benchmark = (
-            "name,age,name,height\n" + "ian,1,ian,11\n" 
+            "name,age,name,height\n" + "ian,1,ian,11\n"
             + "daniel,2,daniel,22\n")
         self.assertEqual(result, benchmark)
 

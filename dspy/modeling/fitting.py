@@ -56,7 +56,7 @@ def standardize(df, dont_standardize=[]):
     dont_standardize : List
         Names of variables to not standardize
 
-    Returns 
+    Returns
     -------
     Tuple of DataFrames: standardized_df, stats_df
         standardized_df is the standardized version of df
@@ -81,7 +81,7 @@ class CoefficientConverter(object):
     CoefficientConverter is initialized with one dataset, from this the
     standardization/winsorization rules are learned.
     The functions can be applied to other datasets.
-    
+
     Standardization part of module provides the fundamental relation:
         X.dot(self.unstandardize_params(w_st)) = self.standardize(X).dot(w_st)
 
@@ -98,7 +98,7 @@ class CoefficientConverter(object):
     2a) To fit, we use self.standardize to standardize a (possibly) new
         DataFrame.  This fit results in a set of "standardized params" w_st.
     2b) We obtain the "unstandardized params"
-        w = self.unstandardized_params(w_st) 
+        w = self.unstandardized_params(w_st)
     3)  To predict Y_hat corresponding to new input X, we use X.dot(w)
     """
     def __init__(
@@ -172,7 +172,7 @@ class CoefficientConverter(object):
             levels[sw] = df[sw].astype('float').apply(func)
 
         return levels
-    
+
     def _get_const_columns(self):
         """
         Returns a list of columns that were constant.  Note that the first of
@@ -219,12 +219,12 @@ class CoefficientConverter(object):
 
     def standardize(self, data):
         """
-        Returns a standardized version of data.  
+        Returns a standardized version of data.
 
         Parameters
         ----------
         data : pandas Series or DataFrame
-        
+
         Notes
         -----
         data is standardized according to the rules that self was initialized
@@ -343,7 +343,7 @@ def winsorize(series, lower_quantile=0, upper_quantile=1, max_std=np.inf):
 
     Notes
     -----
-    Trimming according to max_std is done AFTER quantile trimming.  
+    Trimming according to max_std is done AFTER quantile trimming.
     I.e. the std is computed on the series that has already been trimmed by
     quantile.
     """

@@ -36,7 +36,7 @@ def _cli():
         type=argparse.FileType('w'),
         help='Write to OUT_FILE rather than sys.stdout.')
     parser.add_argument(
-        '-s', '--sep', default=',', 
+        '-s', '--sep', default=',',
         help='Delimiter to use.  Regular expressions are accepted.'
         '  [default: %(default)s]')
 
@@ -73,7 +73,7 @@ def _concat(outfile, paths, sep, index, header, axis):
     kwargs = {'sep': sep, 'index': index, 'header': header}
 
     frames.to_csv(outfile, **kwargs)
-    
+
 
 if __name__ == '__main__':
     _cli()

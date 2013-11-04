@@ -86,10 +86,10 @@ class TestVWHelpers(unittest.TestCase):
         result = vw_helpers.parse_varinfo(self.varinfo_file)
         benchmark = pd.DataFrame(
             {
-                'feature_name': ['bcc', 'illiquids'], 
-                'hash_val': [77964, 83330], 
-                'max_val': [1., 2.], 
-                'min_val': [0., 5.], 
+                'feature_name': ['bcc', 'illiquids'],
+                'hash_val': [77964, 83330],
+                'max_val': [1., 2.],
+                'min_val': [0., 5.],
                 'rel_score': [1., 0.6405],
                 'weight': [0.2789, -0.1786]}).set_index('hash_val')
         assert_frame_equal(result, benchmark)
@@ -174,7 +174,7 @@ class TestSFileFilter(unittest.TestCase):
         self.sff = text_processors.SFileFilter(
             formatter, bit_precision=20, verbose=False)
         self.hash_fun = self.sff._get_hash_fun()
-    
+
     @property
     def sfile_1(self):
         return StringIO(
@@ -270,7 +270,7 @@ class TestSFileFilter(unittest.TestCase):
             self.sfile_1, self.outfile, doc_id_list=['doc1'])
         result = self.outfile.getvalue()
         benchmark = (
-            " 1 doc1| %d:1 %s:2\n" % 
+            " 1 doc1| %d:1 %s:2\n" %
             (self.hash_fun('word1'), self.hash_fun('word2')))
         self.assertEqual(result, benchmark)
 
@@ -290,7 +290,7 @@ class TestSFileFilter(unittest.TestCase):
             enforce_all_doc_id=False)
         result = self.outfile.getvalue()
         benchmark = (
-            " 1 doc1| %d:1 %s:2\n" % 
+            " 1 doc1| %d:1 %s:2\n" %
             (self.hash_fun('word1'), self.hash_fun('word2')))
         self.assertEqual(result, benchmark)
 
@@ -312,7 +312,7 @@ class TestSFileFilter(unittest.TestCase):
         self.sff.compactify()
         self.assertEqual(
             self.sff.vocab_size - 1, max(self.sff.token2id.values()))
-    
+
     def tearDown(self):
         self.outfile.close()
 

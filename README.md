@@ -1,17 +1,20 @@
 DSpy
-=======
+====
 
-Tools for Data Science.
+Tools, wrappers, etc... for data science with a concentration on text processing
 
 * Utilities to move data from one Data Structure to another
 * Strong focus on stream processing of text
 * Utilities to use packages outside the normal Python ecosystem
 * Command line utilities
 * Focus on "medium data", i.e. data too big to fit into memory but too small to necessitate the use of a cluster.
+* The *DS* in DSpy clearly relates to *Data Science*.  However, it came first from *Data Structure* and the *Dead Sea*.  The tools concentrate on streaming text, and the dead sea scrolls are the most famous version of text in a stream (a lake actually...but just pretend and it's really cool).
 
 
 Packages
 --------
+
+See the `examples/` directory for more details.
 
 * `cmd` Command line utilities
 * `modeling` Utilities to help common modeling tasks

@@ -23,7 +23,7 @@ class BaseTokenizer(SaveLoad):
     """
     def text_to_counter(self, text):
         """
-        Return a counter associated to tokens in text.  
+        Return a counter associated to tokens in text.
         Filter/transform words according to the scheme this Tokenizer uses.
 
         Parameters
@@ -62,7 +62,7 @@ class TokenizerBasic(BaseTokenizer):
     """
     def text_to_token_list(self, text):
         """
-        Return a list of tokens.  
+        Return a list of tokens.
         Filter/transform words according to the scheme this Tokenizer uses.
 
         Parameters
@@ -122,17 +122,17 @@ class TokenizerPOSFilter(BaseTokenizer):
         return token_list
 
     def _sent_filter(self, tokenized_sent):
-       return [word for (word, pos) in tokenized_sent if pos in self.pos_types] 
+       return [word for (word, pos) in tokenized_sent if pos in self.pos_types]
 
 
 class SparseFormatter(object):
     """
-    Base class for sparse formatting, e.g. VW or svmlight.  
+    Base class for sparse formatting, e.g. VW or svmlight.
     Not meant to be directly used.
     """
     def _parse_feature_str(self, feature_str):
         """
-        Parses a sparse feature string and returns 
+        Parses a sparse feature string and returns
         feature_values = {feature1: value1, feature2: value2,...}
         """
         # We currently don't support namespaces, so feature_str must start
@@ -151,7 +151,7 @@ class SparseFormatter(object):
     def sstr_to_dict(self, sstr):
         """
         Returns a dict representation of sparse record string.
-        
+
         Parameters
         ----------
         sstr : String
@@ -266,7 +266,7 @@ class SparseFormatter(object):
         except ValueError:
             # See if it is empty and there is an empty_sub value
             if (string == '') and (empty_sub is not None):
-                return empty_sub 
+                return empty_sub
             else:
                 raise
 
@@ -295,7 +295,7 @@ class VWFormatter(SparseFormatter):
 
         Parameters
         ----------
-        feature_values : Dict-like 
+        feature_values : Dict-like
             {feature1: value1,...}
         target : Real number
             The value we are trying to predict.
@@ -353,7 +353,7 @@ class VWFormatter(SparseFormatter):
         else:
             doc_id = None
 
-        # Step from left to right through preamble.  
+        # Step from left to right through preamble.
         # We are in the target until we encounter the first space...if there
         # is no target, then the first character will be a space.
         in_target = True
@@ -376,7 +376,7 @@ class VWFormatter(SparseFormatter):
                     parsed[key] = self._string_to_number(value)
                 else:
                     parsed[key] = value
-        
+
         return parsed
 
 
@@ -386,7 +386,7 @@ class SVMLightFormatter(SparseFormatter):
     http://svmlight.joachims.org/
 
     <line> .=. <target> <feature>:<value> <feature>:<value> ...
-    <target> .=. +1 | -1 | 0 | <float> 
+    <target> .=. +1 | -1 | 0 | <float>
     <feature> .=. <integer> | "qid"
     <value> .=. <float>
     <info> .=. <string>
@@ -464,7 +464,7 @@ class SFileFilter(SaveLoad):
                 int(hashlib.sha224(w).hexdigest(), 16) % self.precision)
         else:
             raise ValueError("Precision above 224 bit not supported")
-        
+
         return hash_fun
 
     def load_sfile(self, sfile):
@@ -534,7 +534,7 @@ class SFileFilter(SaveLoad):
         """
         id_counts = Counter(self.token2id.values())
         vocab_size = self.vocab_size
-        
+
         # Make sure we don't have too many collisions
         num_collisions = vocab_size - len(id_counts)
         self._print(
@@ -543,7 +543,7 @@ class SFileFilter(SaveLoad):
             msg = (
                 "Too many collisions to be efficient: "
                 "num_collisions = %d.  vocab_size = %d.  Try using the "
-                "function collision_probability to estimate needed precision" 
+                "function collision_probability to estimate needed precision"
                 % ( num_collisions, vocab_size))
             raise CollisionError(msg)
 
@@ -644,9 +644,9 @@ class SFileFilter(SaveLoad):
                 record_dict = self.formatter.sstr_to_dict(line)
                 if extra_filter(record_dict):
                     record_dict['feature_values'] = {
-                        self.token2id[token]: value 
+                        self.token2id[token]: value
                         for token, value
-                        in record_dict['feature_values'].iteritems() 
+                        in record_dict['feature_values'].iteritems()
                         if token in self.token2id}
                     new_sstr = self.formatter.get_sstr(**record_dict)
                     g.write(new_sstr + '\n')
@@ -709,12 +709,12 @@ class SFileFilter(SaveLoad):
                 | (frame.doc_freq > (doc_fraction_max * self.num_docs))
                 | (frame.token_score < token_score_min)
                 | (frame.token_score > token_score_max)
-                | (frame.token_score 
+                | (frame.token_score
                     < frame.token_score.quantile(token_score_quantile_min))
-                | (frame.token_score 
+                | (frame.token_score
                     > frame.token_score.quantile(token_score_quantile_max))
                 )
-        
+
         self._print(
             "Removed %d/%d tokens" % (to_remove_mask.sum(), len(frame)))
         self.filter_tokens(frame[to_remove_mask].index)
@@ -785,8 +785,8 @@ class SFileFilter(SaveLoad):
 
 def collision_probability(vocab_size, bit_precision):
     """
-    Approximate probability of at least one collision 
-    (assuming perfect hashing).  See the Wikipedia article on 
+    Approximate probability of at least one collision
+    (assuming perfect hashing).  See the Wikipedia article on
     "The birthday problem" for details.
 
     Parameters
@@ -797,7 +797,7 @@ def collision_probability(vocab_size, bit_precision):
         Number of bits in space we are hashing to
     """
     exponent = - vocab_size * (vocab_size - 1) / 2.**bit_precision
-    
+
     return 1 - np.exp(exponent)
 
 

@@ -31,7 +31,7 @@ def word_tokenize(text, L=1, numeric=True):
 
 def is_stopword(string):
     return string.lower() in stopwords_eng
-        
+
 def is_letter(s):
     try:
         return len(s)==1 and s.isalpha()
