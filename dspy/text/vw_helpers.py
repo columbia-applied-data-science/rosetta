@@ -119,7 +119,7 @@ def find_start_line_lda_predictions(predictions_file, num_topics):
     -----
     The predictions_file contains repeated predictions...one for every pass.
     We parse out and include only the last predictions by looking for repeats
-    of the first lines doc_id field.  We thus, at this time, require the VW 
+    of the first lines doc_id field.  We thus, at this time, require the VW
     formatted file to have, in the last column, a unique doc_id associated
     with the doc.
     """
@@ -188,13 +188,13 @@ class LDAResults(object):
     """
     Facilitates working with results of VW lda runs.
 
-    See http://hunch.net/~vw/  as a starting place for VW information.  
+    See http://hunch.net/~vw/  as a starting place for VW information.
 
     See https://github.com/JohnLangford/vowpal_wabbit/wiki/lda.pdf
     for a brief tutorial of lda in VW.
 
-    The tutorials above and documentation is far from all-inclusive.  
-    More detail can be found by searching through the yahoo group mailing list:  
+    The tutorials above and documentation is far from all-inclusive.
+    More detail can be found by searching through the yahoo group mailing list:
     http://tech.groups.yahoo.com/group/vowpal_wabbit/
     """
     def __init__(
@@ -273,16 +273,16 @@ class LDAResults(object):
         Examples
         --------
         prob_token_topic(c_topic=['topic_0'])
-          = P(token, topic | topic in ['topic_0'])  
+          = P(token, topic | topic in ['topic_0'])
           for all possible (token, topic) pairs
 
         prob_token_topic(token=['war', 'peace'], c_topic=['topic_0'])
-          = P(token, topic | topic in ['topic_0'])  
+          = P(token, topic | topic in ['topic_0'])
           for all (token, topic) pairs with token in ['war', 'peace]
 
         prob_token_topic(token=['war', 'peace'], topic=['topic_0'])
           = P(token, topic)
-          for all (token, topic) pairs 
+          for all (token, topic) pairs
           with token in ['war', 'peace] and topic in ['topic_0']
         """
         df = self.pr_token_topic.copy()
@@ -338,12 +338,12 @@ class LDAResults(object):
         outstr = "=" * 10 + header + "=" * 10
 
         for topic_name in self.pr_topic.index:
-            outstr += ('\n' + "-" * 30 + '\nTopic name: %s.  P[%s] = %.4f' 
+            outstr += ('\n' + "-" * 30 + '\nTopic name: %s.  P[%s] = %.4f'
                 % (topic_name, topic_name, self.pr_topic[topic_name]))
             sorted_topic = self.pr_token_g_topic.loc[topic_name].order(
                 ascending=False)
             outstr += "\n" + sorted_topic.head(num_words).to_string() + "\n"
-        
+
         with smart_open(outfile, 'w') as f:
             f.write(outstr)
 

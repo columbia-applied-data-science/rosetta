@@ -118,7 +118,7 @@ def groupby_to_series_to_frame(
     >>> df = pd.DataFrame({'a': [6, 2, 2], 'b': [4, 5, 6]})
     >>> labels = ['g1', 'g1', 'g2']
     # Result and benchmark will be equal...despite the fact that you can't
-    # do df.groupby(labels).apply(np.mean) 
+    # do df.groupby(labels).apply(np.mean)
     >>> benchmark = df.groupby(labels).mean()
     >>> result = groupby_to_series_to_frame(
     ...    df, np.mean, 1, use_apply=True, by=labels)
@@ -130,7 +130,7 @@ def groupby_to_series_to_frame(
     grouped = frame.groupby(**groupby_kwargs)
     apply_func = partial(_get_label_values, func, use_apply)
 
-    # For every group, get the label (group name) and the values 
+    # For every group, get the label (group name) and the values
     # (output of apply_func)
     labels_values = map_easy(apply_func, grouped, n_jobs)
     labels, values = zip(*labels_values)

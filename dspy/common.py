@@ -70,7 +70,7 @@ class smart_open(object):
 def get_list_from_filerows(infile):
     """
     Returns a list generated from rows of a file.
-    
+
     Parameters
     ----------
     infile : File buffer or path
@@ -138,7 +138,7 @@ def unpickleme(pkl_file):
 
 
 def get_structured_array(listoflists, schema, dropmissing=False):
-    """ 
+    """
     Uses schema to convert listoflists to a structured array.
 
     Parameters
@@ -175,7 +175,7 @@ class BadDataError(Exception):
 
 class ConfigurationSyntaxError(Exception):
     """
-    Dummy class that is exactly like the Exception class. 
+    Dummy class that is exactly like the Exception class.
     Used to deal with syntax issues config files.
     """
     pass

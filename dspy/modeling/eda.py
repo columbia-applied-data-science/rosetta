@@ -46,7 +46,7 @@ def reducedY_vs_binnedX(
     labels=None):
     """
     Bin X and, inside every bin, apply Y_reducer to the Y values.
-    
+
     Parameters
     ----------
     x : Pandas.Series with numeric data
@@ -81,7 +81,7 @@ def reducedY_vs_binnedX(
     ## Get the labels that are also used to group the x data
     if labels is None:
         labels = get_labels(x, bins=bins, quantiles=quantiles)
-    
+
     ## Reduce Y
     y_reduced = y.groupby([labels]).agg(Y_reducer)
 
@@ -99,7 +99,7 @@ def reducedY_vs_binnedX(
     count_X.name = '#[X=x]'
     y_reduced.index.name = x.name
     count_X.index.name = x.name
-    
+
     return y_reduced, count_X
 
 
@@ -108,7 +108,7 @@ def plot_reducedY_vs_binnedX(
     plot_count_X=False, **plt_kwargs):
     """
     Bin X and, inside every bin, apply Y_reducer to the Y values.  Then plot.
-    
+
     Parameters
     ----------
     x : Pandas.Series with numeric data
@@ -223,7 +223,7 @@ def get_decent_cols(df, col_list_to_choose_from=None, null_frac=0.9):
             decent_cols.append(col_name)
 
     return decent_cols
-        
+
 
 def hist_cols(
     df, cols_to_plot, num_cols, num_rows, figsize=None, **kwargs):
@@ -246,19 +246,19 @@ def hist_cols(
     num_figures = len(cols_to_plot)
     num_plots = num_figures / (num_cols * num_rows)
     if num_plots * num_cols * num_rows < num_figures:
-        num_plots += 1 
+        num_plots += 1
     # Plot the cols
     old_figure_index = -1
     for item_index, col_name in enumerate(cols_to_plot):
         # Set up the subplot
-        figure_index = item_index / (num_rows * num_cols) 
+        figure_index = item_index / (num_rows * num_cols)
         if figure_index != old_figure_index:
             #plt.figure(figure_index)
             plt.figure(figsize=figsize)
             plt.clf()
             plt.suptitle('Histograms %d' % figure_index)
             old_figure_index = figure_index
-        subplot_index = item_index % (num_rows * num_cols) 
+        subplot_index = item_index % (num_rows * num_cols)
         plt.subplot(num_rows, num_cols, subplot_index)
         # Plot
         col = df[col_name]

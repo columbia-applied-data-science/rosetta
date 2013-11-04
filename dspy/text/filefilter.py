@@ -4,7 +4,7 @@ import shutil
 import re
 import sys
 import subprocess
-#import pdb 
+#import pdb
 from numpy.random import rand
 from functools import partial
 
@@ -14,7 +14,7 @@ from ..common import lazyprop
 Contains a collection of function that clean, decode and move files around.
 """
 
-def get_paths(base_path, file_type="*", relative=False, get_iter=False, 
+def get_paths(base_path, file_type="*", relative=False, get_iter=False,
         limit=None):
     """
     Crawls subdirectories and returns an iterator over paths to files that
@@ -167,7 +167,7 @@ class PathFinder(object):
         the filename.
         """
         return dict(zip(self.doc_id, self.paths))
-        
+
     def __getitem__(self, identifiers):
         """
         self[identifiers] returns a list of paths corresponding to identifiers.

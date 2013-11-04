@@ -85,7 +85,7 @@ class VWStreamer(BaseStreamer):
         self.shuffle = shuffle
 
         self.formatter = text_processors.VWFormatter()
-        
+
         if cache_sfile:
             self.source = self._cached_stream
             self._init_cached_stream()
@@ -134,8 +134,8 @@ class VWStreamer(BaseStreamer):
             for i, line in enumerate(infile):
                 if i == self.limit:
                     raise StopIteration
-                
-                record_dict = self.formatter.sstr_to_dict(line) 
+
+                record_dict = self.formatter.sstr_to_dict(line)
                 if doc_id is not None:
                     if record_dict['doc_id'] not in doc_id:
                         continue
@@ -164,7 +164,7 @@ class TextFileStreamer(BaseStreamer):
     For streaming from text files.
     """
     def __init__(
-        self, text_base_path=None, file_type='*', name_strip=r'\..*', 
+        self, text_base_path=None, file_type='*', name_strip=r'\..*',
         tokenizer=None, tokenizer_func=None, limit=None, shuffle=True):
         """
         Parameters
@@ -198,7 +198,7 @@ class TextFileStreamer(BaseStreamer):
         assert (tokenizer is None) or (tokenizer_func is None)
         if tokenizer_func:
             self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
-    
+
     @lazyprop
     def paths(self):
         """
@@ -253,7 +253,7 @@ class TextFileStreamer(BaseStreamer):
 
         if doc_id is not None:
             paths = [self._doc_id_to_path[str(doc)] for doc in doc_id]
-        elif paths is None:            
+        elif paths is None:
             paths = self.paths
 
         for index, onepath in enumerate(paths):
@@ -262,9 +262,9 @@ class TextFileStreamer(BaseStreamer):
 
             with open(onepath, 'r') as f:
                 text = f.read()
-                doc_id = re.sub(self.name_strip, '', 
+                doc_id = re.sub(self.name_strip, '',
                         filefilter.path_to_name(onepath, strip_ext=False))
-                info_dict = {'text': text, 'cached_path': onepath, 
+                info_dict = {'text': text, 'cached_path': onepath,
                         'doc_id': doc_id}
                 if self.tokenizer:
                     info_dict['tokens'] = (
@@ -280,7 +280,7 @@ class TextFileStreamer(BaseStreamer):
         ----------
         outfile : filepath or buffer
         n_jobs : Integer
-            Use n_jobs different jobs to do the processing.  Set = 4 for 4 
+            Use n_jobs different jobs to do the processing.  Set = 4 for 4
             jobs.  Set = -1 to use all available, -2 for all except 1,...
         chunksize : Integer
             Workers process this many jobs at once before pickling and sending

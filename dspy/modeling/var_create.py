@@ -68,7 +68,7 @@ def build_xy_for_linearize(
     Y_reducer : Function
         Used to reduce Y in each of the bins.  E.g np.mean, logit_of_mean.
     x_lims : 2-tuple, (xmin, xmax)
-        Rescaled x will be constant outside of this range.  
+        Rescaled x will be constant outside of this range.
         Choose xmin, xmax such that you have enough data in the interval
         (xmin, xmax)
     endpoints : Array-like

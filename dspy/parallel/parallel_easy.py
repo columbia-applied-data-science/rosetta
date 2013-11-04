@@ -35,7 +35,7 @@ def imap_easy(func, iterable, n_jobs, chunksize, ordered=True):
     Parameters
     ----------
     func : Function of one variable
-        You can use functools.partial to build this.  
+        You can use functools.partial to build this.
         A lambda function will not work
     iterable : List, iterator, etc...
         func is applied to this
@@ -88,11 +88,11 @@ def map_easy(func, iterable, n_jobs):
     """
     Returns a parallel map of func over iterable.
     Returns all results at once, so if results are big memory issues may arise
-    
+
     Parameters
     ----------
     func : Function of one variable
-        You can use functools.partial to build this.  
+        You can use functools.partial to build this.
         A lambda function will not work
     iterable : List, iterator, etc...
         func is applied to this
@@ -131,7 +131,7 @@ def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None):
     Parameters
     ----------
     func : Function of one variable
-        You can use functools.partial to build this.  
+        You can use functools.partial to build this.
         A lambda function will not work
     iterable : List, iterator, etc...
         func is applied to this
@@ -188,7 +188,7 @@ def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None):
 
 def get_split_idx(N, blocksize, pad=0):
     """
-    Returns a list of indexes dividing an array into blocks of size blocksize 
+    Returns a list of indexes dividing an array into blocks of size blocksize
     with optional padding.  Padding takes into account that the resultant block
     must fit within the original array.
 
@@ -240,7 +240,7 @@ def get_split_idx(N, blocksize, pad=0):
     if remainder:
         start = max(0, num_fullsplits * blocksize - pad)
         split_idx.append((start, N))
-        
+
         leftpad = num_fullsplits * blocksize - start
         pads_used.append((leftpad, 0))
 
@@ -281,7 +281,7 @@ def _imap_wrap(func):
     """
     Adds timeout to IMapIterator and IMapUnorderedIterator.
     This allows exit upon Ctrl-C.  This is a fix
-    of the known python bug  bugs.python.org/issue8296 given by 
+    of the known python bug  bugs.python.org/issue8296 given by
     https://gist.github.com/aljungberg/626518
 
     Parameters
@@ -309,8 +309,8 @@ def _trypickle(func):
     boundmethodmsg = genericmsg + '\n\n' + """
     func contained a bound method, and these cannot be pickled.  This causes
     multiprocessing to fail.  Possible causes/solutions:
-    
-    Cause 1) You used a lambda function or an object's method, e.g. 
+
+    Cause 1) You used a lambda function or an object's method, e.g.
         my_object.myfunc
     Solution 1) Wrap the method or lambda function, e.g.
         def func(x):
@@ -328,7 +328,7 @@ def _trypickle(func):
             sys.stderr.write(boundmethodmsg + "\n")
         else:
             sys.stderr.write(genericmsg + '\n')
-        raise 
+        raise
     except:
         sys.stderr.write(genericmsg + '\n')
         raise

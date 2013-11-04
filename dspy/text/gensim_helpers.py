@@ -12,11 +12,11 @@ class StreamerCorpus(object):
     A "corpus type" object built with token streams and dictionaries.
 
     Depending on your method for streaming tokens, this could be slow...
-    Before modeling, it's usually better to serialize this corpus using: 
+    Before modeling, it's usually better to serialize this corpus using:
 
     self.to_corpus_plus(fname)
     or
-    gensim.corpora.SvmLightCorpus.serialize(path, self) 
+    gensim.corpora.SvmLightCorpus.serialize(path, self)
     """
     def __init__(self, streamer, dictionary, doc_id=None, limit=None):
         """
@@ -83,7 +83,7 @@ class SvmLightPlusCorpus(corpora.SvmLightCorpus):
         corpora.SvmLightCorpus.__init__(self, fname)
 
         self.limit = limit
-        
+
         # All possible doc_id in the corpus
         self.doc_id_all = common.get_list_from_filerows(fname + '.doc_id')
         self.doc_id_all = self.doc_id_all[: limit]
@@ -102,7 +102,7 @@ class SvmLightPlusCorpus(corpora.SvmLightCorpus):
     @property
     def doc_id(self):
         return self._doc_id
-    
+
     @doc_id.setter
     def doc_id(self, iterable):
         # Called whenever you set self.doc_id = something
@@ -186,7 +186,7 @@ def get_words_docfreq(dictionary):
     """
     id2token = dict(dictionary.items())
     words_df = pd.DataFrame(
-            {id2token[tokenid]: [tokenid, docfreq] 
+            {id2token[tokenid]: [tokenid, docfreq]
              for tokenid, docfreq in dictionary.dfs.iteritems()},
             index=['tokenid', 'docfreq']).T
     words_df = words_df.sort_index(by='docfreq', ascending=False)
@@ -198,7 +198,7 @@ def get_topics_df(corpus, lda):
     """
     Creates a delimited file with doc_id and topics scores.
     """
-    topics_df = pd.concat((pd.Series(dict(doc)) for doc in 
+    topics_df = pd.concat((pd.Series(dict(doc)) for doc in
         lda[corpus]), axis=1).fillna(0).T
     topics_df = topics_df.rename(
         columns={i: 'topic_' + str(i) for i in topics_df.columns})

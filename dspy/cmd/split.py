@@ -28,7 +28,7 @@ def main():
     will produce the files data_split-0-50.csv and data_split-1-50.csv
 
     $ python split.py -r 60/20/20 data.csv
-    will produce a 60/20/20 split 
+    will produce a 60/20/20 split
 
     $ python split.py --ratio=60/40 -k -s name dataset.csv
     will produce a 60/40 split and keep only one record from each group, with
@@ -85,7 +85,7 @@ def split(
     """
     Write later, if module interface is needed.
     """
-    ## Get the reader 
+    ## Get the reader
     if file_to_read == 'stdin':
         reader = csv.reader(sys.stdin)
     else:

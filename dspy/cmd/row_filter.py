@@ -91,7 +91,7 @@ def filter_file(infile, outfile, name, mode, match_str, delimiter):
         'contains': _check_contains, 'not_contains': _check_not_contains,
         'equals': _check_equals, 'not_equals': _check_not_equals}
 
-    ## Iterate through the file, printing out lines 
+    ## Iterate through the file, printing out lines
     for row in reader:
         if mode_fun[mode](row[name], match_str):
             writer.writerow(row)
