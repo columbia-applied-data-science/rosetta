@@ -492,6 +492,10 @@ class SFileFilter(SaveLoad):
         ----------
         sfile : String or open file
             The sparse formatted file we will load.
+
+        Returns
+        -------
+        self
         """
         # TODO Allow loading of more than one sfile
         assert not self.sfile_loaded
@@ -507,6 +511,8 @@ class SFileFilter(SaveLoad):
 
         self.sfile_loaded = True
         self.collisions_resolved = False
+
+        return self
 
     def _load_sfile_fwd(self, sfile):
         """
@@ -616,6 +622,8 @@ class SFileFilter(SaveLoad):
             "Compactification done.  self.bit_precision_required = %d"
             % self.bit_precision_required)
 
+        return self
+
     def set_bit_precision_required(self):
         """
         Sets self.bit_precision_required to the minimum bit precision b such
@@ -717,6 +725,10 @@ class SFileFilter(SaveLoad):
             can be in.
         token_score_quantile_max : Float in [0, 1]
             Maximum quantile that the token score can be in
+
+        Returns
+        -------
+        self
         """
         frame = self.to_frame()
         to_remove_mask = (
@@ -736,6 +748,8 @@ class SFileFilter(SaveLoad):
             "Removed %d/%d tokens" % (to_remove_mask.sum(), len(frame)))
         self.filter_tokens(frame[to_remove_mask].index)
 
+        return self
+
     def filter_tokens(self, tokens):
         """
         Remove tokens from appropriate attributes.
@@ -744,6 +758,10 @@ class SFileFilter(SaveLoad):
         ----------
         tokens : String or iterable over strings
             E.g. a single token or list of tokens
+
+        Returns
+        -------
+        self
         """
         if isinstance(tokens, str):
             tokens = [tokens]
@@ -755,6 +773,8 @@ class SFileFilter(SaveLoad):
             self.doc_freq.pop(tok)
             if hasattr(self, 'id2token'):
                 self.id2token.pop(id_value)
+
+        return self
 
     def _print(self, msg):
         if self.verbose:

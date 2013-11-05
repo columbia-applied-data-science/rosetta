@@ -24,11 +24,10 @@ See the `examples/` directory for more details.
 
 Install
 -------
-Check out the dev branch or a tagged release from the [dspyrepo][dspyrepo].  Then do the usual
+Check out the dev branch or a tagged release from the [dspyrepo][dspyrepo].  Then (so long as you have `pip`).
 
-    python setup.py install
+    make
     make test
-
 
 Development
 -----------
@@ -53,7 +52,5 @@ Testing
 From the base repo directory, `dspy/`, you can run all tests with
 
     make test
-
-
 
 [dspyrepo]: https://github.com/columbia-applied-data-science/dspy

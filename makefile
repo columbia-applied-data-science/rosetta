@@ -8,10 +8,14 @@ CTAGS ?= ctags
 
 TESTDIR=dspy/tests
 
-all: test
+all: install test
 
-clean-install: clean
+reinstall: clean
 	pip uninstall dspy
+	$(PYTHON) setup.py sdist
+	pip install dist/*
+
+install: clean
 	$(PYTHON) setup.py sdist
 	pip install dist/*
 

@@ -3,7 +3,7 @@ Working with Vowpal Wabbit (VW)
 
 To work with the `dspy` utilities you need to:
 
-* Clone the [dspy repo][dspyrepo]  or download/unpack a tagged release, and then do the usual `python setup.py install` then `make test`, or just type `make`
+* Clone the [dspy repo][dspyrepo]  and read `README.md`.
 
 Create the sparse file (sfile)
 ------------------------------
