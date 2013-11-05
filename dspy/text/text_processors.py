@@ -1,3 +1,20 @@
+"""
+Tokenizer
+---------
+Classes with a .text_to_token_list method (and a bit more).  Used by other
+modules as a means to convert stings to lists of strings.
+
+If you have a function that converts strings to lists of strings, you can
+make a tokenizer from it by using MakeTokenizer(my_tokenizing_func).
+
+SparseFormatter
+---------------
+Classes for converting text to sparse representations (e.g. VW or SVMLight).
+
+SFileFilter
+-----------
+Classes for filtering words/rows from a sparse formatted file.
+"""
 from collections import Counter, defaultdict
 from functools import partial
 import hashlib

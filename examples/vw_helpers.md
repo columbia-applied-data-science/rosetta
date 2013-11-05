@@ -1,14 +1,9 @@
 Working with Vowpal Wabbit (VW)
 ===============================
 
-To work with the `declass` utilities you need to:
+To work with the `dspy` utilities you need to:
 
-* Clone the [dspy repo][dspyrepo]  or download/unpack a tagged release, and then do the usual
-
-    python setup.py install
-    make test
-
-These files are being updated often.  If you already cloned them, make sure to pull the latest release.
+* Clone the [dspy repo][dspyrepo]  or download/unpack a tagged release, and then do the usual `python setup.py install` then `make test`, or just type `make`
 
 Create the sparse file (sfile)
 ------------------------------
@@ -26,8 +21,8 @@ The `TextFileStreamer` needs a method to convert the text files to a list of str
 Once you have a tokenizer, just initialize a streamer and write the VW file.
 
 ```python
-from declass.utils.streamers import TextFileStreamer
-from declass.utils.text_processors import TokenizerBasic
+from dspy.text.streamers import TextFileStreamer
+from dspy.text.text_processors import TokenizerBasic
 
 my_tokenizer = TokenizerBasic()
 stream = TextFileStreamer(text_base_path='bodyfiles', tokenizer=my_tokenizer)
