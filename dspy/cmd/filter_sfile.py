@@ -1,3 +1,4 @@
+#! python
 """
 Filters an sfile, reading from a file or stdin, writing to a file or stdout.
 """

@@ -141,6 +141,8 @@ class TestVWHelpers(unittest.TestCase):
 
 class TestLDAResults(unittest.TestCase):
     def setUp(self):
+        self.outfile = StringIO()
+
         formatter = text_processors.VWFormatter()
         sff = text_processors.SFileFilter(
             formatter, bit_precision=8, verbose=False)
@@ -160,6 +162,20 @@ class TestLDAResults(unittest.TestCase):
             "39 58 doc2")
         self.lda = vw_helpers.LDAResults(
             topics_file_1, predictions_file_1, num_topics_1, sff)
+
+    def test_print_topics_1(self):
+        self.lda.print_topics(num_words=2, outfile=self.outfile)
+        result = self.outfile.getvalue()
+        benchmark = (
+            u'========== Printing top 2 tokens in every topic==========\n-----'
+            '-------------------------\nTopic name: topic_0.  P[topic_0] = 0.4'
+            '000\n       topic_0  doc_fraction\ntoken                       \n'
+            'w1        0.75             1\nw0        0.25             1\n\n---'
+            '---------------------------\nTopic name: topic_1.  P[topic_1] = 0'
+            '.6000\n        topic_1  doc_fraction\ntoken                      '
+            '  \nw1     0.666667             1\nw0     0.333333             1'
+            '\n')
+        self.assertEqual(result, benchmark)
 
     def test_set_probabilities_marginals(self):
         pr_doc = pd.Series({'doc1': 3./(3+39+58), 'doc2': (39.+58)/(3+39+58)})
@@ -187,6 +203,9 @@ class TestLDAResults(unittest.TestCase):
             {'topic_0': [np.nan], 'topic_1': [np.nan]}, index=['w0'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
+
+    def tearDown(self):
+        self.outfile.close()
 
 
 class TestSFileFilter(unittest.TestCase):

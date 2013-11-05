@@ -323,7 +323,8 @@ class LDAResults(object):
     def pr_topic_g_doc(self):
         return self.pr_topic_doc.div(self.pr_doc, axis=0).T
 
-    def print_topics(self, num_words=5, outfile=sys.stdout):
+    def print_topics(
+        self, num_words=5, outfile=sys.stdout, show_doc_fraction=True):
         """
         Print the top results for self.pr_token_g_topic for all topics
 
@@ -333,6 +334,8 @@ class LDAResults(object):
             Print the num_words words (ordered by P[w|topic]) in each topic.
         outfile : filepath or buffer
             Write results to this file.
+        show_doc_fraction : Boolean
+            If True, print doc_fraction along with the topic weight
         """
         header = " Printing top %d tokens in every topic" % num_words
         outstr = "=" * 10 + header + "=" * 10
@@ -340,9 +343,14 @@ class LDAResults(object):
         for topic_name in self.pr_topic.index:
             outstr += ('\n' + "-" * 30 + '\nTopic name: %s.  P[%s] = %.4f'
                 % (topic_name, topic_name, self.pr_topic[topic_name]))
-            sorted_topic = self.pr_token_g_topic.loc[topic_name].order(
-                ascending=False)
-            outstr += "\n" + sorted_topic.head(num_words).to_string() + "\n"
+            sorted_topic = self.pr_token_g_topic[topic_name].order(
+                ascending=False).head(num_words)
+
+            if show_doc_fraction:
+                sorted_topic = self.sfile_frame.join(sorted_topic, how='right')
+                sorted_topic = sorted_topic[[topic_name, 'doc_fraction']]
+
+            outstr += "\n" + sorted_topic.to_string() + "\n"
 
         with smart_open(outfile, 'w') as f:
             f.write(outstr)

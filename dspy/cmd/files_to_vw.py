@@ -1,3 +1,4 @@
+#! python
 """
 Converts files into newline separated lists of tokens.
 Tokens are represented in Vowpal Wabbit format.

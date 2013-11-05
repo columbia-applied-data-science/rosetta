@@ -21,8 +21,7 @@ The `TextFileStreamer` needs a method to convert the text files to a list of str
 Once you have a tokenizer, just initialize a streamer and write the VW file.
 
 ```python
-from dspy.text.streamers import TextFileStreamer
-from dspy.text.text_processors import TokenizerBasic
+from dspy import TextFileStreamer, TokenizerBasic
 
 my_tokenizer = TokenizerBasic()
 stream = TextFileStreamer(text_base_path='bodyfiles', tokenizer=my_tokenizer)
@@ -30,23 +29,23 @@ stream.to_vw('doc_tokens.vw', n_jobs=-1)
 ```
 
 ### Method 2: `files_to_vw.py`
-`files_to_vw.py` is a fast and simple command line utility for converting files to VW format.
+`files_to_vw.py` is a fast and simple command line utility for converting files to VW format.  Installing `dspy` will put these utilities in your path.
 
 * Try converting the first 5 files in `my_base_path`.  The following should print 5 lines of of results, in [vw format][vwinput]
 
 ```bash
-find my_base_path -type f | head -n 5 | python $DECLASS/cmd/files_to_vw.py
+find my_base_path -type f | head -n 5 | python files_to_vw.py
 ```
 
 Convert the entire directory quickly.
 
 ```bash
-python $DECLASS/cmd/files_to_vw.py --base_path my_base_path --n_jobs -2 -o doc_tokens.vw
+files_to_vw.py --base_path my_base_path --n_jobs -2 -o doc_tokens.vw
 ```
 
 * The `-o` option is the path to your output file.
 * For lots of small files, set `--chunksize` to something larger than the default (1000).  This is the number one parameter for performance optimization.
-* To see an explanation for all options, type `python $DECLASS/cmd/files_to_vw.py -h`.
+* To see an explanation for all options, type `files_to_vw.py -h`.
 
 
 #### To use a custom tokenizer with Method 1
@@ -94,7 +93,7 @@ There are some issues with using the raw `prediction.dat` and `topics.dat` files
 ### Step 1:  Make an `SFileFilter`
 
 ```python
-from declass.utils.text_processors import SFileFilter, VWFormatter
+from declass import SFileFilter, VWFormatter
 sff = SFileFilter(VWFormatter())
 sff.load_sfile('doc_tokens.vw')
 
@@ -141,7 +140,7 @@ The workflow in step 2a requires making the intermediate file `doc_tokens_filter
 
 ```
 rm -f *cache
-python $DECLASS/cmd/filter_sfile.py -s sff_file.pkl  doc_tokens.vw  \
+filter_sfile.py -s sff_file.pkl  doc_tokens.vw  \
     | vw --lda 5 --cache_file ddrs.cache --passes 10 -p prediction.dat --readable_model topics.dat --bit_precision 16
 ```
 The python function `filter_sfile.py` takes in `ddrs.vw` and streams a filtered sfile to stdout.  The `|` connects VW to this stream.  Notice we no longer specify an input file to VW (previously we passed it a `doc_tokens_filtered.vw` positional argument).
@@ -151,7 +150,7 @@ The python function `filter_sfile.py` takes in `ddrs.vw` and streams a filtered 
 You can view the topics and predictions with this:
 
 ```python
-from declass.utils.vw_helpers import LDAResults
+from dspy.text.vw_helpers import LDAResults
 num_topics = 5
 lda = LDAResults('topics.dat', 'prediction.dat', num_topics, 'sff_file.pkl')
 lda.print_topics()
