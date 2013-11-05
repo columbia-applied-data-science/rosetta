@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-DISTNAME = 'DSpy'
+DISTNAME = 'dspy'
 LICENSE = 'BSD'
 MAINTAINER = "The DsPy Development Team"
 EMAIL = "ianlangmore@gmail.com"
@@ -14,13 +14,20 @@ SCRIPTS = [
     ['concat_csv.py', 'cut.py', 'join_csv.py',
     'row_filter.py', 'split.py', 'subsample.py']]
 
-PACKAGES = ['dspy'] + [
-    'dspy/' + name for name in 
+PACKAGES =  ['dspy'] + [
+    'dspy.' + name for name in 
     ['cmd', 'modeling', 'parallel', 'text', 'workflow']]
+
+
+#PY_MODULES =  ['dspy'] + [
+#    'dspy/' + name for name in 
+#    ['cmd', 'modeling', 'parallel', 'text', 'workflow']]
+
 
 setup(
     name=DISTNAME,
     version='0.1.0dev',
+#    py_modules=PY_MODULES,
     packages=PACKAGES,
     scripts=SCRIPTS,
     license=LICENSE,
