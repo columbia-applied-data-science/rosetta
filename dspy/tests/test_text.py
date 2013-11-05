@@ -169,12 +169,11 @@ class TestLDAResults(unittest.TestCase):
         benchmark = (
             u'========== Printing top 2 tokens in every topic==========\n-----'
             '-------------------------\nTopic name: topic_0.  P[topic_0] = 0.4'
-            '000\n       topic_0  doc_fraction\ntoken                       \n'
-            'w1        0.75             1\nw0        0.25             1\n\n---'
-            '---------------------------\nTopic name: topic_1.  P[topic_1] = 0'
-            '.6000\n        topic_1  doc_fraction\ntoken                      '
-            '  \nw1     0.666667             1\nw0     0.333333             1'
-            '\n')
+            '000\n       topic_0  doc_freq\ntoken                   \nw1      '
+            '  0.75         2\nw0        0.25         2\n\n-------------------'
+            '-----------\nTopic name: topic_1.  P[topic_1] = 0.6000\n        t'
+            'opic_1  doc_freq\ntoken                    \nw1     0.66666'
+            '7         2\nw0     0.333333         2\n')
         self.assertEqual(result, benchmark)
 
     def test_set_probabilities_marginals(self):

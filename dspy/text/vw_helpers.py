@@ -348,7 +348,7 @@ class LDAResults(object):
 
             if show_doc_fraction:
                 sorted_topic = self.sfile_frame.join(sorted_topic, how='right')
-                sorted_topic = sorted_topic[[topic_name, 'doc_fraction']]
+                sorted_topic = sorted_topic[[topic_name, 'doc_freq']]
 
             outstr += "\n" + sorted_topic.to_string() + "\n"
 
