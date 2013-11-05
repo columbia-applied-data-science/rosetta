@@ -14,13 +14,14 @@ def main():
     -----------
     Splits a file or stdin into multiple files.  Assumes a header.
 
-    Allows grouping by a special column and then sending identical groups to
+    Allows grouping by a key column and then sending identical groups to
     the same file, possibly keeping only one member of each group.  To do
-    this, the data must first be sorted by the special column.
+    this, the data must first be sorted by the key column.
 
     Automatically names output files by appending e.g. _split-0-40, _split-1-60
     for a 40/60 split filename.
 
+    Assumes the first row is a header.
 
     EXAMPLES
     --------
@@ -33,11 +34,6 @@ def main():
     $ python split.py --ratio=60/40 -k -s name dataset.csv
     will produce a 60/40 split and keep only one record from each group, with
     the "name" column determining the groups.
-
-
-    NOTES
-    -----
-    Assumes the first row is a header.
     """
     usage = "usage: %prog [options] dataset"
     usage += '\n'+main.__doc__
@@ -52,11 +48,11 @@ def main():
         "filename.  [default: %default] ",
         action="store", dest='base_name', default=None)
     parser.add_option(
-        "-s", "--special_column",
-        help="String (in the header) defining the special column. "
+        "-k", "--key_column",
+        help="String (in the header) defining the key column. "
         "[default: %default].  Needed only if you want to use the "
         "grouping functionality.",
-        action="store", dest='special_column', default=None)
+        action="store", dest='key_column', default=None)
     parser.add_option(
         "-k", "--keeprandomone",
         help="Keep only one record from each group.  Choose the record "
@@ -80,7 +76,7 @@ def main():
 
 
 def split(
-    file_to_read, base_name=None, ratio='50/50', special_column=None,
+    file_to_read, base_name=None, ratio='50/50', key_column=None,
     keeprandomone=False):
     """
     Write later, if module interface is needed.
@@ -102,9 +98,9 @@ def split(
 
     ## Define the function that gets the key for each group
     # If it is None, then groupby returns each line unchanged.
-    if special_column:
-        special_idx = header.index(special_column)
-        keyfunc = lambda row : row[special_idx]
+    if key_column:
+        key_idx = header.index(key_column)
+        keyfunc = lambda row : row[key_idx]
     else:
         keyfunc = None
 

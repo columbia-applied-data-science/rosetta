@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Join a list of csv files along indices.  Allows you to specify the indices
 for every file, the join type, and missing data fill values.
