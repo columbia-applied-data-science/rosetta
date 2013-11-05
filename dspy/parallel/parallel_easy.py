@@ -1,5 +1,11 @@
 """
 Functions to assist in parallel processing with Python 2.7.
+
+* Memory-friendly iterator functionality (wrapping Pool.imap).
+* Exit with Ctrl-C.
+* Easy use of n_jobs. (e.g. when n_jobs == 1, processing is serial)
+* Similar to joblib.Parallel but with the addition of imap functionality
+  and a more effective way of handling Ctrl-C exit (we add a timeout).
 """
 import itertools
 from functools import partial
@@ -113,12 +119,12 @@ def map_easy(func, iterable, n_jobs):
     >>> map_easy(func, some_numbers)
     [0, 6, 12, 18, 24]
     """
-    _trypickle(func)
     n_jobs = _n_jobs_wrap(n_jobs)
 
     if n_jobs == 1:
         return map(func, iterable)
     else:
+        _trypickle(func)
         pool = Pool(n_jobs)
         return pool.map_async(func, iterable).get(GOOGLE)
 

@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Removes rows in csv file (or stdin) with header where columns meet
 certain criteria.

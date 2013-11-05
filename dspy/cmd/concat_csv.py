@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Concat a list of csv files in an "outer join" style.
 
