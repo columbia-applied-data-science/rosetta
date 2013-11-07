@@ -6,12 +6,11 @@ import matplotlib.pylab as plt
 
 from time import time
 from gensim import corpora, models
-from declass.utils import (
-        text_processors, filefilter, streamers, gensim_helpers, common)
-from common import lazyprop
+from dspy.text import (
+        text_processors, filefilter, streamers, gensim_helpers)
+from dspy.common import lazyprop
 
-from text_processors import TokenizerBasic
-
+from dspy.text.text_processors import TokenizerBasic
 
 class Topics(object):
     """
