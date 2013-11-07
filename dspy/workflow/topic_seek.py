@@ -8,6 +8,7 @@ from time import time
 from gensim import corpora, models
 from dspy.text import (
         text_processors, filefilter, streamers, gensim_helpers)
+from dspy import common
 from dspy.common import lazyprop
 
 from dspy.text.text_processors import TokenizerBasic
