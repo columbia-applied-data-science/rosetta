@@ -12,8 +12,7 @@ from random import shuffle
 from declass.utils import filefilter, text_processors, nlp
 from declass.utils.common import SaveLoad
 
-from parallel_easy.base import imap_easy
-
+from dspy.parallel.parallel_easy import imap_easy
 
 def _cli():
     # Text to display after help

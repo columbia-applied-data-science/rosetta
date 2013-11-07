@@ -6,7 +6,7 @@ from random import shuffle
 import re
 from functools import partial
 
-from parallel_easy.base import imap_easy
+from dspy.parallel.parallel_easy import imap_easy
 
 from .. import common
 from ..common import lazyprop, smart_open
