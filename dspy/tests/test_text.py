@@ -189,19 +189,54 @@ class TestLDAResults(unittest.TestCase):
         assert_series_equal(self.lda.pr_token, pr_token)
 
     def test_prob_1(self):
-        result = self.lda.prob_token_topic(token=['w0'], c_token=['w1'])
+        result = self.lda.prob_token_topic(token='w0', c_token=['w1'])
         benchmark = pd.DataFrame(
             {'topic_0': [np.nan], 'topic_1': [np.nan]}, index=['w0'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
 
-    @unittest.skip("Finish this module!")
     def test_prob_2(self):
         result = self.lda.prob_token_topic(c_token=['w1'])
         benchmark = pd.DataFrame(
-            {'topic_0': [np.nan], 'topic_1': [np.nan]}, index=['w0'])
+            {'topic_0': [3/7.], 'topic_1': [4/7.]}, index=['w1'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
+
+    def test_prob_3(self):
+        result = self.lda.prob_token_topic(topic=['topic_0'], token=['w0'])
+        benchmark = pd.DataFrame({'topic_0': [1/10.]}, index=['w0'])
+        benchmark.index.name = 'token'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_4(self):
+        result = self.lda.prob_token_topic(c_topic=['topic_0'])
+        benchmark = pd.DataFrame({'topic_0': [1/4., 3/4.]}, index=['w0', 'w1'])
+        benchmark.index.name = 'token'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_5(self):
+        result = self.lda.prob_token_topic(token=['w0'], c_topic=['topic_0'])
+        benchmark = pd.DataFrame({'topic_0': [1/4.]}, index=['w0'])
+        benchmark.index.name = 'token'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_6(self):
+        result = self.lda.prob_doc_topic(doc=['doc1'], c_topic=['topic_0'])
+        benchmark = pd.DataFrame({'topic_0': [1/40.]}, index=['doc1'])
+        benchmark.index.name = 'doc'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_6(self):
+        result = self.lda.prob_doc_topic(
+            doc=['doc1', 'doc2'], c_topic=['topic_0'])
+        benchmark = pd.DataFrame(
+            {'topic_0': [1/40., 39/40.]}, index=['doc1', 'doc2'])
+        benchmark.index.name = 'doc'
+        assert_frame_equal(result, benchmark)
+
+    def test_repr(self):
+        result = self.lda.__repr__()
+        benchmark = 'LDAResults with 2 topics, 2 docs, 2 topics, 2 tokens'
 
     def tearDown(self):
         self.outfile.close()

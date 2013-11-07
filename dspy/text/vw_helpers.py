@@ -192,10 +192,6 @@ class LDAResults(object):
 
     See https://github.com/JohnLangford/vowpal_wabbit/wiki/lda.pdf
     for a brief tutorial of lda in VW.
-
-    The tutorials above and documentation is far from all-inclusive.
-    More detail can be found by searching through the yahoo group mailing list:
-    http://tech.groups.yahoo.com/group/vowpal_wabbit/
     """
     def __init__(
         self, topics_file, predictions_file, num_topics, sfile_filter):
@@ -228,11 +224,20 @@ class LDAResults(object):
         predictions = parse_lda_predictions(
             predictions_file, num_topics, start_line, normalize=False)
 
+        self.num_docs = len(predictions)
+        self.num_tokens = len(topics)
+
         # Check that the topics/docs/token names are unique with no overlap
         self._check_names(topics, predictions)
 
         # Set probabilities
         self._set_probabilities(topics, predictions)
+
+    def __repr__(self):
+        st = "LDAResults for %d topics, %d docs, %d topics, %d tokens" % (
+            self.num_topics, self.num_docs, self.num_topics, self.num_tokens)
+
+        return st
 
     def _check_names(self, topics, predictions):
         tokens = topics.index
@@ -259,16 +264,22 @@ class LDAResults(object):
         self.pr_token_topic.index.name = 'token'
         self.pr_doc_topic = predictions / predictions.sum().sum()
 
-    def prob_token_topic(self, **kwargs):
+    def prob_token_topic(
+        self, token=None, topic=None, c_token=None, c_topic=None):
         """
         Return joint densities of (token, topic),
-        possibly restricted to subsets, with possible conditioning.
+        restricted to subsets, conditioned on variables.
 
         Parameters
         ----------
-        kwargs : key=value
-            possible keys:  'topic', 'token', 'c_topic', 'c_token'
-            possible values:  values contained in the token/topic axis.
+        token : list-like or string
+            Restrict returned probabilities to these tokens
+        topic : list-like or string
+            Restrict returned probabilities to these topics
+        c_token : list-like or string
+            Condition on token in c_token
+        c_topic : list-like or string
+            Condition on topic in c_topic
 
         Examples
         --------
@@ -285,43 +296,77 @@ class LDAResults(object):
           for all (token, topic) pairs
           with token in ['war', 'peace] and topic in ['topic_0']
         """
-        df = self.pr_token_topic.copy()
-
-        # Restrict using the conditionals
-        if 'c_topic' in kwargs:
-            df = df.ix[:, kwargs['c_topic']]
-        if 'c_token' in kwargs:
-            df = df.ix[kwargs['c_token'], :]
-        df = df / df.sum().sum()
-
-        # Cut out according to variables
-        if 'topic' in kwargs:
-            df = df.ix[:, kwargs['topic']]
-        if 'token' in kwargs:
-            df = df.ix[kwargs['token'], :]
-
+        df = self._prob_func(
+            self.pr_token_topic, token, topic, c_token, c_topic)
         df.index.name = 'token'
 
         return df
 
-    @property
-    def pr_token_g_topic(self):
-        return self.pr_topic_token.div(self.pr_topic, axis=1)
+    def prob_doc_topic(self, doc=None, topic=None, c_doc=None, c_topic=None):
+        """
+        Return joint probabilities of (doc, topic),
+        restricted to subsets, conditioned on variables.
 
-    @property
-    def pr_topic_g_token(self):
-        return self.pr_topic_token.div(self.pr_token, axis=0).T
+        Parameters
+        ----------
+        doc : list-like or string
+            Restrict returned probabilities to these doc_ids
+        topic : list-like or string
+            Restrict returned probabilities to these topics
+        c_doc : list-like or string
+            Condition on doc_id in c_doc
+        c_topic : list-like or string
+            Condition on topic in c_topic
 
-    @property
-    def pr_doc_g_topic(self):
-        # Note:  self.pr_topic is computed using a different file than
-        # self.pr_topic_doc....the resultant implied pr_topic series differ
-        # unless many passes are used.
-        return self.pr_topic_doc.div(self.pr_topic, axis=1)
+        Examples
+        --------
+        prob_doc_topic(c_topic=['topic_0'])
+          = P(doc, topic | topic in ['topic_0'])
+          for all possible (doc, topic) pairs
 
-    @property
-    def pr_topic_g_doc(self):
-        return self.pr_topic_doc.div(self.pr_doc, axis=0).T
+        prob_doc_topic(doc=['doc0', 'doc1'], c_topic=['topic_0'])
+          = P(doc, topic | topic in ['topic_0'])
+          for all (doc, topic) pairs with doc in ['doc0', 'doc1']
+
+        prob_doc_topic(doc=['doc0', 'doc1'], topic=['topic_0'])
+          = P(doc, topic)
+          for all (doc, topic) pairs
+          with doc in ['doc0', 'doc1'] and topic in ['topic_0']
+        """
+        df = self._prob_func(self.pr_doc_topic, doc, topic, c_doc, c_topic)
+        df.index.name = 'doc'
+
+        return df
+
+    def _prob_func(self, df, rows, cols, c_rows, c_cols):
+        """
+        General pmf for functions of two variables.
+        """
+        df = df.copy()
+
+        if isinstance(rows, basestring):
+            rows = [rows]
+        if isinstance(cols, basestring):
+            cols = [cols]
+        if isinstance(c_rows, basestring):
+            c_rows = [c_rows]
+        if isinstance(c_cols, basestring):
+            c_cols = [c_cols]
+
+        # Restrict using the conditionals
+        if c_cols is not None:
+            df = df.ix[:, c_cols]
+        if c_rows is not None:
+            df = df.ix[c_rows, :]
+        df = df / df.sum().sum()
+
+        # Cut out according to variables
+        if cols is not None:
+            df = df.ix[:, cols]
+        if rows is not None:
+            df = df.ix[rows, :]
+
+        return df
 
     def print_topics(
         self, num_words=5, outfile=sys.stdout, show_doc_fraction=True):
@@ -355,4 +400,22 @@ class LDAResults(object):
         with smart_open(outfile, 'w') as f:
             f.write(outstr)
 
+    @property
+    def pr_token_g_topic(self):
+        return self.pr_topic_token.div(self.pr_topic, axis=1)
+
+    @property
+    def pr_topic_g_token(self):
+        return self.pr_topic_token.div(self.pr_token, axis=0).T
+
+    @property
+    def pr_doc_g_topic(self):
+        # Note:  self.pr_topic is computed using a different file than
+        # self.pr_topic_doc....the resultant implied pr_topic series differ
+        # unless many passes are used.
+        return self.pr_topic_doc.div(self.pr_topic, axis=1)
+
+    @property
+    def pr_topic_g_doc(self):
+        return self.pr_topic_doc.div(self.pr_doc, axis=0).T
 
