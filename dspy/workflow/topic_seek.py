@@ -153,22 +153,21 @@ class Topics(object):
 
         return lda
 
-    def write_topics(self, path=None, num_words=5):
+    def write_topics(self, num_words=5, outfile=sys.stdout):
         """
-        Writes the topics to disk.
+        Writes the topics to outfile.
 
         Parameters
         ----------
-        path : string
-            Designates file to write to.  If None, write to stdout.
+        outfile : filepath or buffer
+            Designates file to write to.
         num_words : int
             number of words to write with each topic
         """
-        outfile = common.get_outfile(path)
-        for t in xrange(self.num_topics):
-            outfile.write('topic %s' % t + '\n')
-            outfile.write(self.lda.print_topic(t, topn=num_words) + '\n')
-        common.close_outfile(outfile)
+        with common.smart_open(outfile, 'w') as f:
+            for t in xrange(self.num_topics):
+                f.write('topic %s' % t + '\n')
+                f.write(self.lda.print_topic(t, topn=num_words) + '\n')
 
     def write_doc_topics(self, save_path, sep='|'):
         """
