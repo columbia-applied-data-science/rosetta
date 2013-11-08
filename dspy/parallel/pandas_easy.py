@@ -50,14 +50,14 @@ def groupby_to_scalar_to_series(df_or_series, func, n_jobs, **groupby_kwargs):
 
     Examples
     --------
-    >>> from jrl_utils.src.parallel_easy import groupby_to_series
+    >>> from dspy.parallel.pandas_easy import groupby_to_series
     >>> df = pd.DataFrame({'a': [6, 2, 2], 'b': [4, 5, 6]})
     >>> df
        a  b
     0  6  4
     1  2  5
     2  2  6
-    >>> parallel_easy.groupby_to_series(df, max, n_jobs, by='a')
+    >>> groupby_to_series(df, max, n_jobs, by='a')
     2    b
     6    b
 
@@ -68,7 +68,7 @@ def groupby_to_scalar_to_series(df_or_series, func, n_jobs, **groupby_kwargs):
     2    3
     3    4
     >>> labels = ['a', 'a', 'b', 'b']
-    >>> parallel_easy.groupby_to_series(s, max, 1, by=labels)
+    >>> groupby_to_series(s, max, 1, by=labels)
     a    2
     b    4
     """
@@ -114,7 +114,7 @@ def groupby_to_series_to_frame(
 
     Examples
     --------
-    >>> from jrl_utils.src.parallel_easy import groupby_to_series_to_frame
+    >>> from dspy.parallel.pandas_easy import groupby_to_series_to_frame
     >>> df = pd.DataFrame({'a': [6, 2, 2], 'b': [4, 5, 6]})
     >>> labels = ['g1', 'g1', 'g2']
     # Result and benchmark will be equal...despite the fact that you can't
@@ -177,8 +177,6 @@ def _get_label_values(func, use_apply, name_and_group):
     return name, value
 
 
-
 if __name__ == '__main__':
     # Can't get doctest to work with multiprocessing...
     pass
-

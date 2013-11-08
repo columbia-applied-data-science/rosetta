@@ -5,10 +5,8 @@ Put functions specific to logistic regression in multinomial_fitter
 import copy
 
 import numpy as np
-import pandas as pd
-from matplotlib.pylab import plt
 
-from sklearn.cross_validation import cross_val_score, StratifiedKFold
+from sklearn.cross_validation import StratifiedKFold
 
 from .. import common_math
 
@@ -51,5 +49,5 @@ def predict_proba_cv(clf, X, y, n_folds=5):
                 "Training set did not contain samples from all classes."
                 "Try decreasing the number of folds or use more data")
         probas[test, :] = clf.fit(X[train], y[train]).predict_proba(X[test])
-  
+
     return probas

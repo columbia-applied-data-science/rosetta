@@ -5,6 +5,8 @@ import csv
 import scipy as sp
 from itertools import groupby
 
+from random import choice
+
 
 #### Global variables
 
@@ -100,7 +102,7 @@ def split(
     # If it is None, then groupby returns each line unchanged.
     if key_column:
         key_idx = header.index(key_column)
-        keyfunc = lambda row : row[key_idx]
+        keyfunc = lambda row: row[key_idx]
     else:
         keyfunc = None
 
@@ -132,7 +134,7 @@ class Monkeys(object):
         self.monkey_list = []
         self.file_list = []
         for m in xrange(len(self.split_nums)):
-            file_name = base_name_nocsv + '_split-' + str(m) + '-'\
+            file_name = base_name_nocsv + '_split-' + str(m) + '-' \
                 + split_ints[m] +'.csv'
             f = open(file_name, 'w')
             writer = csv.writer(f, delimiter=',')
@@ -178,5 +180,5 @@ def process_group(group, writer, keeprandomone=False, keepfirstone=False):
         writer.writerows(group_list)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

@@ -12,7 +12,7 @@ def _cli():
     # Text to display after help
     epilog = r"""
     EXAMPLES
-    
+
     Read from stdin, write to stdout and pipe to vw
     head myfile.vw | python filter_sfile.py -s saved_sfile_filter.pkl \
         | vw --lda 5
@@ -45,4 +45,3 @@ def do_filter(infile, outfile, sfile_filter):
 
 if __name__ == '__main__':
     _cli()
-

@@ -11,8 +11,6 @@ import sys
 from numpy.random import rand
 from numpy.random import seed as randomseed
 
-from dspy import common
-
 
 def main():
     epilog = r"""
@@ -69,8 +67,9 @@ def main():
         args.key_column, args.seed)
 
 
-def subsample(infile, outfile, subsample_rate=0.01, delimiter=',',
-    key_column=None, seed=None):
+def subsample(
+    infile, outfile, subsample_rate=0.01, delimiter=',', key_column=None,
+    seed=None):
     """
     Write later, if module interface is needed.
     """
@@ -118,5 +117,5 @@ def _subsample_using_keys(reader, writer, subsample_rate, key_column):
                 keys_to_not_use.add(key_value)
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
     main()

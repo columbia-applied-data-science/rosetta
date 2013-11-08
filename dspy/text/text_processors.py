@@ -16,22 +16,17 @@ SFileFilter
 Classes for filtering words/rows from a sparse formatted file.
 """
 from collections import Counter, defaultdict
-from functools import partial
 import hashlib
-import zlib
 import random
-import copy
-import cPickle
 import re
 
 import nltk
 import numpy as np
 import pandas as pd
 
-from .. import common
-from ..common import lazyprop, smart_open
+from ..common import smart_open
 from ..common_abc import SaveLoad
-from . import filefilter, nlp
+from . import nlp
 
 
 class BaseTokenizer(SaveLoad):
@@ -139,7 +134,8 @@ class TokenizerPOSFilter(BaseTokenizer):
         return token_list
 
     def _sent_filter(self, tokenized_sent):
-       return [word for (word, pos) in tokenized_sent if pos in self.pos_types]
+        return [
+            word for (word, pos) in tokenized_sent if pos in self.pos_types]
 
 
 class SparseFormatter(object):
@@ -567,7 +563,7 @@ class SFileFilter(SaveLoad):
                 "Too many collisions to be efficient: "
                 "num_collisions = %d.  vocab_size = %d.  Try using the "
                 "function collision_probability to estimate needed precision"
-                % ( num_collisions, vocab_size))
+                % (num_collisions, vocab_size))
             raise CollisionError(msg)
 
         # Seed for testing
@@ -684,10 +680,10 @@ class SFileFilter(SaveLoad):
         # Possible filters to use
         if doc_id_list is not None:
             self._doc_id_set = set(doc_id_list)
+
             def doc_id_filter(record_dict):
                 doc_id = record_dict['doc_id']
                 self._doc_id_seen.add(doc_id)
-
                 return doc_id in self._doc_id_set
         else:
             self._doc_id_set = set()
@@ -732,17 +728,17 @@ class SFileFilter(SaveLoad):
         """
         frame = self.to_frame()
         to_remove_mask = (
-                  (frame.doc_freq < doc_freq_min)
-                | (frame.doc_freq > doc_freq_max)
-                | (frame.doc_freq < (doc_fraction_min * self.num_docs))
-                | (frame.doc_freq > (doc_fraction_max * self.num_docs))
-                | (frame.token_score < token_score_min)
-                | (frame.token_score > token_score_max)
-                | (frame.token_score
-                    < frame.token_score.quantile(token_score_quantile_min))
-                | (frame.token_score
-                    > frame.token_score.quantile(token_score_quantile_max))
-                )
+            (frame.doc_freq < doc_freq_min)
+            | (frame.doc_freq > doc_freq_max)
+            | (frame.doc_freq < (doc_fraction_min * self.num_docs))
+            | (frame.doc_freq > (doc_fraction_max * self.num_docs))
+            | (frame.token_score < token_score_min)
+            | (frame.token_score > token_score_max)
+            | (frame.token_score
+                < frame.token_score.quantile(token_score_quantile_min))
+            | (frame.token_score
+                > frame.token_score.quantile(token_score_quantile_max))
+            )
 
         self._print(
             "Removed %d/%d tokens" % (to_remove_mask.sum(), len(frame)))

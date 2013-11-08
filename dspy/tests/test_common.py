@@ -3,12 +3,10 @@ tests for common, common_abc, etc...
 """
 import unittest
 from StringIO import StringIO
-import sys
 from numpy.testing import assert_allclose
-from datetime import datetime
-import copy
 
 from dspy import common
+
 
 class TestCommon(unittest.TestCase):
     """

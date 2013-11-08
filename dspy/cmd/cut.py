@@ -122,7 +122,5 @@ def cut_file(infile, outfile, delimiter=',', keep_list=None, remove_list=None):
             raise
 
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     main()
-

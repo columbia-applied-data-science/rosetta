@@ -6,13 +6,6 @@ Please be sure to read this carefully to make
 the code review process go as smoothly as possible and maximize the
 likelihood of your contribution being merged.**
 
-Data
-----
-
-* Don't commit data to the repo
-* Read README_data.md for an example of how to manage data in a medium size project
-
-
 How to contribute
 -----------------
 
@@ -61,17 +54,11 @@ following rules before submitting a pull request:
    example script in the ``examples/`` folder. Have a look at other
    examples for reference. Examples should demonstrate why the new
    functionality is useful in practice and, if possible, compare it
-   to other methods available in scikit-learn.
+   to other methods available in dspy.
 
 -  At least one paragraph of narrative documentation with links to
 ````   references in the literature (with PDF links when possible) and
    the example.
-
-The documentation should also include expected time and space
-complexity of the algorithm and scalability, e.g. "this algorithm
-can scale to a large number of samples > 100000, but does not
-scale in dimensionality: n_features is expected to be lower than
-100".
 
 You can also check for common programming errors with the following
 tools:

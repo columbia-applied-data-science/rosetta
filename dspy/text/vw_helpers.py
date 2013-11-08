@@ -1,8 +1,6 @@
 """
 Wrappers to help with Vowpal Wabbit (VW).
 """
-import csv
-from collections import defaultdict
 import sys
 
 import pandas as pd
@@ -386,8 +384,9 @@ class LDAResults(object):
         outstr = "=" * 10 + header + "=" * 10
 
         for topic_name in self.pr_topic.index:
-            outstr += ('\n' + "-" * 30 + '\nTopic name: %s.  P[%s] = %.4f'
-                % (topic_name, topic_name, self.pr_topic[topic_name]))
+            outstr += (
+                '\n' + "-" * 30 + '\nTopic name: %s.  P[%s] = %.4f' % 
+                (topic_name, topic_name, self.pr_topic[topic_name]))
             sorted_topic = self.pr_token_g_topic[topic_name].order(
                 ascending=False).head(num_words)
 
@@ -418,4 +417,3 @@ class LDAResults(object):
     @property
     def pr_topic_g_doc(self):
         return self.pr_topic_doc.div(self.pr_doc, axis=0).T
-

@@ -8,14 +8,10 @@ Functions to assist in parallel processing with Python 2.7.
   and a more effective way of handling Ctrl-C exit (we add a timeout).
 """
 import itertools
-from functools import partial
 from multiprocessing import Pool, cpu_count
 from multiprocessing.pool import IMapUnorderedIterator, IMapIterator
 import cPickle
 import sys
-
-import numpy as np
-import pandas as pd
 
 
 ###############################################################################
@@ -62,7 +58,7 @@ def imap_easy(func, iterable, n_jobs, chunksize, ordered=True):
     Examples
     --------
     >>> from functools import partial
-    >>> from dspy.parallel.parallel_easy import imap_easy, map_easy
+    >>> from dspy.parallel.parallel_easy import imap_easy
     >>> def abfunc(x, a, b=1):
     ...     return x * a * b
     >>> some_numbers = range(3)
@@ -111,7 +107,7 @@ def map_easy(func, iterable, n_jobs):
     Examples
     --------
     >>> from functools import partial
-    >>> from dspy.parallel.parallel_easy import imap_easy, map_easy
+    >>> from dspy.parallel.parallel_easy import map_easy
     >>> def abfunc(x, a, b=1):
     ...     return x * a * b
     >>> some_numbers = range(5)
@@ -299,8 +295,8 @@ def _imap_wrap(func):
     wrap : Function
         Wrapped version of func, with timeout specified
     """
-    # func will be a next() method of IMapIterator.  Note that the first argument
-    # to methods are always 'self'.
+    # func will be a next() method of IMapIterator.
+    # Note that the first argument to methods are always 'self'.
     def wrap(self, timeout=None):
         return func(self, timeout=timeout if timeout is not None else GOOGLE)
     return wrap

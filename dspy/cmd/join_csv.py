@@ -6,7 +6,6 @@ for every file, the join type, and missing data fill values.
 From pandas, uses DataFrame.from_csv, DataFrame.to_csv, DataFrame.join to do
 reads/writes/joins.  Except noted below, the default arguments are used.
 """
-import csv
 import argparse
 import sys
 import re

@@ -4,7 +4,6 @@ from functools import partial
 import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
-import scipy as sp
 
 from dspy.parallel import parallel_easy, pandas_easy
 
@@ -15,12 +14,15 @@ def _abfunc(x, a, b=1):
     return x * a * b
 abfunc = partial(_abfunc, 2, 3)
 
+
 def frame_to_series(frame):
     x = frame.iloc[0, 0]
     return pd.Series([x] * len(frame.columns), index=frame.columns)
 
+
 def rightmax(mylist):
     return [max(mylist[i: i+2]) for i in range(len(mylist))]
+
 
 def leftmax(mylist):
     for i in range(len(mylist)):

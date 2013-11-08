@@ -1,21 +1,17 @@
 import sys
 import pandas as pd
 import numpy as np
-from numpy.testing import assert_allclose
 import matplotlib.pylab as plt
 
 from time import time
 from gensim import corpora, models
-from dspy.text import (
-        text_processors, filefilter, streamers, gensim_helpers)
+from dspy.text import streamers, gensim_helpers
 from dspy import common
-from dspy.common import lazyprop
 
-from dspy.text.text_processors import TokenizerBasic
 
 class Topics(object):
     """
-    Convenience wrapper for for the gensim LDA module. 
+    Convenience wrapper for for the gensim LDA module.
     See http://radimrehurek.com/gensim/ for more details.
     """
     def __init__(
@@ -43,26 +39,26 @@ class Topics(object):
         self.verbose = verbose
 
         assert tokenizer or tokenizer_func, (
-                        'you must specify either tokenizer or tokenizer_func')
-        
+            'you must specify either tokenizer or tokenizer_func')
+
         if text_base_path:
             self.streamer = streamers.TextFileStreamer(
-                    text_base_path=text_base_path, file_type=file_type,
-                    tokenizer=tokenizer, tokenizer_func=tokenizer_func, 
-                    limit=limit, shuffle=shuffle)
+                text_base_path=text_base_path, file_type=file_type,
+                tokenizer=tokenizer, tokenizer_func=tokenizer_func,
+                limit=limit, shuffle=shuffle)
 
     def set_dictionary(
         self, doc_id=None, load_path=None, no_below=5, no_above=0.5,
         save_path=None):
         """
         Convert token stream into a dictionary, setting self.dictionary.
-        
+
         Parameters
         ----------
         doc_id : List of doc_id
             Only use documents with these ids to build the dictionary
         load_path : string
-            path to saved dictionary 
+            path to saved dictionary
         no_below : Integer
             Do not keep words with total count below no_below
         no_above : Real number in [0, 1]
@@ -130,11 +126,11 @@ class Topics(object):
         update_every=1):
         """
         Buld the lda model on the current version of self.corpus.
-        
+
         Parameters
         ----------
         num_topics : int
-            number of topics 
+            number of topics
         alpha : list of floats, None
             hyperparameter vector for topic distribution
         eta : list of floats, None
@@ -147,9 +143,9 @@ class Topics(object):
         self.num_topics = num_topics
         t0 = time()
 
-        lda = models.LdaModel(self.corpus, id2word=self.dictionary, 
-                num_topics=num_topics, passes=passes, alpha=alpha, eta=eta, 
-                chunksize=chunksize, update_every=update_every)
+        lda = models.LdaModel(self.corpus, id2word=self.dictionary,
+            num_topics=num_topics, passes=passes, alpha=alpha, eta=eta,
+            chunksize=chunksize, update_every=update_every)
 
         build_time = (time() - t0) / 3600.
         self._print('LDA built in %.2f hours' % build_time)
@@ -160,7 +156,7 @@ class Topics(object):
     def write_topics(self, path=None, num_words=5):
         """
         Writes the topics to disk.
-        
+
         Parameters
         ----------
         path : string
@@ -170,7 +166,7 @@ class Topics(object):
         """
         outfile = common.get_outfile(path)
         for t in xrange(self.num_topics):
-            outfile.write('topic %s'%t + '\n')
+            outfile.write('topic %s' % t + '\n')
             outfile.write(self.lda.print_topic(t, topn=num_words) + '\n')
         common.close_outfile(outfile)
 
@@ -189,17 +185,18 @@ class Topics(object):
         msg = '=' * 79 + '\n'
         msg += "Topics QA test passed:  %s\n" % passed
         print(msg)
-    
+
     def _get_topics_df(self):
-        topics_df = pd.concat((pd.Series(dict(doc)) for doc in 
-            self.lda[self.corpus]), axis=1).fillna(0).T
+        topics_df = pd.concat(
+            (pd.Series(dict(doc)) for doc in self.lda[self.corpus]), axis=1
+            ).fillna(0).T
         topics_df.index = self.corpus.doc_id
         topics_df.index.name = 'doc_id'
         topics_df = topics_df.rename(
             columns={i: 'topic_' + str(i) for i in topics_df.columns})
 
         return topics_df
-            
+
     def _print(self, msg):
         if self.verbose:
             sys.stdout.write(msg + '\n')
@@ -210,7 +207,7 @@ class Topics(object):
         """
         id2token = dict(self.dictionary.items())
         words_df = pd.DataFrame(
-                {id2token[tokenid]: [tokenid, docfreq] 
+                {id2token[tokenid]: [tokenid, docfreq]
                  for tokenid, docfreq in self.dictionary.dfs.iteritems()},
                 index=['tokenid', 'docfreq']).T
         words_df = words_df.sort_index(by='docfreq', ascending=False)

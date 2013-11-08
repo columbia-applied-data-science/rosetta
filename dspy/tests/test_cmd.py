@@ -1,11 +1,7 @@
 import unittest
 from StringIO import StringIO
-import sys
 from numpy.testing import assert_allclose
-from datetime import datetime
 
-from dspy.common import BadDataError
-from dspy import common
 from dspy.cmd import concat_csv, join_csv, subsample, cut, row_filter
 
 
@@ -23,11 +19,11 @@ class TestCut(unittest.TestCase):
         self.outfile = StringIO()
 
         commastring = \
-        "name,age,weight\r\nian,1,11\r\ndaniel,2,22\r\nchang,3,33"
+            "name,age,weight\r\nian,1,11\r\ndaniel,2,22\r\nchang,3,33"
         self.commafile = StringIO(commastring)
 
         pipestring = \
-        "name|age|weight\r\nian|1|11\r\ndaniel|2|22\r\nchang|3|33"
+            "name|age|weight\r\nian|1|11\r\ndaniel|2|22\r\nchang|3|33"
         self.pipefile = StringIO(pipestring)
 
     def test_cut_file_keepname(self):
@@ -43,19 +39,22 @@ class TestCut(unittest.TestCase):
     def test_cut_file_keepnameage(self):
         cut.cut_file(self.commafile, self.outfile, keep_list=['name', 'age'])
         result = self.outfile.getvalue()
-        self.assertEqual('name,age\r\nian,1\r\ndaniel,2\r\nchang,3\r\n', result)
+        self.assertEqual(
+            'name,age\r\nian,1\r\ndaniel,2\r\nchang,3\r\n', result)
 
     def test_cut_file_keepagename(self):
         cut.cut_file(self.commafile, self.outfile, keep_list=['age', 'name'])
         result = self.outfile.getvalue()
-        self.assertEqual('age,name\r\n1,ian\r\n2,daniel\r\n3,chang\r\n', result)
+        self.assertEqual(
+            'age,name\r\n1,ian\r\n2,daniel\r\n3,chang\r\n', result)
 
     def test_cut_file_keepagename_pipe(self):
         cut.cut_file(
             self.pipefile, self.outfile, keep_list=['age', 'name'],
             delimiter='|')
         result = self.outfile.getvalue()
-        self.assertEqual('age|name\r\n1|ian\r\n2|daniel\r\n3|chang\r\n', result)
+        self.assertEqual(
+            'age|name\r\n1|ian\r\n2|daniel\r\n3|chang\r\n', result)
 
     def tearDown(self):
         self.outfile.close()
