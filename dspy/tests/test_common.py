@@ -26,5 +26,9 @@ class TestCommon(unittest.TestCase):
         common.write_list_to_filerows(self.outfile, ['a', 'b'])
         self.assertEqual(self.outfile.getvalue(), 'a\nb\n')
 
+    def test_get_outfile(self):
+        result = common.get_outfile(None)
+        self.assertTrue(isinstance(result, file))
+
     def tearDown(self):
         self.outfile.close()

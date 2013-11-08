@@ -63,6 +63,39 @@ class smart_open(object):
         return False
 
 
+def get_outfile(outfilename, outmode='wb', default=sys.stdout):
+    """
+    Open outfilename in outmode.
+
+    Parameters
+    ----------
+    outfilename : String
+        Name of file to open and return.
+        If None, return the kwarg 'default'
+    outmode : String
+        Mode to open file in
+    default : File buffer
+       The value to return if outfilename is None 
+
+    Returns
+    -------
+    outfile
+
+    Examples
+    --------
+    >>> outfile = get_outfile(outfilename)
+    >>> myfunction(outfile,...)
+    >>> close_outfile(outfile)
+    """
+    if isinstance(outfilename, str):
+        outfile = open(outfilename, outmode)
+    elif outfilename is None:
+        outfile = default
+    else:
+        raise ValueError("Argument outfilename is of type %s. Not handled." % outfilename)
+
+    return outfile
+
 ################################################################################
 # Functions to read special file formats
 ################################################################################
