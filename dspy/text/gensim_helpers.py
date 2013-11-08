@@ -2,7 +2,7 @@
 Helper objects/functions specifically for use with Gensim.
 """
 import pandas as pd
-from gensim import corpora, models
+from gensim import corpora
 
 from .. import common
 
@@ -186,9 +186,9 @@ def get_words_docfreq(dictionary):
     """
     id2token = dict(dictionary.items())
     words_df = pd.DataFrame(
-            {id2token[tokenid]: [tokenid, docfreq]
-             for tokenid, docfreq in dictionary.dfs.iteritems()},
-            index=['tokenid', 'docfreq']).T
+        {id2token[tokenid]: [tokenid, docfreq]
+         for tokenid, docfreq in dictionary.dfs.iteritems()},
+        index=['tokenid', 'docfreq']).T
     words_df = words_df.sort_index(by='docfreq', ascending=False)
 
     return words_df
@@ -198,8 +198,8 @@ def get_topics_df(corpus, lda):
     """
     Creates a delimited file with doc_id and topics scores.
     """
-    topics_df = pd.concat((pd.Series(dict(doc)) for doc in
-        lda[corpus]), axis=1).fillna(0).T
+    topics_df = pd.concat(
+        (pd.Series(dict(doc)) for doc in lda[corpus]), axis=1).fillna(0).T
     topics_df = topics_df.rename(
         columns={i: 'topic_' + str(i) for i in topics_df.columns})
 

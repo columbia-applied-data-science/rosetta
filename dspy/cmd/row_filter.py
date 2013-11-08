@@ -9,8 +9,6 @@ import csv
 # Set the limit to 1 billion columns
 #csv.field_size_limit(10000000)
 
-from dspy import common
-
 
 def _cli():
     epilog = r"""
@@ -114,6 +112,5 @@ def _check_not_equals(item, match_str):
     return not _check_equals(item, match_str)
 
 
-
-if __name__=='__main__':
+if __name__ == '__main__':
     _cli()

@@ -1,21 +1,15 @@
-from fnmatch import fnmatch
-import os
-import shutil
-import re
-import sys
-import subprocess
-#import pdb
-from numpy.random import rand
-from functools import partial
-
-from ..common import lazyprop
-
 """
 Contains a collection of function that clean, decode and move files around.
 """
+from fnmatch import fnmatch
+import os
+import re
 
-def get_paths(base_path, file_type="*", relative=False, get_iter=False,
-        limit=None):
+from ..common import lazyprop
+
+
+def get_paths(
+    base_path, file_type="*", relative=False, get_iter=False, limit=None):
     """
     Crawls subdirectories and returns an iterator over paths to files that
     match the file_type.
@@ -43,7 +37,7 @@ def get_paths(base_path, file_type="*", relative=False, get_iter=False,
 
 
 def _get_paths_iter(base_path, file_type="*", relative=False, limit=None):
-    counter=0
+    counter = 0
     for path, subdirs, files in os.walk(base_path, followlinks=True):
         for name in files:
             if fnmatch(name.lower(), file_type):
@@ -53,8 +47,9 @@ def _get_paths_iter(base_path, file_type="*", relative=False, limit=None):
                         path = path[1:]
                 if counter == limit:
                     raise StopIteration
+
                 yield os.path.join(path, name)
-                counter+=1
+                counter += 1
 
 
 def path_to_name(path, strip_ext=True):
@@ -90,26 +85,6 @@ def path_to_newname(path, name_level=1):
     return name
 
 
-def paths_to_files_iter(paths, mode='r'):
-    """
-    Returns an iterator that opens files in path_list.
-
-    Parameters
-    ----------
-    paths : Iterable over paths
-        Each path is a string
-    mode : String
-        mode to open the files in
-
-    Returns
-    -------
-    file_iter : Iterable
-        file_iter.next() gives the next open file.
-    """
-    for path in paths:
-        yield open(path.strip(), mode=mode)
-
-
 class PathFinder(object):
     """
     Find and access paths in a directory tree.
@@ -141,7 +116,7 @@ class PathFinder(object):
         Get all paths that we will use.
         """
         if self.text_base_path:
-            paths = filefilter.get_paths(
+            paths = get_paths(
                 self.text_base_path, self.file_type, limit=self.limit)
         else:
             paths = None

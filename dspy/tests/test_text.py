@@ -1,17 +1,13 @@
 import unittest
 from StringIO import StringIO
-import sys
-from datetime import datetime
-import copy
 from collections import Counter, OrderedDict
-import random
 
 import numpy as np
 from numpy.testing import assert_allclose
 import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
-from dspy.text import text_processors, streamers, vw_helpers, nlp
+from dspy.text import text_processors, vw_helpers, nlp
 
 
 class TestWordTokenizers(unittest.TestCase):
@@ -23,15 +19,16 @@ class TestWordTokenizers(unittest.TestCase):
         self.bigram_tokenize = nlp.bigram_tokenize
 
     def test_word_tokenize(self):
-        benchmark = ['Is', 'this', 'really', 'going', 'to', 'work', 'not', 
-                'sure', 'but', 'maybe', 'ok']
+        benchmark = [
+            'Is', 'this', 'really', 'going', 'to', 'work', 'not', 'sure',
+            'but', 'maybe', 'ok']
         result = self.word_tokenize(self.text)
         self.assertEqual(result, benchmark)
 
     def test_bigram_tokenize(self):
-        benchmark = [('Is', 'this'), ('this', 'really'), ('really', 'going'),
-                ('going', 'to'), ('to', 'work'), ('not', 'sure'),
-                ('but', 'maybe')]
+        benchmark = [
+            ('Is', 'this'), ('this', 'really'), ('really', 'going'),
+            ('going', 'to'), ('to', 'work'), ('not', 'sure'), ('but', 'maybe')]
         result = self.bigram_tokenize(self.text)
         self.assertEqual(result, benchmark)
 
@@ -74,6 +71,7 @@ class TestVWFormatter(unittest.TestCase):
             feature_values=feature_values, doc_id=doc_id,
             importance=importance)
         benchmark = " 1 %s| hello:1 dude:3" % doc_id
+        self.assertEqual(result, benchmark)
 
     def test_write_dict_01(self):
         record_str = " 3.2 doc_id1| hello:1 bye:2"
@@ -120,8 +118,9 @@ class TestVWHelpers(unittest.TestCase):
         result = vw_helpers.parse_lda_topics(
             self.topics_file_1, self.num_topics_1, normalize=False)
         benchmark = pd.DataFrame(
-            {'hash_val': [0, 1], 'topic_0': [1.1, 1.11], 'topic_1': [2.2, 2.22]}
-            ).set_index('hash_val')
+            {
+                'hash_val': [0, 1], 'topic_0': [1.1, 1.11],
+                'topic_1': [2.2, 2.22]}).set_index('hash_val')
         assert_frame_equal(result, benchmark)
 
     def test_parse_lda_predictions_01(self):
@@ -189,19 +188,55 @@ class TestLDAResults(unittest.TestCase):
         assert_series_equal(self.lda.pr_token, pr_token)
 
     def test_prob_1(self):
-        result = self.lda.prob_token_topic(token=['w0'], c_token=['w1'])
+        result = self.lda.prob_token_topic(token='w0', c_token=['w1'])
         benchmark = pd.DataFrame(
             {'topic_0': [np.nan], 'topic_1': [np.nan]}, index=['w0'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
 
-    @unittest.skip("Finish this module!")
     def test_prob_2(self):
         result = self.lda.prob_token_topic(c_token=['w1'])
         benchmark = pd.DataFrame(
-            {'topic_0': [np.nan], 'topic_1': [np.nan]}, index=['w0'])
+            {'topic_0': [3/7.], 'topic_1': [4/7.]}, index=['w1'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
+
+    def test_prob_3(self):
+        result = self.lda.prob_token_topic(topic=['topic_0'], token=['w0'])
+        benchmark = pd.DataFrame({'topic_0': [1/10.]}, index=['w0'])
+        benchmark.index.name = 'token'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_4(self):
+        result = self.lda.prob_token_topic(c_topic=['topic_0'])
+        benchmark = pd.DataFrame({'topic_0': [1/4., 3/4.]}, index=['w0', 'w1'])
+        benchmark.index.name = 'token'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_5(self):
+        result = self.lda.prob_token_topic(token=['w0'], c_topic=['topic_0'])
+        benchmark = pd.DataFrame({'topic_0': [1/4.]}, index=['w0'])
+        benchmark.index.name = 'token'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_6(self):
+        result = self.lda.prob_doc_topic(doc=['doc1'], c_topic=['topic_0'])
+        benchmark = pd.DataFrame({'topic_0': [1/40.]}, index=['doc1'])
+        benchmark.index.name = 'doc'
+        assert_frame_equal(result, benchmark)
+
+    def test_prob_7(self):
+        result = self.lda.prob_doc_topic(
+            doc=['doc1', 'doc2'], c_topic=['topic_0'])
+        benchmark = pd.DataFrame(
+            {'topic_0': [1/40., 39/40.]}, index=['doc1', 'doc2'])
+        benchmark.index.name = 'doc'
+        assert_frame_equal(result, benchmark)
+
+    def test_repr(self):
+        result = self.lda.__repr__()
+        benchmark = 'LDAResults for 2 topics, 2 docs, 2 topics, 2 tokens'
+        self.assertEqual(result, benchmark)
 
     def tearDown(self):
         self.outfile.close()
@@ -355,5 +390,3 @@ class TestSFileFilter(unittest.TestCase):
 
     def tearDown(self):
         self.outfile.close()
-
-

@@ -1,8 +1,5 @@
-import pandas as pd
-import numpy as np
-from numpy import linalg
 import scipy as sp
-import matplotlib.pyplot as plt
+import numpy as np
 
 from dspy.modeling import eda
 
@@ -147,7 +144,8 @@ def interp(x, y, t=1, scaling=None):
         if scaling == 'standardize':
             F_3 = lambda x: (F_2(x) - F_2_x.mean()) / F_2_x.std()
         elif scaling == 'unit':
-            F_3 = lambda x: (F_2(x) - F_2_x.min()) / (F_2_x.max()  - F_2_x.min())
+            F_3 = lambda x: (
+                F_2(x) - F_2_x.min()) / (F_2_x.max() - F_2_x.min())
         else:
             raise ValueError("Unknown scaling passed: %s" % scaling)
     else:

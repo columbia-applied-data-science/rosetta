@@ -2,15 +2,13 @@
 Common functions/classes for dataprep.
 """
 import numpy as np
-import sys
 import cPickle
-from StringIO import StringIO
 import itertools
 
 
-################################################################################
+###############################################################################
 # Decorators
-################################################################################
+###############################################################################
 
 
 def lazyprop(fn):
@@ -18,6 +16,7 @@ def lazyprop(fn):
     Use as a decorator to get lazily evaluated properties.
     """
     attr_name = '_lazy_' + fn.__name__
+
     @property
     def _lazyprop(self):
         if not hasattr(self, attr_name):
@@ -26,9 +25,9 @@ def lazyprop(fn):
     return _lazyprop
 
 
-################################################################################
+###############################################################################
 # Wrappers for opening/closing files
-################################################################################
+###############################################################################
 
 
 class smart_open(object):
@@ -96,9 +95,10 @@ def get_outfile(outfilename, outmode='wb', default=sys.stdout):
 
     return outfile
 
-################################################################################
+
+###############################################################################
 # Functions to read special file formats
-################################################################################
+###############################################################################
 
 def get_list_from_filerows(infile):
     """
@@ -153,7 +153,7 @@ def pickleme(obj, pkl_file, protocol=2):
     protocol : 0, 1, or 2
         2 is fastest
     """
-    with smart_open(filename, 'w') as f:
+    with smart_open(pkl_file, 'w') as f:
         cPickle.dump(obj, f, protocol=protocol)
 
 
@@ -166,7 +166,7 @@ def unpickleme(pkl_file):
     pkl_file : filepath or buffer
         We will attempt to unpickle this file.
     """
-    with smart_open(filename, 'r') as f:
+    with smart_open(pkl_file, 'r') as f:
         return cPickle.load(f)
 
 
@@ -185,16 +185,16 @@ def get_structured_array(listoflists, schema, dropmissing=False):
     ## First convert listoflists to a list of tuples...
     # TODO : This CAN'T actually be necessary..find another way
     if dropmissing:
-        tuple_list = [tuple(row) for row in loan_list if '' not in row]
+        tuple_list = [tuple(row) for row in listoflists if '' not in row]
     else:
-        tuple_list = [tuple(row) for row in loan_list]
+        tuple_list = [tuple(row) for row in listoflists]
 
     return np.array(tuple_list, schema)
 
 
-################################################################################
+###############################################################################
 # Custom Exceptions
-################################################################################
+###############################################################################
 
 
 class BadDataError(Exception):
@@ -214,9 +214,9 @@ class ConfigurationSyntaxError(Exception):
     pass
 
 
-################################################################################
+###############################################################################
 # Functions for printing objects
-################################################################################
+###############################################################################
 
 
 def printdict(d, max_print_len=None):
@@ -236,17 +236,17 @@ def print_dicts(dicts, prepend_str=''):
             next_prepend_str = prepend_str + '  '
             print_dicts(value, next_prepend_str)
         else:
-            print "%s%s = %.5f"%(prepend_str, key, value)
+            print "%s%s = %.5f" % (prepend_str, key, value)
 
 
-################################################################################
+###############################################################################
 # String type operations
-################################################################################
+###############################################################################
 
 
-################################################################################
+###############################################################################
 # Misc.
-################################################################################
+###############################################################################
 
 def grouper(iterable, chunksize, fillvalue=None):
     """
@@ -265,5 +265,3 @@ def grouper(iterable, chunksize, fillvalue=None):
     args = [iter(iterable)] * chunksize
 
     return itertools.izip_longest(fillvalue=fillvalue, *args)
-
-

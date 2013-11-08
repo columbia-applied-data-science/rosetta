@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import scipy as sp
 import matplotlib.pyplot as plt
 
 
@@ -270,7 +269,7 @@ def hist_one_col(col):
     Plots a histogram one column.  Handles nans and extreme values in a
     "graceful" manner.
     """
-    nan_idx  = np.isnan(col)
+    nan_idx = np.isnan(col)
     mean, std = col.mean(), col.std()
     extreme_idx = np.fabs(col - mean) > 10 * std
     normal_idx = np.logical_not(extreme_idx) * np.logical_not(nan_idx)
@@ -284,5 +283,3 @@ def hist_one_col(col):
 
     plt.title(
         '%s.    extreme: %.3f, nan: %.3f' % (col.name, extreme_frac, nan_frac))
-
-

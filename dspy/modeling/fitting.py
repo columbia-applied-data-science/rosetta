@@ -1,17 +1,11 @@
 """
-Common functions for fitting models
+Common functions for fitting regression and classification models.
 """
-import scipy as sp
 import numpy as np
-from scipy import signal
+from numpy import linalg
 import pandas as pd
-import statsmodels.api as sm
-import csv
-import pdb; #pdb.set_trace()
-import cPickle
-import matplotlib.pyplot as plt
 
-from dspy import common, common_math
+from dspy import common_math
 
 
 def get_relative_error(reality, estimate):
@@ -165,7 +159,8 @@ class CoefficientConverter(object):
 
         items = common_math.get_item_names(df)
         sw = items.intersection(self._should_winsorize)
-        levels = pd.Series(np.nan * np.ones(len(items)), index=items).astype('O')
+        levels = pd.Series(
+            np.nan * np.ones(len(items)), index=items).astype('O')
         if len(sw) > 0:
             # This cast to float prevents a mixed data type frame...which can
             # cause apply to act in a funny manner
@@ -180,8 +175,8 @@ class CoefficientConverter(object):
         self.unstandardize_params
         """
         _const_columns = list(self.stats[self.stats.sigma == 0].index)
-        # Make sure any and all constant columns were specified as columns to not
-        # standardize
+        # Make sure any and all constant columns were specified as columns
+        # to notstandardize
         for col in _const_columns:
             assert col in self.dont_standardize, (
                 "Variable %s is constant, but was not specified in the "
@@ -191,8 +186,8 @@ class CoefficientConverter(object):
 
     def _verify_ones_column(self, ones_column, df):
         """
-        If ones_column is indeed a column of ones, returns True, otherwise raises
-        ValueError.
+        If ones_column is indeed a column of ones, returns True, otherwise
+        raises ValueError.
         """
         if ones_column is None:
             return None
@@ -348,6 +343,6 @@ def winsorize(series, lower_quantile=0, upper_quantile=1, max_std=np.inf):
     quantile.
     """
     lower, upper = _get_clip_levels_series(
-            series, lower_quantile, upper_quantile, max_std)
+        series, lower_quantile, upper_quantile, max_std)
 
     return np.maximum(lower, np.minimum(upper, series))

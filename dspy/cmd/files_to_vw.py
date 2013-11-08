@@ -6,13 +6,13 @@ Tokens are represented in Vowpal Wabbit format.
 import argparse
 from functools import partial
 import sys
-from collections import Counter
 from random import shuffle
 
-from declass.utils import filefilter, text_processors, nlp
+from declass.utils import filefilter, text_processors
 from declass.utils.common import SaveLoad
 
 from dspy.parallel.parallel_easy import imap_easy
+
 
 def _cli():
     # Text to display after help
@@ -25,10 +25,10 @@ def _cli():
     Convert all files in mydir/ to vw format
     $ python files_to_vw.py  --base_path=mydir
 
-    Convert the first 10 files in mydir/ to vw format 
+    Convert the first 10 files in mydir/ to vw format
     $ find mydir/ -type f | head | python files_to_vw.py
 
-    The supported Vowpal Wabbit format is 
+    The supported Vowpal Wabbit format is
     [target] [Importance [Tag]]| feature1[:value1] feature2[:value2] ...
     See: https://github.com/JohnLangford/vowpal_wabbit/wiki/Input-format
     """
@@ -38,7 +38,7 @@ def _cli():
 
     io_grp = parser.add_argument_group('I/O group')
     io_grp.add_argument(
-        '--base_path', dest='base_path', 
+        '--base_path', dest='base_path',
         help='Walk this directory for documents.')
     io_grp.add_argument(
         'paths', nargs='*',
@@ -73,10 +73,9 @@ def _cli():
         '--n_jobs', help="Use n_jobs to tokenize files.",
         type=int, default=1)
     perf_grp.add_argument(
-        '--chunksize', type=int, default=1000, 
+        '--chunksize', type=int, default=1000,
         help="Have workers process CHUNKSIZE files at a time.  "
         "[default: %(default)s]")
-        
 
     # Parse and check args
     args = parser.parse_args()
@@ -144,7 +143,6 @@ def _tokenize_one(tokenizer, formatter, doc_id_level, path):
     tok_sstr = formatter.get_sstr(feature_values, importance=1, doc_id=doc_id)
 
     return tok_sstr
-
 
 
 if __name__ == '__main__':

@@ -10,12 +10,15 @@ TESTDIR=dspy/tests
 
 all: install test
 
-reinstall: clean
-	pip uninstall dspy
+
+# First install with pip
+install: clean
 	$(PYTHON) setup.py sdist
 	pip install dist/*
 
-install: clean
+# Reinstall with pip
+reinstall: clean
+	pip uninstall dspy
 	$(PYTHON) setup.py sdist
 	pip install dist/*
 
@@ -33,6 +36,18 @@ tests: test  # Common misname...
 
 test:
 	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -v
+
+test-text:
+	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*text*' -v
+
+test-parallel:
+	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*parallel*' -v
+
+test-common:
+	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*common*' -v
+
+test-cmd:
+	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*cmd*' -v
 
 trailing-spaces:
 	find dspy -name "*.py" | xargs perl -pi -e 's/[ \t]*$$//'

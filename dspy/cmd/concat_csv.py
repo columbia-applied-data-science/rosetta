@@ -59,7 +59,7 @@ def _cli():
 
     # Call the module interface
     _concat(
-    args.outfile, args.paths, args.sep, args.index, args.header, args.axis)
+        args.outfile, args.paths, args.sep, args.index, args.header, args.axis)
 
 
 def _concat(outfile, paths, sep, index, header, axis):

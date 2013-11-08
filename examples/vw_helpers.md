@@ -163,18 +163,23 @@ lda.print_topics()
 Since these structures are Pandas Series/DataFrames, you can access them with the usual methods.
 
 ```python
-# Print P[token=kennedy | topic]
-lda.pr_token_g_topic.kennedy
+# The joint density P(token, topic)
+lda.prob_token_topic()
 
-# Print P[token=kennedy | topic=topic_0]
-lda.pr_token_g_topic['kennedy']['topic_0']
+# The conditional density restricted to one token
+# P(token=kennedy | topic=topic_0)
+lda.prob_token_topic(token='kennedy', c_topic='topic_0')
 
-# Print P[token=war]
-lda.pr_token.war
+# P(token=kennedy | topic in [topic_0, topic_3])
+lda.prob_token_topic(token='kennedy', c_topic=['topic_0', 'topic_3'])
 
-lda.pr_token_g_topic[['kennedy', 'vietnam', 'war']]
+# P(token | topic='topic_0')
+lda.prob_token_topic(c_topic='topic_0')
 
-lda.pr_topic_g_doc.to_csv('doc_topic_weights.csv')
+# DataFrame with column k = P(token | topic=topic_k)
+lda.pr_token_g_topic
+
+# Similar structures available for doc/topic.
 ```
 
 In addition, the `doc_freq` and `token_score` (and anything else that is in `sff.to_frame()` is accessible in `lda.sfile_frame`.

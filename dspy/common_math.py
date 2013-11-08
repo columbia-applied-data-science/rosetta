@@ -2,9 +2,8 @@
 Common math functions.
 """
 import numpy as np
-import scipy as sp
 import pandas as pd
-from numpy.random import choice, shuffle
+from numpy.random import choice
 
 
 def pandas_to_ndarray_wrap(X, copy=True):
@@ -33,7 +32,7 @@ def pandas_to_ndarray_wrap(X, copy=True):
         return X.values, lambda Z: pd.Series(np.squeeze(Z), index=X.index)
     elif isinstance(X, pd.DataFrame):
         return X.values, lambda Z: pd.DataFrame(
-                Z, index=X.index, columns=X.columns)
+            Z, index=X.index, columns=X.columns)
     elif isinstance(X, np.ndarray):
         return X, lambda Z: Z
     else:

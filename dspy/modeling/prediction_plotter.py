@@ -85,9 +85,9 @@ class BasePlotter2D(object):
         # Define defaults and arguments depending on mode
         # func is the function that gives the levelsets
         if mode == 'predict':
-            func = lambda xx, yy : clf.predict(np.c_[xx.ravel(), yy.ravel()])
+            func = lambda xx, yy: clf.predict(np.c_[xx.ravel(), yy.ravel()])
         elif mode == 'predict_proba':
-            func = lambda xx, yy : clf.predict_proba(
+            func = lambda xx, yy: clf.predict_proba(
                 np.c_[xx.ravel(), yy.ravel()])[:, 1]
         else:
             raise ValueError("mode %s is not handled" % mode)
@@ -199,7 +199,8 @@ class ClassifierPlotter2D(BasePlotter2D):
         # Plot each class with a different marker
         for i, yval in enumerate(classes):
             marker = (
-                self.y_markers[i] if self.y_markers else 'ox+*01234567'[i%12])
+                self.y_markers[i] if self.y_markers else 'ox+*01234567'
+                [i % 12])
             label = self.y_names[i] if self.y_names else yval
             idx = np.where(y == yval)
             pl.scatter(

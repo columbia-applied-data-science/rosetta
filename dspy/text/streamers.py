@@ -10,8 +10,7 @@ from dspy.parallel.parallel_easy import imap_easy
 
 from .. import common
 from ..common import lazyprop, smart_open
-from . import filefilter, nlp, text_processors
-from text_processors import TokenizerBasic
+from . import filefilter, text_processors
 
 
 class BaseStreamer(object):
@@ -172,8 +171,9 @@ class TextFileStreamer(BaseStreamer):
         text_base_path : string or None
             Base path to dir containing files.
         file_type : String
-            String to filter files with.  E.g. '*.txt'.  Note that the filenames
-            will be converted to lowercase before this comparison.
+            String to filter files with.  E.g. '*.txt'.  
+            Note that the filenames will be converted to lowercase before
+            this comparison.
         name_strip : raw string
             Regex to strip doc_id.
         tokenizer : Subclass of BaseTokenizer
@@ -262,8 +262,9 @@ class TextFileStreamer(BaseStreamer):
 
             with open(onepath, 'r') as f:
                 text = f.read()
-                doc_id = re.sub(self.name_strip, '',
-                        filefilter.path_to_name(onepath, strip_ext=False))
+                doc_id = re.sub(
+                    self.name_strip, '', filefilter.path_to_name
+                    (onepath, strip_ext=False))
                 info_dict = {'text': text, 'cached_path': onepath,
                         'doc_id': doc_id}
                 if self.tokenizer:
