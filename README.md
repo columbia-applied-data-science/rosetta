@@ -63,6 +63,6 @@ From the base repo directory, `rosetta/`, you can run all tests with
 
 History
 -------
-The *DS* in Rosetta clearly relates to *Data Science*.  However, it came first from *Data Structure* and the *Dead Sea*.  The tools concentrate on streaming text, and the dead sea scrolls are the most famous version of text in a stream (a lake actually...but just pretend and it's really cool).
+*Rosetta* refers to the [Rosetta Stone](http://en.wikipedia.org/wiki/Rosetta_Stone), the ancient Egyptian tablet discovered just over 200 years ago. The tablet contained fragmented text in three different languages and the uncovering of its meaning is considered an essential key to our understanding of Ancient Egyptian civilization. We would like this project to provide individuals the necessary tools to process and unearth insight in the ever-growing volumes of textual data of today.
 
 [rosettarepo]: https://github.com/columbia-applied-data-science/rosetta
