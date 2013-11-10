@@ -1,27 +1,27 @@
 from distutils.core import setup
 
-DISTNAME = 'dspy'
+DISTNAME = 'rosetta'
 LICENSE = 'BSD'
-MAINTAINER = "The DsPy Development Team"
+MAINTAINER = "The Rosetta Development Team"
 EMAIL = "ianlangmore@gmail.com"
-URL = "https://github.com/columbia-applied-data-science/dspy"
+URL = "https://github.com/columbia-applied-data-science/rosetta"
 DESCRIPTION = (
     "Tools, wrappers, etc... for data science with a concentration on text "
     "processing")
 
 SCRIPTS = [
-    'dspy/cmd/' + name for name in 
+    'rosetta/cmd/' + name for name in 
     ['concat_csv.py', 'cut.py', 'join_csv.py',
     'row_filter.py', 'split.py', 'subsample.py',
     'files_to_vw.py', 'filter_sfile.py']]
 
-PACKAGES =  ['dspy'] + [
-    'dspy.' + name for name in 
+PACKAGES =  ['rosetta'] + [
+    'rosetta.' + name for name in 
     ['cmd', 'modeling', 'parallel', 'text', 'workflow']]
 
 
-#PY_MODULES =  ['dspy'] + [
-#    'dspy/' + name for name in 
+#PY_MODULES =  ['rosetta'] + [
+#    'rosetta/' + name for name in 
 #    ['cmd', 'modeling', 'parallel', 'text', 'workflow']]
 
 

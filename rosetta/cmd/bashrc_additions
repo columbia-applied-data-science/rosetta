@@ -1,0 +1,27 @@
+# Additions to your bashrc
+#
+#
+###############################################################################
+# INSTALLATION
+###############################################################################
+# Put desired sections in your ~/.bashrc (or ~/.bash_profile on macs) and then
+# "source it" or close then open a new terminal.
+#
+###############################################################################
+# Body function
+###############################################################################
+# This allows you to run a command on the body of the function, skipping the header
+# (but still printing the header).  For example,
+# 
+# $ cat filewithheader | body sort -k1,1
+#
+# will sort filewithheader, using the first field, but leave the header at the top
+# of the file.
+
+body() {
+    IFS= read -r header
+    printf '%s\n' "$header"
+    "$@"
+}
+
+export -f body

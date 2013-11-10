@@ -6,7 +6,7 @@ PYTHON ?= python
 UNITTEST ?= unittest
 CTAGS ?= ctags
 
-TESTDIR=dspy/tests
+TESTDIR=rosetta/tests
 
 all: install test
 
@@ -18,7 +18,7 @@ install: clean
 
 # Reinstall with pip
 reinstall: clean
-	pip uninstall dspy
+	pip uninstall rosetta
 	$(PYTHON) setup.py sdist
 	pip install dist/*
 
@@ -50,7 +50,7 @@ test-cmd:
 	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*cmd*' -v
 
 trailing-spaces:
-	find dspy -name "*.py" | xargs perl -pi -e 's/[ \t]*$$//'
+	find rosetta -name "*.py" | xargs perl -pi -e 's/[ \t]*$$//'
 
 ctags:
 	# make tags for symbol based navigation in emacs and vim
@@ -58,6 +58,6 @@ ctags:
 	$(CTAGS) -R *
 
 code-analysis:
-	flake8 dspy | grep -v __init__ | grep -v external
-	pylint -E -i y dspy/ -d E1103,E0611,E1101
+	flake8 rosetta | grep -v __init__ | grep -v external
+	pylint -E -i y rosetta/ -d E1103,E0611,E1101
 

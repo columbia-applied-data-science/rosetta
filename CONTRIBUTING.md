@@ -9,17 +9,17 @@ likelihood of your contribution being merged.**
 How to contribute
 -----------------
 
-The preferred way to contribute to dspy is to fork the 
-[project repository](https://github.com/columbia-applied-data-science/dspy/) on
+The preferred way to contribute to rosetta is to fork the 
+[project repository](https://github.com/columbia-applied-data-science/rosetta/) on
 GitHub:
 
-1. Fork the [project repository](https://github.com/columbia-applied-data-science/dspy/):
+1. Fork the [project repository](https://github.com/columbia-applied-data-science/rosetta/):
    click on the 'Fork' button near the top of the page. This creates
    a copy of the code under your account on the GitHub server.
 
 2. Clone this copy to your local disk:
 
-          $ git clone git@github.com:YourLogin/dspy.git
+          $ git clone git@github.com:YourLogin/rosetta.git
 
 3. Create a branch to hold your changes:
 
@@ -37,7 +37,7 @@ GitHub:
 
           $ git push -u origin my-feature
 
-Finally, go to the web page of the your fork of the dspy repo,
+Finally, go to the web page of the your fork of the rosetta repo,
 and click 'Pull request' to send your changes to the maintainers for
 review. request. This will send an email to the committers.
 
@@ -54,7 +54,7 @@ following rules before submitting a pull request:
    example script in the ``examples/`` folder. Have a look at other
    examples for reference. Examples should demonstrate why the new
    functionality is useful in practice and, if possible, compare it
-   to other methods available in dspy.
+   to other methods available in rosetta.
 
 -  At least one paragraph of narrative documentation with links to
 ````   references in the literature (with PDF links when possible) and

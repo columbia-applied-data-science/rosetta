@@ -1,9 +1,9 @@
 Working with Vowpal Wabbit (VW)
 ===============================
 
-To work with the `dspy` utilities you need to:
+To work with the `rosetta` utilities you need to:
 
-* Clone the [dspy repo][dspyrepo]  and read `README.md`.
+* Clone the [rosetta repo][rosettarepo]  and read `README.md`.
 
 Create the sparse file (sfile)
 ------------------------------
@@ -21,7 +21,7 @@ The `TextFileStreamer` needs a method to convert the text files to a list of str
 Once you have a tokenizer, just initialize a streamer and write the VW file.
 
 ```python
-from dspy import TextFileStreamer, TokenizerBasic
+from rosetta import TextFileStreamer, TokenizerBasic
 
 my_tokenizer = TokenizerBasic()
 stream = TextFileStreamer(text_base_path='bodyfiles', tokenizer=my_tokenizer)
@@ -29,7 +29,7 @@ stream.to_vw('doc_tokens.vw', n_jobs=-1)
 ```
 
 ### Method 2: `files_to_vw.py`
-`files_to_vw.py` is a fast and simple command line utility for converting files to VW format.  Installing `dspy` will put these utilities in your path.
+`files_to_vw.py` is a fast and simple command line utility for converting files to VW format.  Installing `rosetta` will put these utilities in your path.
 
 * Try converting the first 5 files in `my_base_path`.  The following should print 5 lines of of results, in [vw format][vwinput]
 
@@ -150,7 +150,7 @@ The python function `filter_sfile.py` takes in `ddrs.vw` and streams a filtered 
 You can view the topics and predictions with this:
 
 ```python
-from dspy.text.vw_helpers import LDAResults
+from rosetta.text.vw_helpers import LDAResults
 num_topics = 5
 lda = LDAResults('topics.dat', 'prediction.dat', num_topics, 'sff_file.pkl')
 lda.print_topics()
@@ -195,9 +195,9 @@ Contribute!
 
 
 [vwinput]: https://github.com/JohnLangford/vowpal_wabbit/wiki/Input-format
-[dspyrepo]: https://github.com/columbia-applied-data-science/dspy
+[rosettarepo]: https://github.com/columbia-applied-data-science/rosetta
 [vwlda]: https://github.com/JohnLangford/vowpal_wabbit/wiki/lda.pdf
 [vwtricks]: www.slideshare.net/jakehofman/technical-tricks-of-vowpal-wabbit‎
 [hashing]: https://github.com/JohnLangford/vowpal_wabbit/wiki/Feature-Hashing-and-Extraction
 [spot]: http://en.wikipedia.org/wiki/Single_Point_of_Truth
-[issue]: https://github.com/columbia-applied-data-science/dspy/issues
+[issue]: https://github.com/columbia-applied-data-science/rosetta/issues

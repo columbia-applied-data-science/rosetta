@@ -1,4 +1,4 @@
-DSpy
+Rosetta
 ====
 
 Tools for data science with a focus on text processing.
@@ -32,7 +32,7 @@ See the `examples/` directory for more details.
 
 Install
 -------
-Check out the dev branch or a tagged release from the [dspyrepo][dspyrepo].  Then (so long as you have `pip`).
+Check out the dev branch or a tagged release from the [rosettarepo][rosettarepo].  Then (so long as you have `pip`).
 
     make
     make test
@@ -44,11 +44,11 @@ Development
 
 You can check the latest sources with
 
-    git clone git://github.com/columbia-applied-data-science/dspy
+    git clone git://github.com/columbia-applied-data-science/rosetta
 
 ### Contributing
 
-Feel free to contribute a bug report or a request by opening an [issue](https://github.com/columbia-applied-data-science/dspy/issues)
+Feel free to contribute a bug report or a request by opening an [issue](https://github.com/columbia-applied-data-science/rosetta/issues)
 
 Before contributing code, read `CONTRIBUTING.md`
 
@@ -57,12 +57,12 @@ Dependencies
 
 Testing
 -------
-From the base repo directory, `dspy/`, you can run all tests with
+From the base repo directory, `rosetta/`, you can run all tests with
 
     make test
 
 History
 -------
-The *DS* in DSpy clearly relates to *Data Science*.  However, it came first from *Data Structure* and the *Dead Sea*.  The tools concentrate on streaming text, and the dead sea scrolls are the most famous version of text in a stream (a lake actually...but just pretend and it's really cool).
+The *DS* in Rosetta clearly relates to *Data Science*.  However, it came first from *Data Structure* and the *Dead Sea*.  The tools concentrate on streaming text, and the dead sea scrolls are the most famous version of text in a stream (a lake actually...but just pretend and it's really cool).
 
-[dspyrepo]: https://github.com/columbia-applied-data-science/dspy
+[rosettarepo]: https://github.com/columbia-applied-data-science/rosetta

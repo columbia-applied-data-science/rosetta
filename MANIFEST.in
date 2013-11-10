@@ -1,10 +1,10 @@
-recursive-include dspy *
-recursive-include dspy/cmd *
-recursive-include dspy/modeling *
-recursive-include dspy/parallel *
-recursive-include dspy/tests *
-recursive-include dspy/text *
-recursive-include dspy/workflow *
+recursive-include rosetta *
+recursive-include rosetta/cmd *
+recursive-include rosetta/modeling *
+recursive-include rosetta/parallel *
+recursive-include rosetta/tests *
+recursive-include rosetta/text *
+recursive-include rosetta/workflow *
 
 include MANIFEST.in
 include LICENSE
