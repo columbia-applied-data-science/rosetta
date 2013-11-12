@@ -508,8 +508,6 @@ class SFileFilter(SaveLoad):
         self.sfile_loaded = True
         self.collisions_resolved = False
 
-        return self
-
     def _load_sfile_fwd(self, sfile):
         """
         Builds the "forward" objects involved in loading an sfile.
@@ -617,8 +615,6 @@ class SFileFilter(SaveLoad):
         self._print(
             "Compactification done.  self.bit_precision_required = %d"
             % self.bit_precision_required)
-
-        return self
 
     def set_bit_precision_required(self):
         """
@@ -744,8 +740,6 @@ class SFileFilter(SaveLoad):
             "Removed %d/%d tokens" % (to_remove_mask.sum(), len(frame)))
         self.filter_tokens(frame[to_remove_mask].index)
 
-        return self
-
     def filter_tokens(self, tokens):
         """
         Remove tokens from appropriate attributes.
@@ -769,8 +763,6 @@ class SFileFilter(SaveLoad):
             self.doc_freq.pop(tok)
             if hasattr(self, 'id2token'):
                 self.id2token.pop(id_value)
-
-        return self
 
     def _print(self, msg):
         if self.verbose:
