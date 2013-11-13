@@ -184,6 +184,17 @@ lda.pr_token_g_topic
 
 In addition, the `doc_freq` and `token_score` (and anything else that is in `sff.to_frame()` is accessible in `lda.sfile_frame`.
 
+You can also predict topics for a new document, then find similar documents
+
+```python
+new_text = "Help me with this Cuban missile thing"
+new_tokens = my_tokenizer.text_to_token_list(new_text)
+new_topic_weights = lda.predict(new_tokens)
+
+# Compare with the existing docs
+sims = lda.cosine_similarity(lda.pr_topic_g_doc, new_topic_weights)
+```
+
 
 Contribute!
 -----------
