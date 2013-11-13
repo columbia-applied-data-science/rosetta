@@ -97,23 +97,33 @@ class TokenizerPOSFilter(BaseTokenizer):
     """
     def __init__(
         self, pos_types=[], sent_tokenizer=nltk.sent_tokenize,
-        word_tokenizer=nltk.word_tokenize, pos_tagger=nltk.pos_tag):
+        word_tokenizer=TokenizerBasic(), word_tokenizer_func=None,
+        pos_tagger=nltk.pos_tag):
         """
         Parameters
         ----------
         pos_types : List of Strings
             Parts of Speech to keep
-        sent_tokenizer : Sentence tokenizer function
+        sent_tokenizer : Sentence tokenizer function.
+            Default: nltk.sent_tokenize
             Splits text into a list of sentences (each sentence is a string)
-        word_tokenizer : Word tokenizer function
-            Splits strings into a list of words (each word is a string)
+        word_tokenizer : Subclass of BaseTokenizer.
+            Default: TokenizerBasic
+            For tokenizing the words.
+        word_tokenizer_func : Function
+            Converts strings to list of strings.  If given, use this in place
+            of word_tokenizer.
         pos_tagger : POS tagging function
+            Default: nltk.pos_tag
             Given a list of words, returns a list of tuples (word, POS)
         """
         self.pos_types = set(pos_types)
         self.sent_tokenizer = sent_tokenizer
-        self.word_tokenizer = word_tokenizer
         self.pos_tagger = pos_tagger
+        if not word_tokenizer:
+            self.word_tokenizer = MakeTokenizer(word_tokenizer_func)
+        else:
+            self.word_tokenizer = word_tokenizer
 
     def text_to_token_list(self, text):
         """
@@ -122,7 +132,8 @@ class TokenizerPOSFilter(BaseTokenizer):
         # sentences = [['I am Ian.'], ['Who are you?']]
         sentences = self.sent_tokenizer(text)
         # tokenized_sentences = [['I', 'am', 'Ian.'], ['Who', 'are', 'you?']]
-        tokenized_sentences = [self.word_tokenizer(sent) for sent in sentences]
+        func = self.word_tokenizer.text_to_token_list
+        tokenized_sentences = [func(sent) for sent in sentences]
         # tagged_sentences = [[('I', 'PRP'), ('am', 'VBP'), ...]]
         tagged_sentences = [
             self.pos_tagger(sent) for sent in tokenized_sentences]
@@ -444,13 +455,16 @@ class SFileFilter(SaveLoad):
     """
     Filters results stored in sfiles (sparsely formattted bag-of-words files).
     """
-    def __init__(self, formatter, bit_precision=18, verbose=True):
+    def __init__(self, formatter, bit_precision=18, sfile=None, verbose=True):
         """
         Parameters
         ----------
         formatter : Subclass of SparseFormatter
         bit_precision : Integer
             Hashes are taken modulo 2**bit_precision.  Currently must be < 32.
+        sfile : filepath or buffer
+            Load this sfile during init
+        verbose : Boolean
         """
         assert isinstance(bit_precision, int)
 
@@ -461,6 +475,9 @@ class SFileFilter(SaveLoad):
         self.precision = 2**bit_precision
         self.sfile_loaded = False
         self.bit_precision_required = bit_precision
+
+        if sfile is not None:
+            self.load_sfile(sfile)
 
     def _get_hash_fun(self):
         """
