@@ -70,6 +70,14 @@ From the base repo directory, `rosetta/`, you can run all tests with
 
     make test
 
+Documentation
+-------------
+
+Documentation is hosted at [here](http://pythonhosted.org/rosetta).  This does NOT auto-update.  To make new docs:
+
+    cd docs/
+    make html
+
 History
 -------
 *Rosetta* refers to the [Rosetta Stone](http://en.wikipedia.org/wiki/Rosetta_Stone), the ancient Egyptian tablet discovered just over 200 years ago. The tablet contained fragmented text in three different languages and the uncovering of its meaning is considered an essential key to our understanding of Ancient Egyptian civilization. We would like this project to provide individuals the necessary tools to process and unearth insight in the ever-growing volumes of textual data of today.
