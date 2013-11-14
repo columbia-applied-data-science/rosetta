@@ -1,0 +1,441 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rosetta.parallel.parallel_easy &mdash; rosetta 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="rosetta 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for rosetta.parallel.parallel_easy</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Functions to assist in parallel processing with Python 2.7.</span>
+
+<span class="sd">* Memory-friendly iterator functionality (wrapping Pool.imap).</span>
+<span class="sd">* Exit with Ctrl-C.</span>
+<span class="sd">* Easy use of n_jobs. (e.g. when n_jobs == 1, processing is serial)</span>
+<span class="sd">* Similar to joblib.Parallel but with the addition of imap functionality</span>
+<span class="sd">  and a more effective way of handling Ctrl-C exit (we add a timeout).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">from</span> <span class="nn">multiprocessing</span> <span class="kn">import</span> <span class="n">Pool</span><span class="p">,</span> <span class="n">cpu_count</span>
+<span class="kn">from</span> <span class="nn">multiprocessing.pool</span> <span class="kn">import</span> <span class="n">IMapUnorderedIterator</span><span class="p">,</span> <span class="n">IMapIterator</span>
+<span class="kn">import</span> <span class="nn">cPickle</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+
+<span class="c">###############################################################################</span>
+<span class="c"># Globals</span>
+<span class="c">###############################################################################</span>
+<span class="c"># Used as the timeout</span>
+<span class="n">GOOGLE</span> <span class="o">=</span> <span class="mf">1e100</span>
+
+
+<span class="c">###############################################################################</span>
+<span class="c"># Functions</span>
+<span class="c">###############################################################################</span>
+
+
+<div class="viewcode-block" id="imap_easy"><a class="viewcode-back" href="../../../index.html#rosetta.parallel.parallel_easy.imap_easy">[docs]</a><span class="k">def</span> <span class="nf">imap_easy</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a parallel iterator of func over iterable.</span>
+
+<span class="sd">    Worker processes return one &quot;chunk&quot; of data at a time, and the iterator</span>
+<span class="sd">    allows you to deal with each chunk as they come back, so memory can be</span>
+<span class="sd">    handled efficiently.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    func : Function of one variable</span>
+<span class="sd">        You can use functools.partial to build this.</span>
+<span class="sd">        A lambda function will not work</span>
+<span class="sd">    iterable : List, iterator, etc...</span>
+<span class="sd">        func is applied to this</span>
+<span class="sd">    n_jobs : Integer</span>
+<span class="sd">        The number of jobs to use for the computation. If -1 all CPUs are used.</span>
+<span class="sd">        If 1 is given, no parallel computing code is used at all, which is</span>
+<span class="sd">        useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are</span>
+<span class="sd">        used. Thus for n_jobs = -2, all CPUs but one are used.</span>
+<span class="sd">    chunksize : Integer</span>
+<span class="sd">        Jobs/results will be sent between master/slave processes in chunks of</span>
+<span class="sd">        size chunksize.  If chunksize is too small, communication overhead</span>
+<span class="sd">        slows things down.  If chunksize is too large, one process ends up</span>
+<span class="sd">        doing too much work (and large results will up in memory).</span>
+<span class="sd">    ordered : Boolean</span>
+<span class="sd">        If True, results are dished out in the order corresponding to iterable.</span>
+<span class="sd">        If False, results are dished out in whatever order workers return them.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from functools import partial</span>
+<span class="sd">    &gt;&gt;&gt; from rosetta.parallel.parallel_easy import imap_easy</span>
+<span class="sd">    &gt;&gt;&gt; def abfunc(x, a, b=1):</span>
+<span class="sd">    ...     return x * a * b</span>
+<span class="sd">    &gt;&gt;&gt; some_numbers = range(3)</span>
+<span class="sd">    &gt;&gt;&gt; func = partial(abfunc, 2, b=3)</span>
+<span class="sd">    &gt;&gt;&gt; results_iterator = imap_easy(func, some_numbers, 2, 5)</span>
+<span class="sd">    &gt;&gt;&gt; for result in results_iterator:</span>
+<span class="sd">    ...     print result</span>
+<span class="sd">    0</span>
+<span class="sd">    6</span>
+<span class="sd">    12</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">_n_jobs_wrap</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">results_iter</span> <span class="o">=</span> <span class="n">itertools</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_trypickle</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">ordered</span><span class="p">:</span>
+            <span class="n">results_iter</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="n">chunksize</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">results_iter</span> <span class="o">=</span> <span class="n">pool</span><span class="o">.</span><span class="n">imap_unordered</span><span class="p">(</span>
+                <span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="n">chunksize</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">results_iter</span>
+
+</div>
+<div class="viewcode-block" id="map_easy"><a class="viewcode-back" href="../../../index.html#rosetta.parallel.parallel_easy.map_easy">[docs]</a><span class="k">def</span> <span class="nf">map_easy</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a parallel map of func over iterable.</span>
+<span class="sd">    Returns all results at once, so if results are big memory issues may arise</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    func : Function of one variable</span>
+<span class="sd">        You can use functools.partial to build this.</span>
+<span class="sd">        A lambda function will not work</span>
+<span class="sd">    iterable : List, iterator, etc...</span>
+<span class="sd">        func is applied to this</span>
+<span class="sd">    n_jobs : Integer</span>
+<span class="sd">        The number of jobs to use for the computation. If -1 all CPUs are used.</span>
+<span class="sd">        If 1 is given, no parallel computing code is used at all, which is</span>
+<span class="sd">        useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are</span>
+<span class="sd">        used. Thus for n_jobs = -2, all CPUs but one are used.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from functools import partial</span>
+<span class="sd">    &gt;&gt;&gt; from rosetta.parallel.parallel_easy import map_easy</span>
+<span class="sd">    &gt;&gt;&gt; def abfunc(x, a, b=1):</span>
+<span class="sd">    ...     return x * a * b</span>
+<span class="sd">    &gt;&gt;&gt; some_numbers = range(5)</span>
+<span class="sd">    &gt;&gt;&gt; func = partial(abfunc, 2, b=3)</span>
+<span class="sd">    &gt;&gt;&gt; map_easy(func, some_numbers)</span>
+<span class="sd">    [0, 6, 12, 18, 24]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">n_jobs</span> <span class="o">=</span> <span class="n">_n_jobs_wrap</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">map</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">_trypickle</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+        <span class="n">pool</span> <span class="o">=</span> <span class="n">Pool</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pool</span><span class="o">.</span><span class="n">map_async</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">GOOGLE</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="map_easy_padded_blocks"><a class="viewcode-back" href="../../../index.html#rosetta.parallel.parallel_easy.map_easy_padded_blocks">[docs]</a><span class="k">def</span> <span class="nf">map_easy_padded_blocks</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">iterable</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">pad</span><span class="p">,</span> <span class="n">blocksize</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a parallel map of func over iterable, computed by splitting</span>
+<span class="sd">    iterable into padded blocks, then piecing the result together.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    func : Function of one variable</span>
+<span class="sd">        You can use functools.partial to build this.</span>
+<span class="sd">        A lambda function will not work</span>
+<span class="sd">    iterable : List, iterator, etc...</span>
+<span class="sd">        func is applied to this</span>
+<span class="sd">    n_jobs : Integer</span>
+<span class="sd">        The number of jobs to use for the computation. If -1 all CPUs are used.</span>
+<span class="sd">        If 1 is given, no parallel computing code is used at all, which is</span>
+<span class="sd">        useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are</span>
+<span class="sd">        used. Thus for n_jobs = -2, all CPUs but one are used.</span>
+<span class="sd">    pad : Nonnegative Integer</span>
+<span class="sd">        Each block is processed with pad extra on each side.</span>
+<span class="sd">    blocksize : Nonnegative Integer</span>
+<span class="sd">        If None, use 100 * pad</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    result : List</span>
+<span class="sd">        Equivalent to list(func(iterable))</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; numbers = [0, 0, 2, -1, 4, 2, 6, 7, 6, 9]</span>
+<span class="sd">    &gt;&gt;&gt; pad = 1</span>
+<span class="sd">    &gt;&gt;&gt; n_jobs = -1</span>
+<span class="sd">    &gt;&gt;&gt; def rightmax(mylist):</span>
+<span class="sd">    ...     return [max(mylist[i: i+2]) for i in range(len(mylist))]</span>
+<span class="sd">    &gt;&gt;&gt; result = map_easy_padded_blocks(rightmax, numbers, n_jobs, pad)</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = rightmax(numbers)</span>
+<span class="sd">    &gt;&gt;&gt; result == benchmark</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">mylist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">iterable</span><span class="p">)</span>
+
+    <span class="c"># We will pad each side of the blocks with this to avoid edge effects.</span>
+    <span class="n">max_blocksize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mylist</span><span class="p">)</span> <span class="o">-</span> <span class="n">pad</span> <span class="o">-</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">blocksize</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+        <span class="n">blocksize</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">max_blocksize</span><span class="p">,</span> <span class="mi">100</span> <span class="o">*</span> <span class="n">pad</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">pad</span> <span class="o">+</span> <span class="n">blocksize</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">mylist</span><span class="p">)</span>
+
+    <span class="c"># Get an iterator over padded blocks</span>
+    <span class="n">block_idx</span><span class="p">,</span> <span class="n">pads_used</span> <span class="o">=</span> <span class="n">get_split_idx</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mylist</span><span class="p">),</span> <span class="n">blocksize</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="n">pad</span><span class="p">)</span>
+    <span class="n">block_iter</span> <span class="o">=</span> <span class="p">(</span><span class="n">mylist</span><span class="p">[</span><span class="n">start</span><span class="p">:</span> <span class="n">end</span><span class="p">]</span> <span class="k">for</span> <span class="n">start</span><span class="p">,</span> <span class="n">end</span> <span class="ow">in</span> <span class="n">block_idx</span><span class="p">)</span>
+
+    <span class="c"># Process each block</span>
+    <span class="n">processed_blocks</span> <span class="o">=</span> <span class="n">map_easy</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">block_iter</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">block</span><span class="p">,</span> <span class="p">(</span><span class="n">leftpad</span><span class="p">,</span> <span class="n">rightpad</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">processed_blocks</span><span class="p">,</span> <span class="n">pads_used</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">+=</span> <span class="n">block</span><span class="p">[</span><span class="n">leftpad</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">block</span><span class="p">)</span> <span class="o">-</span> <span class="n">rightpad</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+</div>
+<div class="viewcode-block" id="get_split_idx"><a class="viewcode-back" href="../../../index.html#rosetta.parallel.parallel_easy.get_split_idx">[docs]</a><span class="k">def</span> <span class="nf">get_split_idx</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="n">blocksize</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a list of indexes dividing an array into blocks of size blocksize</span>
+<span class="sd">    with optional padding.  Padding takes into account that the resultant block</span>
+<span class="sd">    must fit within the original array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    N : Nonnegative integer</span>
+<span class="sd">        Total array length</span>
+<span class="sd">    blocksize : Nonnegative integer</span>
+<span class="sd">        Size of each block</span>
+<span class="sd">    pad : Nonnegative integer</span>
+<span class="sd">        Pad to add on either side of each index</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    split_idx : List of 2-tuples</span>
+<span class="sd">        Indices to create splits</span>
+<span class="sd">    pads_used : List of 2-tuples</span>
+<span class="sd">        Pads that were actually used on either side</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; split_idx, pads_used = get_split_idx(5, 2)</span>
+<span class="sd">    &gt;&gt;&gt; print split_idx</span>
+<span class="sd">    [(0, 2), (2, 4), (4, 5)]</span>
+<span class="sd">    &gt;&gt;&gt; print pads_used</span>
+<span class="sd">    [(0, 0), (0, 0), (0, 0)]</span>
+
+<span class="sd">    &gt;&gt;&gt; get_split_idx(5, 2, pad=1)</span>
+<span class="sd">    &gt;&gt;&gt; print split_idx</span>
+<span class="sd">    [(0, 3), (1, 5), (3, 5)]</span>
+<span class="sd">    &gt;&gt;&gt; print pads_used</span>
+<span class="sd">    [(0, 1), (1, 1), (1, 0)]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_fullsplits</span> <span class="o">=</span> <span class="n">N</span> <span class="o">//</span> <span class="n">blocksize</span>
+    <span class="n">remainder</span> <span class="o">=</span> <span class="n">N</span> <span class="o">%</span> <span class="n">blocksize</span>
+
+    <span class="n">split_idx</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">pads_used</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_fullsplits</span><span class="p">):</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">i</span> <span class="o">*</span> <span class="n">blocksize</span> <span class="o">-</span> <span class="n">pad</span><span class="p">)</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">N</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">blocksize</span> <span class="o">+</span> <span class="n">pad</span><span class="p">)</span>
+        <span class="n">split_idx</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">end</span><span class="p">))</span>
+
+        <span class="n">leftpad</span> <span class="o">=</span> <span class="n">i</span> <span class="o">*</span> <span class="n">blocksize</span> <span class="o">-</span> <span class="n">start</span>
+        <span class="n">rightpad</span> <span class="o">=</span> <span class="n">end</span> <span class="o">-</span> <span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">blocksize</span>
+        <span class="n">pads_used</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">leftpad</span><span class="p">,</span> <span class="n">rightpad</span><span class="p">))</span>
+
+    <span class="c"># Append the last split if there is a remainder</span>
+    <span class="k">if</span> <span class="n">remainder</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_fullsplits</span> <span class="o">*</span> <span class="n">blocksize</span> <span class="o">-</span> <span class="n">pad</span><span class="p">)</span>
+        <span class="n">split_idx</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">start</span><span class="p">,</span> <span class="n">N</span><span class="p">))</span>
+
+        <span class="n">leftpad</span> <span class="o">=</span> <span class="n">num_fullsplits</span> <span class="o">*</span> <span class="n">blocksize</span> <span class="o">-</span> <span class="n">start</span>
+        <span class="n">pads_used</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">leftpad</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">return</span> <span class="n">split_idx</span><span class="p">,</span> <span class="n">pads_used</span>
+
+</div>
+<span class="k">def</span> <span class="nf">_n_jobs_wrap</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For dealing with positive or negative n_jobs.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    n_jobs : Integer</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    n_jobs_modified : Integer</span>
+<span class="sd">        If -1, equal to multiprocessing.cpu_count() (all CPU&#39;s used).</span>
+<span class="sd">        If 1 is given, no parallel computing code is used at all, which is</span>
+<span class="sd">        useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are</span>
+<span class="sd">        used. Thus for n_jobs = -2, all CPUs but one are used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s">&quot;type(n_jobs) = </span><span class="si">%s</span><span class="s">, but n_jobs should be an int&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">n_jobs</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="p">(</span><span class="n">n_jobs</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">n_jobs</span> <span class="o">&lt;</span> <span class="o">-</span><span class="mi">1</span> <span class="o">*</span> <span class="n">cpu_count</span><span class="p">()):</span>
+        <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;Must have -1 + cpu_count() &lt;= n_jobs &lt; 0  OR  1 &lt;= n_jobs&quot;</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;n_jobs = </span><span class="si">%d</span><span class="s">, but </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">n_jobs</span><span class="p">,</span> <span class="n">msg</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">n_jobs</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">n_jobs</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">cpu_count</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">+</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">n_jobs</span>
+
+
+<span class="k">def</span> <span class="nf">_imap_wrap</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds timeout to IMapIterator and IMapUnorderedIterator.</span>
+<span class="sd">    This allows exit upon Ctrl-C.  This is a fix</span>
+<span class="sd">    of the known python bug  bugs.python.org/issue8296 given by</span>
+<span class="sd">    https://gist.github.com/aljungberg/626518</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    func : Either IMapIterator or IMapUnorderedIterator</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    wrap : Function</span>
+<span class="sd">        Wrapped version of func, with timeout specified</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># func will be a next() method of IMapIterator.</span>
+    <span class="c"># Note that the first argument to methods are always &#39;self&#39;.</span>
+    <span class="k">def</span> <span class="nf">wrap</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="n">timeout</span> <span class="k">if</span> <span class="n">timeout</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="k">else</span> <span class="n">GOOGLE</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">wrap</span>
+
+
+<span class="k">def</span> <span class="nf">_trypickle</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Attempts to pickle func since multiprocessing needs to do this.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">genericmsg</span> <span class="o">=</span> <span class="s">&quot;Pickling of func (necessary for multiprocessing) failed.&quot;</span>
+
+    <span class="n">boundmethodmsg</span> <span class="o">=</span> <span class="n">genericmsg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">    func contained a bound method, and these cannot be pickled.  This causes</span>
+<span class="s">    multiprocessing to fail.  Possible causes/solutions:</span>
+
+<span class="s">    Cause 1) You used a lambda function or an object&#39;s method, e.g.</span>
+<span class="s">        my_object.myfunc</span>
+<span class="s">    Solution 1) Wrap the method or lambda function, e.g.</span>
+<span class="s">        def func(x):</span>
+<span class="s">            return my_object.myfunc(x)</span>
+
+<span class="s">    Cause 2) You are pickling an object that had an attribute equal to a</span>
+<span class="s">        method or lambda func, e.g. self.myfunc = self.mymethod.</span>
+<span class="s">    Solution 2)  Don&#39;t do this.</span>
+<span class="s">    &quot;&quot;&quot;</span>
+
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">cPickle</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s">&#39;instancemethod&#39;</span> <span class="ow">in</span> <span class="n">e</span><span class="o">.</span><span class="n">message</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">boundmethodmsg</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">genericmsg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">raise</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">genericmsg</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+        <span class="k">raise</span>
+
+
+<span class="c"># Redefine IMapUnorderedIterator so we can exit with Ctrl-C</span>
+<span class="n">IMapUnorderedIterator</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">_imap_wrap</span><span class="p">(</span><span class="n">IMapUnorderedIterator</span><span class="o">.</span><span class="n">next</span><span class="p">)</span>
+<span class="n">IMapIterator</span><span class="o">.</span><span class="n">next</span> <span class="o">=</span> <span class="n">_imap_wrap</span><span class="p">(</span><span class="n">IMapIterator</span><span class="o">.</span><span class="n">next</span><span class="p">)</span>
+
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="c"># Can&#39;t get doctest to work with multiprocessing...</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, rosetta development team.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

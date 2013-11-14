@@ -1,0 +1,430 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rosetta.text.streamers &mdash; rosetta 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="rosetta 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for rosetta.text.streamers</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Classes for streaming tokens/info from files/sparse files etc...</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span>
+<span class="kn">from</span> <span class="nn">random</span> <span class="kn">import</span> <span class="n">shuffle</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+
+<span class="kn">from</span> <span class="nn">rosetta.parallel.parallel_easy</span> <span class="kn">import</span> <span class="n">imap_easy</span>
+
+<span class="kn">from</span> <span class="nn">..</span> <span class="kn">import</span> <span class="n">common</span>
+<span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">lazyprop</span><span class="p">,</span> <span class="n">smart_open</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">filefilter</span><span class="p">,</span> <span class="n">text_processors</span>
+
+
+<div class="viewcode-block" id="BaseStreamer"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.BaseStreamer">[docs]</a><span class="k">class</span> <span class="nc">BaseStreamer</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class...don&#39;t use this directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseStreamer.single_stream"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.BaseStreamer.single_stream">[docs]</a>    <span class="k">def</span> <span class="nf">single_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">item</span><span class="p">,</span> <span class="n">cache_list</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stream a single item from source.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        item : String</span>
+<span class="sd">            The single item to pull from info and stream.</span>
+<span class="sd">        cache_list : List of strings</span>
+<span class="sd">            Cache these items on every iteration</span>
+<span class="sd">        kwargs : Keyword args</span>
+<span class="sd">            Passed on to self.info_stream</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Initialize the cached items as attributes</span>
+        <span class="k">for</span> <span class="n">cache_item</span> <span class="ow">in</span> <span class="n">cache_list</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">cache_item</span> <span class="o">+</span> <span class="s">&#39;_cache&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c"># Iterate through self.info_stream and pull off required information.</span>
+        <span class="n">stream</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">info_stream</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">info</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">stream</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">StopIteration</span>
+            <span class="k">for</span> <span class="n">cache_item</span> <span class="ow">in</span> <span class="n">cache_list</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">cache_item</span> <span class="o">+</span> <span class="s">&#39;_cache&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="n">cache_item</span><span class="p">])</span>
+
+            <span class="k">yield</span> <span class="n">info</span><span class="p">[</span><span class="n">item</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="BaseStreamer.token_stream"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.BaseStreamer.token_stream">[docs]</a>    <span class="k">def</span> <span class="nf">token_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cache_list</span><span class="o">=</span><span class="p">[],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an iterator over tokens with possible caching of other info.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        cache_list : Cache these items as they appear</span>
+<span class="sd">            Call self.token_stream(&#39;doc_id&#39;, &#39;tokens&#39;) to cache</span>
+<span class="sd">            info[&#39;doc_id&#39;] and info[&#39;tokens&#39;] (assuming both are available).</span>
+<span class="sd">        kwargs : Keyword args</span>
+<span class="sd">            Passed on to self.info_stream</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">single_stream</span><span class="p">(</span><span class="s">&#39;tokens&#39;</span><span class="p">,</span> <span class="n">cache_list</span><span class="o">=</span><span class="n">cache_list</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="VWStreamer"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.VWStreamer">[docs]</a><span class="k">class</span> <span class="nc">VWStreamer</span><span class="p">(</span><span class="n">BaseStreamer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For streaming from a single VW file.  Since the VW file format does not</span>
+<span class="sd">    preserve token order, all tokens are unordered.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">sfile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">cache_sfile</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sfile : File path or buffer</span>
+<span class="sd">            Points to a sparse (VW) formatted file.</span>
+<span class="sd">        cache_sfile : Boolean</span>
+<span class="sd">            If True, cache the sfile in memory.  CAREFUL!!!</span>
+<span class="sd">        limit : Integer</span>
+<span class="sd">            Only return this many results</span>
+<span class="sd">        shuffle : Boolean</span>
+<span class="sd">            If True, shuffle paths once (and only once) before streaming</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sfile</span> <span class="o">=</span> <span class="n">sfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cache_sfile</span> <span class="o">=</span> <span class="n">cache_sfile</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span> <span class="o">=</span> <span class="n">text_processors</span><span class="o">.</span><span class="n">VWFormatter</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">cache_sfile</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cached_stream</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_init_cached_stream</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="ow">not</span> <span class="n">shuffle</span><span class="p">,</span> <span class="s">&quot;Can only shuffle a cached stream&quot;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfile_stream</span>
+
+    <span class="k">def</span> <span class="nf">_init_cached_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">record_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sfile_stream</span><span class="p">():</span>
+            <span class="n">doc_id</span> <span class="o">=</span> <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;doc_id&#39;</span><span class="p">]</span>
+            <span class="n">records</span><span class="p">[</span><span class="n">doc_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">record_dict</span>
+
+        <span class="c"># Set self.records and self.doc_id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">records</span> <span class="o">=</span> <span class="n">records</span>
+        <span class="n">doc_id</span> <span class="o">=</span> <span class="n">records</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+            <span class="n">shuffle</span><span class="p">(</span><span class="n">doc_id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doc_id</span> <span class="o">=</span> <span class="n">doc_id</span>
+
+    <span class="k">def</span> <span class="nf">_cached_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">records</span>
+
+        <span class="k">if</span> <span class="n">doc_id</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">doc</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc_id</span><span class="p">):</span>
+                <span class="n">record_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">records</span><span class="p">[</span><span class="n">doc</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">StopIteration</span>
+                <span class="k">yield</span> <span class="n">record_dict</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">limit</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">cache_sfile</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s">&quot;Cannot use both self.limit and doc_id with cached stream&quot;</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">doc_id</span><span class="p">:</span>
+                <span class="k">yield</span> <span class="n">records</span><span class="p">[</span><span class="n">doc</span><span class="p">]</span>
+
+    <span class="k">def</span> <span class="nf">_sfile_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Stream record_dict from an sfile that sits on disk.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Open file if path.  If buffer or StringIO, passthrough.</span>
+        <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sfile</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">infile</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">doc_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="n">doc_id</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">doc_id</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">infile</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">StopIteration</span>
+
+                <span class="n">record_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">sstr_to_dict</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">doc_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;doc_id&#39;</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">doc_id</span><span class="p">:</span>
+                        <span class="k">continue</span>
+                <span class="k">yield</span> <span class="n">record_dict</span>
+
+<div class="viewcode-block" id="VWStreamer.info_stream"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.VWStreamer.info_stream">[docs]</a>    <span class="k">def</span> <span class="nf">info_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an iterator over info dicts.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        doc_id : Iterable over Strings</span>
+<span class="sd">            Return info dicts iff doc_id in doc_id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">source</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source</span><span class="p">(</span><span class="n">doc_id</span><span class="o">=</span><span class="n">doc_id</span><span class="p">)</span>
+
+        <span class="c"># Read record_dict and convert to info by adding tokens</span>
+        <span class="k">for</span> <span class="n">record_dict</span> <span class="ow">in</span> <span class="n">source</span><span class="p">:</span>
+            <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;tokens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">_dict_to_tokens</span><span class="p">(</span><span class="n">record_dict</span><span class="p">)</span>
+
+            <span class="k">yield</span> <span class="n">record_dict</span>
+
+</div></div>
+<div class="viewcode-block" id="TextFileStreamer"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.TextFileStreamer">[docs]</a><span class="k">class</span> <span class="nc">TextFileStreamer</span><span class="p">(</span><span class="n">BaseStreamer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For streaming from text files.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">text_base_path</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="n">name_strip</span><span class="o">=</span><span class="s">r&#39;\..*&#39;</span><span class="p">,</span>
+        <span class="n">tokenizer</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">tokenizer_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">shuffle</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        text_base_path : string or None</span>
+<span class="sd">            Base path to dir containing files.</span>
+<span class="sd">        file_type : String</span>
+<span class="sd">            String to filter files with.  E.g. &#39;*.txt&#39;.  </span>
+<span class="sd">            Note that the filenames will be converted to lowercase before</span>
+<span class="sd">            this comparison.</span>
+<span class="sd">        name_strip : raw string</span>
+<span class="sd">            Regex to strip doc_id.</span>
+<span class="sd">        tokenizer : Subclass of BaseTokenizer</span>
+<span class="sd">            Should have a text_to_token_list method.  Try using MakeTokenizer</span>
+<span class="sd">            to convert a function to a valid tokenizer.</span>
+<span class="sd">        tokenizer_func : Function</span>
+<span class="sd">            Transforms a string (representing one file) to a list of strings</span>
+<span class="sd">            (the &#39;tokens&#39;).</span>
+<span class="sd">        limit : int or None</span>
+<span class="sd">            Limit for number of docs processed.</span>
+<span class="sd">        shuffle : Boolean</span>
+<span class="sd">            If True, shuffle paths once (and only once) before streaming</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_base_path</span> <span class="o">=</span> <span class="n">text_base_path</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">file_type</span> <span class="o">=</span> <span class="n">file_type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name_strip</span> <span class="o">=</span> <span class="n">name_strip</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">limit</span> <span class="o">=</span> <span class="n">limit</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">tokenizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer_func</span> <span class="o">=</span> <span class="n">tokenizer_func</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span> <span class="o">=</span> <span class="n">shuffle</span>
+
+        <span class="k">assert</span> <span class="p">(</span><span class="n">tokenizer</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">tokenizer_func</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tokenizer_func</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span> <span class="o">=</span> <span class="n">text_processors</span><span class="o">.</span><span class="n">MakeTokenizer</span><span class="p">(</span><span class="n">tokenizer_func</span><span class="p">)</span>
+
+    <span class="nd">@lazyprop</span>
+    <span class="k">def</span> <span class="nf">paths</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all paths that we will use.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">text_base_path</span><span class="p">:</span>
+            <span class="n">paths</span> <span class="o">=</span> <span class="n">filefilter</span><span class="o">.</span><span class="n">get_paths</span><span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">text_base_path</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">file_type</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">:</span>
+                <span class="n">shuffle</span><span class="p">(</span><span class="n">paths</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span><span class="p">:</span>
+                <span class="n">paths</span> <span class="o">=</span> <span class="n">paths</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">paths</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="k">return</span> <span class="n">paths</span>
+
+    <span class="nd">@lazyprop</span>
+    <span class="k">def</span> <span class="nf">doc_id</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get doc_id corresponding to all paths.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">regex</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name_strip</span><span class="p">)</span>
+        <span class="n">doc_id</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="n">regex</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">filefilter</span><span class="o">.</span><span class="n">path_to_name</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">strip_ext</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">doc_id</span>
+
+    <span class="nd">@lazyprop</span>
+    <span class="k">def</span> <span class="nf">_doc_id_to_path</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Build the dictionary mapping doc_id to path.  doc_id is based on</span>
+<span class="sd">        the filename.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">))</span>
+
+<div class="viewcode-block" id="TextFileStreamer.info_stream"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.TextFileStreamer.info_stream">[docs]</a>    <span class="k">def</span> <span class="nf">info_stream</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">paths</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">doc_id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns an iterator over paths yielding dictionaries with information</span>
+<span class="sd">        about the file contained within.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        paths : list of strings</span>
+<span class="sd">        doc_id : list of strings or ints</span>
+<span class="sd">        limit : Integer</span>
+<span class="sd">            Use limit in place of self.limit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">limit</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">limit</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">limit</span>
+
+        <span class="k">if</span> <span class="n">doc_id</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">paths</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_to_path</span><span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">doc</span><span class="p">)]</span> <span class="k">for</span> <span class="n">doc</span> <span class="ow">in</span> <span class="n">doc_id</span><span class="p">]</span>
+        <span class="k">elif</span> <span class="n">paths</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">paths</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">paths</span>
+
+        <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">onepath</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">paths</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">limit</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">StopIteration</span>
+
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">onepath</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">text</span> <span class="o">=</span> <span class="n">f</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+                <span class="n">doc_id</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">name_strip</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">filefilter</span><span class="o">.</span><span class="n">path_to_name</span>
+                    <span class="p">(</span><span class="n">onepath</span><span class="p">,</span> <span class="n">strip_ext</span><span class="o">=</span><span class="bp">False</span><span class="p">))</span>
+                <span class="n">info_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;text&#39;</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span> <span class="s">&#39;cached_path&#39;</span><span class="p">:</span> <span class="n">onepath</span><span class="p">,</span>
+                        <span class="s">&#39;doc_id&#39;</span><span class="p">:</span> <span class="n">doc_id</span><span class="p">}</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="p">:</span>
+                    <span class="n">info_dict</span><span class="p">[</span><span class="s">&#39;tokens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">text_to_token_list</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+
+            <span class="k">yield</span> <span class="n">info_dict</span>
+</div>
+<div class="viewcode-block" id="TextFileStreamer.to_vw"><a class="viewcode-back" href="../../../index.html#rosetta.text.streamers.TextFileStreamer.to_vw">[docs]</a>    <span class="k">def</span> <span class="nf">to_vw</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">chunksize</span><span class="o">=</span><span class="mi">1000</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Write our filestream to a VW (Vowpal Wabbit) formatted file.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        outfile : filepath or buffer</span>
+<span class="sd">        n_jobs : Integer</span>
+<span class="sd">            Use n_jobs different jobs to do the processing.  Set = 4 for 4</span>
+<span class="sd">            jobs.  Set = -1 to use all available, -2 for all except 1,...</span>
+<span class="sd">        chunksize : Integer</span>
+<span class="sd">            Workers process this many jobs at once before pickling and sending</span>
+<span class="sd">            results to master.  If this is too low, communication overhead</span>
+<span class="sd">            will dominate.  If this is too high, jobs will not be distributed</span>
+<span class="sd">            evenly.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Note:  This is similar to declass/cmd/files_to_vw.py</span>
+        <span class="c"># This implementation is more complicated, due to the fact that a</span>
+        <span class="c"># streamer specifies the method to extract doc_id from a stream.</span>
+        <span class="c"># To be faithful to the streamer, we must therefore use the streamer</span>
+        <span class="c"># to stream the files.  This requires a combination of imap_easy and</span>
+        <span class="c"># a chunker.</span>
+        <span class="c">#</span>
+        <span class="c"># Create an iterator over chunks of paths</span>
+        <span class="n">path_group_iter</span> <span class="o">=</span> <span class="n">common</span><span class="o">.</span><span class="n">grouper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">paths</span><span class="p">,</span> <span class="n">chunksize</span><span class="p">)</span>
+
+        <span class="n">formatter</span> <span class="o">=</span> <span class="n">text_processors</span><span class="o">.</span><span class="n">VWFormatter</span><span class="p">()</span>
+
+        <span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">_group_to_sstr</span><span class="p">,</span> <span class="bp">self</span><span class="p">,</span> <span class="n">formatter</span><span class="p">)</span>
+        <span class="c"># Process one group at a time...set imap_easy chunksize arg to 1</span>
+        <span class="c"># since each group contains many paths.</span>
+        <span class="n">results_iterator</span> <span class="o">=</span> <span class="n">imap_easy</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">path_group_iter</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_outfile</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">group_results</span> <span class="ow">in</span> <span class="n">results_iterator</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">sstr</span> <span class="ow">in</span> <span class="n">group_results</span><span class="p">:</span>
+                    <span class="n">open_outfile</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">sstr</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+</div></div>
+<span class="k">def</span> <span class="nf">_group_to_sstr</span><span class="p">(</span><span class="n">streamer</span><span class="p">,</span> <span class="n">formatter</span><span class="p">,</span> <span class="n">path_group</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a list of sstr&#39;s (sparse string representations).  One for every</span>
+<span class="sd">    path in path_group.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c"># grouper might append None to the last group if this one is shorter</span>
+    <span class="n">path_group</span> <span class="o">=</span> <span class="p">(</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">path_group</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">)</span>
+
+    <span class="n">group_results</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">info_stream</span> <span class="o">=</span> <span class="n">streamer</span><span class="o">.</span><span class="n">info_stream</span><span class="p">(</span><span class="n">paths</span><span class="o">=</span><span class="n">path_group</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">info_dict</span> <span class="ow">in</span> <span class="n">info_stream</span><span class="p">:</span>
+        <span class="n">doc_id</span> <span class="o">=</span> <span class="n">info_dict</span><span class="p">[</span><span class="s">&#39;doc_id&#39;</span><span class="p">]</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">info_dict</span><span class="p">[</span><span class="s">&#39;tokens&#39;</span><span class="p">]</span>
+        <span class="n">feature_values</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span>
+        <span class="n">tok_sstr</span> <span class="o">=</span> <span class="n">formatter</span><span class="o">.</span><span class="n">get_sstr</span><span class="p">(</span>
+            <span class="n">feature_values</span><span class="p">,</span> <span class="n">importance</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">doc_id</span><span class="o">=</span><span class="n">doc_id</span><span class="p">)</span>
+
+        <span class="n">group_results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tok_sstr</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">group_results</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, rosetta development team.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

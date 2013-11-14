@@ -1,0 +1,942 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rosetta.text.text_processors &mdash; rosetta 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="rosetta 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for rosetta.text.text_processors</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Tokenizer</span>
+<span class="sd">---------</span>
+<span class="sd">Classes with a .text_to_token_list method (and a bit more).  Used by other</span>
+<span class="sd">modules as a means to convert stings to lists of strings.</span>
+
+<span class="sd">If you have a function that converts strings to lists of strings, you can</span>
+<span class="sd">make a tokenizer from it by using MakeTokenizer(my_tokenizing_func).</span>
+
+<span class="sd">SparseFormatter</span>
+<span class="sd">---------------</span>
+<span class="sd">Classes for converting text to sparse representations (e.g. VW or SVMLight).</span>
+
+<span class="sd">SFileFilter</span>
+<span class="sd">-----------</span>
+<span class="sd">Classes for filtering words/rows from a sparse formatted file.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Counter</span><span class="p">,</span> <span class="n">defaultdict</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">random</span>
+<span class="kn">import</span> <span class="nn">re</span>
+
+<span class="kn">import</span> <span class="nn">nltk</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">smart_open</span>
+<span class="kn">from</span> <span class="nn">..common_abc</span> <span class="kn">import</span> <span class="n">SaveLoad</span>
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">nlp</span>
+
+
+<div class="viewcode-block" id="BaseTokenizer"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.BaseTokenizer">[docs]</a><span class="k">class</span> <span class="nc">BaseTokenizer</span><span class="p">(</span><span class="n">SaveLoad</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class, don&#39;t use directly.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseTokenizer.text_to_counter"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.BaseTokenizer.text_to_counter">[docs]</a>    <span class="k">def</span> <span class="nf">text_to_counter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a counter associated to tokens in text.</span>
+<span class="sd">        Filter/transform words according to the scheme this Tokenizer uses.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        text : String</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tokens : Counter</span>
+<span class="sd">            keys = the tokens</span>
+<span class="sd">            values = counts of the tokens in text</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">Counter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">text_to_token_list</span><span class="p">(</span><span class="n">text</span><span class="p">))</span>
+
+</div></div>
+<div class="viewcode-block" id="MakeTokenizer"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.MakeTokenizer">[docs]</a><span class="k">class</span> <span class="nc">MakeTokenizer</span><span class="p">(</span><span class="n">BaseTokenizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Makes a subclass of BaseTokenizer out of a function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokenizer_func</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tokenizer_func : Function</span>
+<span class="sd">            Takes in strings, spits out lists of strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">text_to_token_list</span> <span class="o">=</span> <span class="n">tokenizer_func</span>
+
+</div>
+<div class="viewcode-block" id="TokenizerBasic"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.TokenizerBasic">[docs]</a><span class="k">class</span> <span class="nc">TokenizerBasic</span><span class="p">(</span><span class="n">BaseTokenizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A simple tokenizer.  Extracts word counts from text.</span>
+
+<span class="sd">    Keeps only non-stopwords, converts to lowercase,</span>
+<span class="sd">    keeps words of length &gt;=2.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TokenizerBasic.text_to_token_list"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.TokenizerBasic.text_to_token_list">[docs]</a>    <span class="k">def</span> <span class="nf">text_to_token_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a list of tokens.</span>
+<span class="sd">        Filter/transform words according to the scheme this Tokenizer uses.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        text : String</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        tokens : List</span>
+<span class="sd">            Tokenized text, e.g. [&#39;hello&#39;, &#39;my&#39;, &#39;name&#39;, &#39;is&#39;, &#39;ian&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">nlp</span><span class="o">.</span><span class="n">word_tokenize</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">L</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">numeric</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="p">[</span><span class="n">word</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="k">for</span> <span class="n">word</span> <span class="ow">in</span> <span class="n">tokens</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">nlp</span><span class="o">.</span><span class="n">is_stopword</span><span class="p">(</span><span class="n">word</span><span class="p">)]</span>
+
+</div></div>
+<div class="viewcode-block" id="TokenizerPOSFilter"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.TokenizerPOSFilter">[docs]</a><span class="k">class</span> <span class="nc">TokenizerPOSFilter</span><span class="p">(</span><span class="n">BaseTokenizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Tokenizes, does POS tagging, then keeps words that match particular POS.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">pos_types</span><span class="o">=</span><span class="p">[],</span> <span class="n">sent_tokenizer</span><span class="o">=</span><span class="n">nltk</span><span class="o">.</span><span class="n">sent_tokenize</span><span class="p">,</span>
+        <span class="n">word_tokenizer</span><span class="o">=</span><span class="n">TokenizerBasic</span><span class="p">(),</span> <span class="n">word_tokenizer_func</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span>
+        <span class="n">pos_tagger</span><span class="o">=</span><span class="n">nltk</span><span class="o">.</span><span class="n">pos_tag</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        pos_types : List of Strings</span>
+<span class="sd">            Parts of Speech to keep</span>
+<span class="sd">        sent_tokenizer : Sentence tokenizer function.</span>
+<span class="sd">            Default: nltk.sent_tokenize</span>
+<span class="sd">            Splits text into a list of sentences (each sentence is a string)</span>
+<span class="sd">        word_tokenizer : Subclass of BaseTokenizer.</span>
+<span class="sd">            Default: TokenizerBasic</span>
+<span class="sd">            For tokenizing the words.</span>
+<span class="sd">        word_tokenizer_func : Function</span>
+<span class="sd">            Converts strings to list of strings.  If given, use this in place</span>
+<span class="sd">            of word_tokenizer.</span>
+<span class="sd">        pos_tagger : POS tagging function</span>
+<span class="sd">            Default: nltk.pos_tag</span>
+<span class="sd">            Given a list of words, returns a list of tuples (word, POS)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_types</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">pos_types</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sent_tokenizer</span> <span class="o">=</span> <span class="n">sent_tokenizer</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pos_tagger</span> <span class="o">=</span> <span class="n">pos_tagger</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">word_tokenizer</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word_tokenizer</span> <span class="o">=</span> <span class="n">MakeTokenizer</span><span class="p">(</span><span class="n">word_tokenizer_func</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">word_tokenizer</span> <span class="o">=</span> <span class="n">word_tokenizer</span>
+
+<div class="viewcode-block" id="TokenizerPOSFilter.text_to_token_list"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.TokenizerPOSFilter.text_to_token_list">[docs]</a>    <span class="k">def</span> <span class="nf">text_to_token_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Tokenize a list of text that (possibly) includes multiple sentences.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># sentences = [[&#39;I am Ian.&#39;], [&#39;Who are you?&#39;]]</span>
+        <span class="n">sentences</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sent_tokenizer</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        <span class="c"># tokenized_sentences = [[&#39;I&#39;, &#39;am&#39;, &#39;Ian.&#39;], [&#39;Who&#39;, &#39;are&#39;, &#39;you?&#39;]]</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">word_tokenizer</span><span class="o">.</span><span class="n">text_to_token_list</span>
+        <span class="n">tokenized_sentences</span> <span class="o">=</span> <span class="p">[</span><span class="n">func</span><span class="p">(</span><span class="n">sent</span><span class="p">)</span> <span class="k">for</span> <span class="n">sent</span> <span class="ow">in</span> <span class="n">sentences</span><span class="p">]</span>
+        <span class="c"># tagged_sentences = [[(&#39;I&#39;, &#39;PRP&#39;), (&#39;am&#39;, &#39;VBP&#39;), ...]]</span>
+        <span class="n">tagged_sentences</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pos_tagger</span><span class="p">(</span><span class="n">sent</span><span class="p">)</span> <span class="k">for</span> <span class="n">sent</span> <span class="ow">in</span> <span class="n">tokenized_sentences</span><span class="p">]</span>
+
+        <span class="c"># Returning a list of words that meet the filter criteria</span>
+        <span class="n">token_list</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_sent_filter</span><span class="p">(</span><span class="n">sent</span><span class="p">)</span> <span class="k">for</span> <span class="n">sent</span> <span class="ow">in</span> <span class="n">tagged_sentences</span><span class="p">],</span> <span class="p">[])</span>
+
+        <span class="k">return</span> <span class="n">token_list</span>
+</div>
+    <span class="k">def</span> <span class="nf">_sent_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokenized_sent</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span>
+            <span class="n">word</span> <span class="k">for</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">pos</span><span class="p">)</span> <span class="ow">in</span> <span class="n">tokenized_sent</span> <span class="k">if</span> <span class="n">pos</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pos_types</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="SparseFormatter"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SparseFormatter">[docs]</a><span class="k">class</span> <span class="nc">SparseFormatter</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Base class for sparse formatting, e.g. VW or svmlight.</span>
+<span class="sd">    Not meant to be directly used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_parse_feature_str</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">feature_str</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parses a sparse feature string and returns</span>
+<span class="sd">        feature_values = {feature1: value1, feature2: value2,...}</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># We currently don&#39;t support namespaces, so feature_str must start</span>
+        <span class="c"># with a space then feature1[:value1] feature2[:value2] ...</span>
+        <span class="k">assert</span> <span class="n">feature_str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39; &#39;</span>
+        <span class="n">feature_str</span> <span class="o">=</span> <span class="n">feature_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="c"># The regex splits &#39;hi:1 bye:&#39; into [(&#39;hi&#39;, &#39;1&#39;), (&#39;bye&#39;, &#39;&#39;)]</span>
+        <span class="n">fv_list</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">findall</span><span class="p">(</span><span class="s">r&#39;(\S+):(\S*)&#39;</span><span class="p">,</span> <span class="n">feature_str</span><span class="p">)</span>
+
+        <span class="n">feature_values</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="n">f</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_string_to_number</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">empty_sub</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="n">fv_list</span><span class="p">}</span>
+
+        <span class="k">return</span> <span class="n">feature_values</span>
+
+<div class="viewcode-block" id="SparseFormatter.sstr_to_dict"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SparseFormatter.sstr_to_dict">[docs]</a>    <span class="k">def</span> <span class="nf">sstr_to_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sstr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a dict representation of sparse record string.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sstr : String</span>
+<span class="sd">            String representation of one record.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        record_dict : Dict</span>
+<span class="sd">            possible keys = &#39;target&#39;, &#39;importance&#39;, &#39;doc_id&#39;, &#39;feature_values&#39;</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        rstrips newline characters from sstr before parsing.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">sstr</span> <span class="o">=</span> <span class="n">sstr</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">sstr</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">preamble_char</span><span class="p">)</span>
+        <span class="n">preamble</span><span class="p">,</span> <span class="n">feature_str</span> <span class="o">=</span> <span class="n">sstr</span><span class="p">[:</span><span class="n">idx</span><span class="p">],</span> <span class="n">sstr</span><span class="p">[</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+
+        <span class="n">record_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_preamble</span><span class="p">(</span><span class="n">preamble</span><span class="p">)</span>
+
+        <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;feature_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_feature_str</span><span class="p">(</span><span class="n">feature_str</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">record_dict</span>
+</div>
+<div class="viewcode-block" id="SparseFormatter.sstr_to_info"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SparseFormatter.sstr_to_info">[docs]</a>    <span class="k">def</span> <span class="nf">sstr_to_info</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sstr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns the full info dictionary corresponding to a sparse record</span>
+<span class="sd">        string.  This holds &quot;everything.&quot;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sstr : String</span>
+<span class="sd">            String representation of one record.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        info : Dict</span>
+<span class="sd">            possible keys = &#39;tokens&#39;, &#39;target&#39;, &#39;importance&#39;, &#39;doc_id&#39;,</span>
+<span class="sd">                &#39;feature_values&#39;, etc...</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">info</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sstr_to_dict</span><span class="p">(</span><span class="n">sstr</span><span class="p">)</span>
+        <span class="n">info</span><span class="p">[</span><span class="s">&#39;tokens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dict_to_tokens</span><span class="p">(</span><span class="n">info</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">info</span>
+</div>
+    <span class="k">def</span> <span class="nf">_dict_to_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">record_dict</span><span class="p">):</span>
+        <span class="n">token_list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="s">&#39;feature_values&#39;</span> <span class="ow">in</span> <span class="n">record_dict</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">feature</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;feature_values&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                <span class="c"># If the value is a non-integer score (e.g. tfidf), then</span>
+                <span class="c"># it cannot correspond to a number of tokens</span>
+                <span class="n">int_value</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">assert</span> <span class="n">int_value</span> <span class="o">==</span> <span class="n">value</span>
+                <span class="n">token_list</span> <span class="o">+=</span> <span class="p">[</span><span class="n">feature</span><span class="p">]</span> <span class="o">*</span> <span class="n">int_value</span>
+
+        <span class="k">return</span> <span class="n">token_list</span>
+
+<div class="viewcode-block" id="SparseFormatter.sstr_to_token_list"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SparseFormatter.sstr_to_token_list">[docs]</a>    <span class="k">def</span> <span class="nf">sstr_to_token_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sstr</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convertes a sparse record string to a list of tokens (with repeats)</span>
+<span class="sd">        corresponding to sstr.</span>
+
+<span class="sd">        E.g. if sstr represented the dict {&#39;hi&#39;: 2, &#39;bye&#39;: 1}, then</span>
+<span class="sd">        token_list = [&#39;hi&#39;, &#39;hi&#39;, &#39;bye&#39;]  (up to permutation).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sstr : String</span>
+<span class="sd">            Formatted according to self.format_name</span>
+<span class="sd">            Note that the values in sstr must be integers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        token_list : List of Strings</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">record_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sstr_to_dict</span><span class="p">(</span><span class="n">sstr</span><span class="p">)</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dict_to_tokens</span><span class="p">(</span><span class="n">record_dict</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SparseFormatter.sfile_to_token_iter"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SparseFormatter.sfile_to_token_iter">[docs]</a>    <span class="k">def</span> <span class="nf">sfile_to_token_iter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">filepath_or_buffer</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return an iterator over filepath_or_buffer that returns, line-by-line,</span>
+<span class="sd">        a token_list.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        filepath_or_buffer : string or file handle / StringIO.</span>
+<span class="sd">            File should be formatted according to self.format.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        token_iter : Iterator</span>
+<span class="sd">            E.g. token_iter.next() gets the next line as a list of tokens.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">filepath_or_buffer</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">index</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">open_file</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">index</span> <span class="o">==</span> <span class="n">limit</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">StopIteration</span>
+                <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">sstr_to_token_list</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_string_to_number</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">string</span><span class="p">,</span> <span class="n">empty_sub</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Convert a string to either an int or a float, with optional</span>
+<span class="sd">        substitution for empty strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c"># fallback to float</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">string</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="c"># See if it is empty and there is an empty_sub value</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">string</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">empty_sub</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">empty_sub</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span>
+
+</div>
+<div class="viewcode-block" id="VWFormatter"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.VWFormatter">[docs]</a><span class="k">class</span> <span class="nc">VWFormatter</span><span class="p">(</span><span class="n">SparseFormatter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Converts in and out of VW format (namespaces currently not supported).</span>
+<span class="sd">    Many valid VW inputs are possible, we ONLY support</span>
+
+<span class="sd">    [target] [Importance [Tag]]| feature1[:value1] feature2[:value2] ...</span>
+
+<span class="sd">    Every single whitespace, pipe, colon, and newline is significant.</span>
+
+<span class="sd">    See:</span>
+<span class="sd">    https://github.com/JohnLangford/vowpal_wabbit/wiki/Input-format</span>
+<span class="sd">    http://hunch.net/~vw/validate.html</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format_name</span> <span class="o">=</span> <span class="s">&#39;vw&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preamble_char</span> <span class="o">=</span> <span class="s">&#39;|&#39;</span>
+
+<div class="viewcode-block" id="VWFormatter.get_sstr"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.VWFormatter.get_sstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_sstr</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">feature_values</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">importance</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">doc_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string reprsenting one record in sparse VW format:</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        feature_values : Dict-like</span>
+<span class="sd">            {feature1: value1,...}</span>
+<span class="sd">        target : Real number</span>
+<span class="sd">            The value we are trying to predict.</span>
+<span class="sd">        importance : Real number</span>
+<span class="sd">            The importance weight to associate to this example.</span>
+<span class="sd">        doc_id : Number or string</span>
+<span class="sd">            A name for this example.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        formatted : String</span>
+<span class="sd">            Formatted in VW format</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">doc_id</span><span class="p">:</span>
+            <span class="c"># If doc_id, then we must have importance.</span>
+            <span class="c"># The doc_id sits right against the pipe.</span>
+            <span class="k">assert</span> <span class="n">importance</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="s">&quot; </span><span class="si">%s</span><span class="s">|&quot;</span> <span class="o">%</span> <span class="n">doc_id</span>
+            <span class="c"># If no doc_id, insert a space to the left of the pipe.</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="s">&quot; |&quot;</span>
+
+        <span class="k">if</span> <span class="n">importance</span><span class="p">:</span>
+            <span class="c"># Insert a space to the left of importance.</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="s">&quot; &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">importance</span><span class="p">)</span> <span class="o">+</span> <span class="n">formatted</span>
+
+        <span class="k">if</span> <span class="n">target</span><span class="p">:</span>
+            <span class="c"># target gets stuck on the end</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="o">+</span> <span class="n">formatted</span>
+
+        <span class="c"># The feature part must start with a space unless there is a namespace.</span>
+        <span class="n">formatted</span> <span class="o">+=</span> <span class="s">&#39; &#39;</span>
+        <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">feature_values</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">formatted</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s"> &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+
+        <span class="c"># Remove the trailing space...not required but it&#39;s screwy to have a</span>
+        <span class="c"># space-delimited file with a trailing space but nothing after it!</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">feature_values</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">formatted</span> <span class="o">=</span> <span class="n">formatted</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="n">formatted</span>
+</div>
+    <span class="k">def</span> <span class="nf">_parse_preamble</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preamble</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parse the VW preamble: [target] [Importance [Tag]]</span>
+<span class="sd">        and return a dict with keys &#39;doc_id&#39;, &#39;target&#39;, &#39;importance&#39; iff</span>
+<span class="sd">        the corresponding values were found in the preamble.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># If preamble was butted directly against a pipe, then the right-most</span>
+        <span class="c"># part is a doc_id....extract it and continue.</span>
+        <span class="k">if</span> <span class="n">preamble</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+            <span class="n">doc_id_left</span> <span class="o">=</span> <span class="n">preamble</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+            <span class="n">doc_id</span> <span class="o">=</span> <span class="n">preamble</span><span class="p">[</span><span class="n">doc_id_left</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+            <span class="n">preamble</span> <span class="o">=</span> <span class="n">preamble</span><span class="p">[:</span> <span class="n">doc_id_left</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">doc_id</span> <span class="o">=</span> <span class="bp">None</span>
+
+        <span class="c"># Step from left to right through preamble.</span>
+        <span class="c"># We are in the target until we encounter the first space...if there</span>
+        <span class="c"># is no target, then the first character will be a space.</span>
+        <span class="n">in_target</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="n">importance</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        <span class="k">for</span> <span class="n">char</span> <span class="ow">in</span> <span class="n">preamble</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">char</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+                <span class="n">in_target</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">elif</span> <span class="n">in_target</span><span class="p">:</span>
+                <span class="n">target</span> <span class="o">+=</span> <span class="n">char</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">importance</span> <span class="o">+=</span> <span class="n">char</span>
+
+        <span class="n">parsed</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="s">&#39;doc_id&#39;</span><span class="p">,</span> <span class="n">doc_id</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;target&#39;</span><span class="p">,</span> <span class="n">target</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;importance&#39;</span><span class="p">,</span> <span class="n">importance</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">value</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;target&#39;</span><span class="p">,</span> <span class="s">&#39;importance&#39;</span><span class="p">]:</span>
+                    <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_string_to_number</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+        <span class="k">return</span> <span class="n">parsed</span>
+
+</div>
+<div class="viewcode-block" id="SVMLightFormatter"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SVMLightFormatter">[docs]</a><span class="k">class</span> <span class="nc">SVMLightFormatter</span><span class="p">(</span><span class="n">SparseFormatter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    For formatting in/out of SVM-Light format (info not currently supported)</span>
+<span class="sd">    http://svmlight.joachims.org/</span>
+
+<span class="sd">    &lt;line&gt; .=. &lt;target&gt; &lt;feature&gt;:&lt;value&gt; &lt;feature&gt;:&lt;value&gt; ...</span>
+<span class="sd">    &lt;target&gt; .=. +1 | -1 | 0 | &lt;float&gt;</span>
+<span class="sd">    &lt;feature&gt; .=. &lt;integer&gt; | &quot;qid&quot;</span>
+<span class="sd">    &lt;value&gt; .=. &lt;float&gt;</span>
+<span class="sd">    &lt;info&gt; .=. &lt;string&gt;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">format_name</span> <span class="o">=</span> <span class="s">&#39;svmlight&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">preamble_char</span> <span class="o">=</span> <span class="s">&#39; &#39;</span>
+
+<div class="viewcode-block" id="SVMLightFormatter.get_sstr"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SVMLightFormatter.get_sstr">[docs]</a>    <span class="k">def</span> <span class="nf">get_sstr</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">feature_values</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">importance</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">doc_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a string reprsenting one record in SVM-Light sparse format</span>
+<span class="sd">        &lt;line&gt; .=. &lt;target&gt; &lt;feature&gt;:&lt;value&gt; &lt;feature&gt;:&lt;value&gt;</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        feature_values : Dict-like</span>
+<span class="sd">            {hash1: value1,...}</span>
+<span class="sd">        target : Real number</span>
+<span class="sd">            The value we are trying to predict.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        formatted : String</span>
+<span class="sd">            Formatted in SVM-Light</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># For now, just use 0 for &lt;target&gt;</span>
+        <span class="n">formatted</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">target</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; &#39;</span>
+
+        <span class="k">for</span> <span class="n">word</span><span class="p">,</span> <span class="n">count</span> <span class="ow">in</span> <span class="n">feature_values</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+            <span class="n">formatted</span> <span class="o">+=</span> <span class="s">&quot; </span><span class="si">%s</span><span class="s">:</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">word</span><span class="p">,</span> <span class="n">count</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">formatted</span>
+</div>
+    <span class="k">def</span> <span class="nf">_parse_preamble</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preamble</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s">&#39;target&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">preamble</span><span class="p">)}</span>
+
+</div>
+<div class="viewcode-block" id="SFileFilter"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter">[docs]</a><span class="k">class</span> <span class="nc">SFileFilter</span><span class="p">(</span><span class="n">SaveLoad</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Filters results stored in sfiles (sparsely formattted bag-of-words files).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">formatter</span><span class="p">,</span> <span class="n">bit_precision</span><span class="o">=</span><span class="mi">18</span><span class="p">,</span> <span class="n">sfile</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        formatter : Subclass of SparseFormatter</span>
+<span class="sd">        bit_precision : Integer</span>
+<span class="sd">            Hashes are taken modulo 2**bit_precision.  Currently must be &lt; 32.</span>
+<span class="sd">        sfile : filepath or buffer</span>
+<span class="sd">            Load this sfile during init</span>
+<span class="sd">        verbose : Boolean</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">bit_precision</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span> <span class="o">=</span> <span class="n">formatter</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_precision</span> <span class="o">=</span> <span class="n">bit_precision</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">=</span> <span class="mi">2</span><span class="o">**</span><span class="n">bit_precision</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">sfile_loaded</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_precision_required</span> <span class="o">=</span> <span class="n">bit_precision</span>
+
+        <span class="k">if</span> <span class="n">sfile</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_sfile</span><span class="p">(</span><span class="n">sfile</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_get_hash_fun</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The fastest is the built in function hash.  Quick experimentation</span>
+<span class="sd">        shows that this function maps similar words to similar values (not</span>
+<span class="sd">        cryptographic) and therefore increases collisions...no big deal.</span>
+
+<span class="sd">        hashlib.sha224 is up to 224 bit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_precision</span> <span class="o">&lt;=</span> <span class="mi">64</span><span class="p">:</span>
+            <span class="n">hash_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">w</span><span class="p">:</span> <span class="nb">hash</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_precision</span> <span class="o">&lt;=</span> <span class="mi">224</span><span class="p">:</span>
+            <span class="n">hash_fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">w</span><span class="p">:</span> <span class="p">(</span>
+                <span class="nb">int</span><span class="p">(</span><span class="n">hashlib</span><span class="o">.</span><span class="n">sha224</span><span class="p">(</span><span class="n">w</span><span class="p">)</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">(),</span> <span class="mi">16</span><span class="p">)</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s">&quot;Precision above 224 bit not supported&quot;</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">hash_fun</span>
+
+<div class="viewcode-block" id="SFileFilter.load_sfile"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.load_sfile">[docs]</a>    <span class="k">def</span> <span class="nf">load_sfile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sfile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Load an sfile, building self.token2id</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        sfile : String or open file</span>
+<span class="sd">            The sparse formatted file we will load.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># TODO Allow loading of more than one sfile</span>
+        <span class="k">assert</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">sfile_loaded</span>
+
+        <span class="c"># Build token2id</span>
+        <span class="n">token2id</span><span class="p">,</span> <span class="n">token_score</span><span class="p">,</span> <span class="n">doc_freq</span><span class="p">,</span> <span class="n">num_docs</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_load_sfile_fwd</span><span class="p">(</span><span class="n">sfile</span><span class="p">))</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span> <span class="o">=</span> <span class="n">token2id</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token_score</span> <span class="o">=</span> <span class="n">token_score</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">doc_freq</span> <span class="o">=</span> <span class="n">doc_freq</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_docs</span> <span class="o">=</span> <span class="n">num_docs</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sfile_loaded</span> <span class="o">=</span> <span class="bp">True</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collisions_resolved</span> <span class="o">=</span> <span class="bp">False</span>
+</div>
+    <span class="k">def</span> <span class="nf">_load_sfile_fwd</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sfile</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Builds the &quot;forward&quot; objects involved in loading an sfile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">token2id</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">token_score</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">doc_freq</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">num_docs</span> <span class="o">=</span> <span class="mi">0</span>
+
+        <span class="n">hash_fun</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_hash_fun</span><span class="p">()</span>
+
+        <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">sfile</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+            <span class="c"># Each line represents one document</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">open_file</span><span class="p">:</span>
+                <span class="n">num_docs</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">record_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">sstr_to_dict</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;feature_values&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+                    <span class="n">hash_value</span> <span class="o">=</span> <span class="n">hash_fun</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+                    <span class="n">token2id</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">=</span> <span class="n">hash_value</span>
+                    <span class="n">token_score</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">+=</span> <span class="n">value</span>
+                    <span class="n">doc_freq</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">token2id</span><span class="p">,</span> <span class="n">token_score</span><span class="p">,</span> <span class="n">doc_freq</span><span class="p">,</span> <span class="n">num_docs</span>
+
+<div class="viewcode-block" id="SFileFilter.set_id2token"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.set_id2token">[docs]</a>    <span class="k">def</span> <span class="nf">set_id2token</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets self.id2token, resolving collisions as needed (which alters</span>
+<span class="sd">        self.token2id)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_resolve_collisions</span><span class="p">(</span><span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">id2token</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="p">:</span> <span class="n">k</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()}</span>
+</div>
+    <span class="k">def</span> <span class="nf">_resolve_collisions</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seed</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Alters self.token2id by finding new id values used using a</span>
+<span class="sd">        &quot;random probe&quot; method.</span>
+
+<span class="sd">        Meant to be called by self.set_id2token.  If you call this by itself,</span>
+<span class="sd">        then self.token2id is altered, but self.id2token is not!!!!</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">id_counts</span> <span class="o">=</span> <span class="n">Counter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span>
+
+        <span class="c"># Make sure we don&#39;t have too many collisions</span>
+        <span class="n">num_collisions</span> <span class="o">=</span> <span class="n">vocab_size</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">id_counts</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span>
+            <span class="s">&quot;collisions = </span><span class="si">%d</span><span class="s">, vocab_size = </span><span class="si">%d</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num_collisions</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">num_collisions</span> <span class="o">&gt;</span> <span class="n">vocab_size</span> <span class="o">/</span> <span class="mf">2.</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="s">&quot;Too many collisions to be efficient: &quot;</span>
+                <span class="s">&quot;num_collisions = </span><span class="si">%d</span><span class="s">.  vocab_size = </span><span class="si">%d</span><span class="s">.  Try using the &quot;</span>
+                <span class="s">&quot;function collision_probability to estimate needed precision&quot;</span>
+                <span class="o">%</span> <span class="p">(</span><span class="n">num_collisions</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">))</span>
+            <span class="k">raise</span> <span class="n">CollisionError</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+        <span class="c"># Seed for testing</span>
+        <span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="n">seed</span><span class="p">)</span>
+
+        <span class="c"># Resolve the collisions in this loop</span>
+        <span class="n">collisions</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">tok</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span> <span class="k">if</span> <span class="n">id_counts</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">[</span><span class="n">tok</span><span class="p">]]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">collisions</span><span class="p">:</span>
+            <span class="n">old_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">[</span><span class="n">token</span><span class="p">]</span>
+            <span class="n">new_id</span> <span class="o">=</span> <span class="n">old_id</span>
+            <span class="c"># If id_counts[old_id] &gt; 1, then the collision still must be</span>
+            <span class="c"># resolved.  In that case, change new_id and update id_counts</span>
+            <span class="k">if</span> <span class="n">id_counts</span><span class="p">[</span><span class="n">old_id</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="c"># id_counts is the only dict (at this time) holding every</span>
+                <span class="c"># id you have ever seen</span>
+                <span class="k">while</span> <span class="n">new_id</span> <span class="ow">in</span> <span class="n">id_counts</span><span class="p">:</span>
+                    <span class="n">new_id</span> <span class="o">=</span> <span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="n">new_id</span> <span class="o">=</span> <span class="n">new_id</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">precision</span>
+                <span class="n">id_counts</span><span class="p">[</span><span class="n">old_id</span><span class="p">]</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">id_counts</span><span class="p">[</span><span class="n">new_id</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="c"># Update dictionaries</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">[</span><span class="n">token</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_id</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="s">&quot;All collisions resolved&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">collisions_resolved</span> <span class="o">=</span> <span class="bp">True</span>
+
+<div class="viewcode-block" id="SFileFilter.compactify"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.compactify">[docs]</a>    <span class="k">def</span> <span class="nf">compactify</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Removes &quot;gaps&quot; in the id values in self.token2id.  Every single id</span>
+<span class="sd">        value will (probably) be altered.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># You can&#39;t compactify if self.bit_precision is too low</span>
+        <span class="n">min_precision</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">)))</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_precision</span> <span class="o">&lt;</span> <span class="n">min_precision</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">CollisionError</span><span class="p">(</span>
+                <span class="s">&quot;Cannot compactify unless you increase self.bit_precision &quot;</span>
+                <span class="s">&quot;to &gt;= </span><span class="si">%d</span><span class="s"> or remove some tokens&quot;</span> <span class="o">%</span> <span class="n">min_precision</span><span class="p">)</span>
+
+        <span class="n">new_token2id</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">tok</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">):</span>
+            <span class="n">new_token2id</span><span class="p">[</span><span class="n">tok</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span> <span class="o">=</span> <span class="n">new_token2id</span>
+
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;id2token&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_id2token</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_bit_precision_required</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span>
+            <span class="s">&quot;Compactification done.  self.bit_precision_required = </span><span class="si">%d</span><span class="s">&quot;</span>
+            <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">bit_precision_required</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SFileFilter.set_bit_precision_required"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.set_bit_precision_required">[docs]</a>    <span class="k">def</span> <span class="nf">set_bit_precision_required</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets self.bit_precision_required to the minimum bit precision b such</span>
+<span class="sd">        that all token id values are less than 2^b.</span>
+
+<span class="sd">        The idea is that only compactification can change this, so we only</span>
+<span class="sd">        (automatically) call this after compactification.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">max_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">bit_precision_required</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">max_id</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="SFileFilter.filter_sfile"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.filter_sfile">[docs]</a>    <span class="k">def</span> <span class="nf">filter_sfile</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">infile</span><span class="p">,</span> <span class="n">outfile</span><span class="p">,</span> <span class="n">doc_id_list</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">enforce_all_doc_id</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Alter an sfile by converting tokens to id values, and removing tokens</span>
+<span class="sd">        not in self.token2id.  Optionally filters on doc_id.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        infile : file path or buffer</span>
+<span class="sd">        outfile : file path or buffer</span>
+<span class="sd">        doc_id_list : Iterable over strings</span>
+<span class="sd">            Keep only rows with doc_id in this list</span>
+<span class="sd">        enforce_all_doc_id : Boolean</span>
+<span class="sd">            If True (and doc_id is not None), raise exception unless all doc_id</span>
+<span class="sd">            in doc_id_list are seen.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">sfile_loaded</span><span class="p">,</span> <span class="s">&quot;Must load an sfile before you can filter&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;id2token&#39;</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span>
+                <span class="s">&quot;WARNING:  Filtering an sfile before setting self.id2token.  &quot;</span>
+                <span class="s">&quot;The resultant outfile will have collisions and you will not &quot;</span>
+                <span class="s">&quot;be able to convert ids back to tokens.</span><span class="se">\n</span><span class="s">It is recommended to &quot;</span>
+                <span class="s">&quot;call: self.compactify() then either self.set_id2token() or &quot;</span>
+                <span class="s">&quot; self.save() before filtering&quot;</span><span class="p">)</span>
+
+        <span class="n">extra_filter</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_extra_filter</span><span class="p">(</span><span class="n">doc_id_list</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">infile</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">,</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">g</span><span class="p">:</span>
+            <span class="c"># Each line represents one document</span>
+            <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
+                <span class="n">record_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">sstr_to_dict</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">extra_filter</span><span class="p">(</span><span class="n">record_dict</span><span class="p">):</span>
+                    <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;feature_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">[</span><span class="n">token</span><span class="p">]:</span> <span class="n">value</span>
+                        <span class="k">for</span> <span class="n">token</span><span class="p">,</span> <span class="n">value</span>
+                        <span class="ow">in</span> <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;feature_values&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">()</span>
+                        <span class="k">if</span> <span class="n">token</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">}</span>
+                    <span class="n">new_sstr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">formatter</span><span class="o">.</span><span class="n">get_sstr</span><span class="p">(</span><span class="o">**</span><span class="n">record_dict</span><span class="p">)</span>
+                    <span class="n">g</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">new_sstr</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_done_check</span><span class="p">(</span><span class="n">enforce_all_doc_id</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_get_extra_filter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc_id_list</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_seen</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c"># Possible filters to use</span>
+        <span class="k">if</span> <span class="n">doc_id_list</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">doc_id_list</span><span class="p">)</span>
+
+            <span class="k">def</span> <span class="nf">doc_id_filter</span><span class="p">(</span><span class="n">record_dict</span><span class="p">):</span>
+                <span class="n">doc_id</span> <span class="o">=</span> <span class="n">record_dict</span><span class="p">[</span><span class="s">&#39;doc_id&#39;</span><span class="p">]</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_seen</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">doc_id</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">doc_id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_set</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_set</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="n">doc_id_filter</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">record_dict</span><span class="p">:</span> <span class="bp">True</span>
+
+        <span class="c"># Add together all the filters into one function</span>
+        <span class="k">return</span> <span class="k">lambda</span> <span class="n">record_dict</span><span class="p">:</span> <span class="n">doc_id_filter</span><span class="p">(</span><span class="n">record_dict</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_done_check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">enforce_all_doc_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        QA check to perform once we&#39;re done filtering an sfile.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Make sure we saw all the doc_id we&#39;re supposed to</span>
+        <span class="k">if</span> <span class="n">enforce_all_doc_id</span><span class="p">:</span>
+            <span class="k">assert</span> <span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_set</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_doc_id_seen</span><span class="p">),</span> <span class="p">(</span>
+                <span class="s">&quot;Did not see every doc_id in the passed doc_id_list&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SFileFilter.filter_extremes"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.filter_extremes">[docs]</a>    <span class="k">def</span> <span class="nf">filter_extremes</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">doc_freq_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">doc_freq_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">doc_fraction_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+        <span class="n">doc_fraction_max</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">token_score_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">token_score_max</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span>
+        <span class="n">token_score_quantile_min</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">token_score_quantile_max</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove extreme tokens from self (calling self.filter_tokens).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        doc_freq_min : Integer</span>
+<span class="sd">            Remove tokens that in less than this number of documents</span>
+<span class="sd">        doc_freq_max : Integer</span>
+<span class="sd">        doc_fraction_min : Float in [0, 1]</span>
+<span class="sd">            Remove tokens that are in less than this fraction of documents</span>
+<span class="sd">        doc_fraction_max : Float in [0, 1]</span>
+<span class="sd">        token_score_quantile_min : Float in [0, 1]</span>
+<span class="sd">            Minimum quantile that the token score (usually total token count)</span>
+<span class="sd">            can be in.</span>
+<span class="sd">        token_score_quantile_max : Float in [0, 1]</span>
+<span class="sd">            Maximum quantile that the token score can be in</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">frame</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+        <span class="n">to_remove_mask</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">doc_freq</span> <span class="o">&lt;</span> <span class="n">doc_freq_min</span><span class="p">)</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">doc_freq</span> <span class="o">&gt;</span> <span class="n">doc_freq_max</span><span class="p">)</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">doc_freq</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">doc_fraction_min</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_docs</span><span class="p">))</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">doc_freq</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">doc_fraction_max</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_docs</span><span class="p">))</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">token_score</span> <span class="o">&lt;</span> <span class="n">token_score_min</span><span class="p">)</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">token_score</span> <span class="o">&gt;</span> <span class="n">token_score_max</span><span class="p">)</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">token_score</span>
+                <span class="o">&lt;</span> <span class="n">frame</span><span class="o">.</span><span class="n">token_score</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">token_score_quantile_min</span><span class="p">))</span>
+            <span class="o">|</span> <span class="p">(</span><span class="n">frame</span><span class="o">.</span><span class="n">token_score</span>
+                <span class="o">&gt;</span> <span class="n">frame</span><span class="o">.</span><span class="n">token_score</span><span class="o">.</span><span class="n">quantile</span><span class="p">(</span><span class="n">token_score_quantile_max</span><span class="p">))</span>
+            <span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span>
+            <span class="s">&quot;Removed </span><span class="si">%d</span><span class="s">/</span><span class="si">%d</span><span class="s"> tokens&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">to_remove_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="nb">len</span><span class="p">(</span><span class="n">frame</span><span class="p">)))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">filter_tokens</span><span class="p">(</span><span class="n">frame</span><span class="p">[</span><span class="n">to_remove_mask</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="SFileFilter.filter_tokens"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.filter_tokens">[docs]</a>    <span class="k">def</span> <span class="nf">filter_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokens</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Remove tokens from appropriate attributes.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tokens : String or iterable over strings</span>
+<span class="sd">            E.g. a single token or list of tokens</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        self</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tokens</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">tokens</span><span class="p">]</span>
+
+        <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="n">id_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">[</span><span class="n">tok</span><span class="p">]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">token_score</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">doc_freq</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s">&#39;id2token&#39;</span><span class="p">):</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">id2token</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">id_value</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_print</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">msg</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="k">print</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SFileFilter.to_frame"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.to_frame">[docs]</a>    <span class="k">def</span> <span class="nf">to_frame</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a dataframe representation of self.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">token2id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token2id</span>
+        <span class="n">token_score</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">token_score</span>
+        <span class="n">doc_freq</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc_freq</span>
+
+        <span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+            <span class="p">{</span><span class="s">&#39;token_score&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">token_score</span><span class="p">[</span><span class="n">tok</span><span class="p">]</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">token2id</span><span class="p">],</span>
+             <span class="s">&#39;doc_freq&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">doc_freq</span><span class="p">[</span><span class="n">tok</span><span class="p">]</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">token2id</span><span class="p">]},</span>
+            <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="n">tok</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">token2id</span><span class="p">])</span>
+        <span class="n">frame</span><span class="p">[</span><span class="s">&#39;doc_fraction&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">doc_freq</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_docs</span><span class="p">)</span>
+        <span class="n">frame</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;token&#39;</span>
+
+        <span class="k">return</span> <span class="n">frame</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">token2id</span><span class="p">)</span>
+
+<div class="viewcode-block" id="SFileFilter.save"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.SFileFilter.save">[docs]</a>    <span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">savepath</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">set_id2token</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Pickle self to outfile.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        savefile : filepath or buffer</span>
+<span class="sd">        protocol : 0, 1, 2, -1</span>
+<span class="sd">            0 &lt; 1 &lt; 2 in terms of performance.  -1 means use highest available.</span>
+<span class="sd">        set_id2token : Boolean</span>
+<span class="sd">            If True, set self.id2token before saving.</span>
+<span class="sd">            Used to associate tokens with the output of a VW file.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">set_id2token</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">set_id2token</span><span class="p">()</span>
+
+        <span class="n">SaveLoad</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">savepath</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">protocol</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="collision_probability"><a class="viewcode-back" href="../../../index.html#rosetta.text.text_processors.collision_probability">[docs]</a><span class="k">def</span> <span class="nf">collision_probability</span><span class="p">(</span><span class="n">vocab_size</span><span class="p">,</span> <span class="n">bit_precision</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Approximate probability of at least one collision</span>
+<span class="sd">    (assuming perfect hashing).  See the Wikipedia article on</span>
+<span class="sd">    &quot;The birthday problem&quot; for details.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    vocab_size : Integer</span>
+<span class="sd">        Number of unique words in vocabulary</span>
+<span class="sd">    bit_precision : Integer</span>
+<span class="sd">        Number of bits in space we are hashing to</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">exponent</span> <span class="o">=</span> <span class="o">-</span> <span class="n">vocab_size</span> <span class="o">*</span> <span class="p">(</span><span class="n">vocab_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mf">2.</span><span class="o">**</span><span class="n">bit_precision</span>
+
+    <span class="k">return</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">exponent</span><span class="p">)</span>
+
+</div>
+<span class="k">class</span> <span class="nc">CollisionError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, rosetta development team.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

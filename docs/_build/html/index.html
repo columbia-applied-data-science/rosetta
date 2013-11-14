@@ -1,0 +1,2421 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Welcome to rosetta’s documentation! &mdash; rosetta 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="rosetta 0.1.0 documentation" href="#" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">rosetta 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="welcome-to-rosetta-s-documentation">
+<h1>Welcome to rosetta&#8217;s documentation!<a class="headerlink" href="#welcome-to-rosetta-s-documentation" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<div class="toctree-wrapper compound">
+<ul class="simple">
+</ul>
+</div>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
+<li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+<div class="section" id="all-modules-and-classes">
+<h1>All Modules and Classes<a class="headerlink" href="#all-modules-and-classes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="cmd">
+<h2>cmd<a class="headerlink" href="#cmd" title="Permalink to this headline">¶</a></h2>
+<p>Unix-like command line utilities.  Filters (read from stdin/write to stdout) for files
+Installation should put these in your path.  To see help, do</p>
+<div class="highlight-none"><div class="highlight"><pre>module_name.py -h
+</pre></div>
+</div>
+<div class="section" id="module-rosetta.cmd.cut">
+<span id="cut"></span><h3>cut<a class="headerlink" href="#module-rosetta.cmd.cut" title="Permalink to this headline">¶</a></h3>
+<p>Reads a csv file or stdin, keeps/removes selected columns.
+Prints to stdout or a file.</p>
+</div>
+<div class="section" id="module-rosetta.cmd.subsample">
+<span id="subsample"></span><h3>subsample<a class="headerlink" href="#module-rosetta.cmd.subsample" title="Permalink to this headline">¶</a></h3>
+<p>Subsample files or stdin and write to stdout.  Optionally subsample in the
+space of different values of a KEY_COLUMN.  When doing this, every time a
+new key value appears, decide whether or not to keep all rows containing
+this value.</p>
+</div>
+<div class="section" id="module-rosetta.cmd.split">
+<span id="split"></span><h3>split<a class="headerlink" href="#module-rosetta.cmd.split" title="Permalink to this headline">¶</a></h3>
+</div>
+<div class="section" id="module-rosetta.cmd.row_filter">
+<span id="row-filter"></span><h3>row_filter<a class="headerlink" href="#module-rosetta.cmd.row_filter" title="Permalink to this headline">¶</a></h3>
+<p>Removes rows in csv file (or stdin) with header where columns meet
+certain criteria.</p>
+</div>
+<div class="section" id="module-rosetta.cmd.files_to_vw">
+<span id="files-to-vw"></span><h3>files_to_vw<a class="headerlink" href="#module-rosetta.cmd.files_to_vw" title="Permalink to this headline">¶</a></h3>
+<p>Converts files into newline separated lists of tokens.
+Tokens are represented in Vowpal Wabbit format.</p>
+</div>
+<div class="section" id="module-rosetta.cmd.join_csv">
+<span id="join-csv"></span><h3>join_csv<a class="headerlink" href="#module-rosetta.cmd.join_csv" title="Permalink to this headline">¶</a></h3>
+<p>Join a list of csv files along indices.  Allows you to specify the indices
+for every file, the join type, and missing data fill values.</p>
+<p>From pandas, uses DataFrame.from_csv, DataFrame.to_csv, DataFrame.join to do
+reads/writes/joins.  Except noted below, the default arguments are used.</p>
+</div>
+<div class="section" id="module-rosetta.cmd.concat_csv">
+<span id="concat-csv"></span><h3>concat_csv<a class="headerlink" href="#module-rosetta.cmd.concat_csv" title="Permalink to this headline">¶</a></h3>
+<p>Concat a list of csv files in an &#8220;outer join&#8221; style.</p>
+<p>From pandas, uses DataFrame.from_csv, DataFrame.to_csv, concat to do
+reads/writes/joins.  Except noted below, the default arguments are used.</p>
+</div>
+</div>
+<div class="section" id="parallel">
+<h2>parallel<a class="headerlink" href="#parallel" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Wrappers for Python multiprocessing that add ease of use</li>
+<li>Memory-friendly multiprocessing</li>
+</ul>
+<div class="section" id="module-rosetta.parallel.parallel_easy">
+<span id="parallel-easy"></span><h3>parallel_easy<a class="headerlink" href="#module-rosetta.parallel.parallel_easy" title="Permalink to this headline">¶</a></h3>
+<p>Functions to assist in parallel processing with Python 2.7.</p>
+<ul class="simple">
+<li>Memory-friendly iterator functionality (wrapping Pool.imap).</li>
+<li>Exit with Ctrl-C.</li>
+<li>Easy use of n_jobs. (e.g. when n_jobs == 1, processing is serial)</li>
+<li>Similar to joblib.Parallel but with the addition of imap functionality
+and a more effective way of handling Ctrl-C exit (we add a timeout).</li>
+</ul>
+<dl class="function">
+<dt id="rosetta.parallel.parallel_easy.get_split_idx">
+<tt class="descclassname">rosetta.parallel.parallel_easy.</tt><tt class="descname">get_split_idx</tt><big>(</big><em>N</em>, <em>blocksize</em>, <em>pad=0</em><big>)</big><a class="reference internal" href="_modules/rosetta/parallel/parallel_easy.html#get_split_idx"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.parallel.parallel_easy.get_split_idx" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of indexes dividing an array into blocks of size blocksize
+with optional padding.  Padding takes into account that the resultant block
+must fit within the original array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>N</strong> : Nonnegative integer</p>
+<blockquote>
+<div><p>Total array length</p>
+</div></blockquote>
+<p><strong>blocksize</strong> : Nonnegative integer</p>
+<blockquote>
+<div><p>Size of each block</p>
+</div></blockquote>
+<p><strong>pad</strong> : Nonnegative integer</p>
+<blockquote>
+<div><p>Pad to add on either side of each index</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>split_idx</strong> : List of 2-tuples</p>
+<blockquote>
+<div><p>Indices to create splits</p>
+</div></blockquote>
+<p><strong>pads_used</strong> : List of 2-tuples</p>
+<blockquote class="last">
+<div><p>Pads that were actually used on either side</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">split_idx</span><span class="p">,</span> <span class="n">pads_used</span> <span class="o">=</span> <span class="n">get_split_idx</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">split_idx</span>
+<span class="go">[(0, 2), (2, 4), (4, 5)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">pads_used</span>
+<span class="go">[(0, 0), (0, 0), (0, 0)]</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">get_split_idx</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">pad</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">split_idx</span>
+<span class="go">[(0, 3), (1, 5), (3, 5)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">pads_used</span>
+<span class="go">[(0, 1), (1, 1), (1, 0)]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.parallel.parallel_easy.imap_easy">
+<tt class="descclassname">rosetta.parallel.parallel_easy.</tt><tt class="descname">imap_easy</tt><big>(</big><em>func</em>, <em>iterable</em>, <em>n_jobs</em>, <em>chunksize</em>, <em>ordered=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/parallel/parallel_easy.html#imap_easy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.parallel.parallel_easy.imap_easy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a parallel iterator of func over iterable.</p>
+<p>Worker processes return one &#8220;chunk&#8221; of data at a time, and the iterator
+allows you to deal with each chunk as they come back, so memory can be
+handled efficiently.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>func</strong> : Function of one variable</p>
+<blockquote>
+<div><p>You can use functools.partial to build this.
+A lambda function will not work</p>
+</div></blockquote>
+<p><strong>iterable</strong> : List, iterator, etc...</p>
+<blockquote>
+<div><p>func is applied to this</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : Integer</p>
+<blockquote>
+<div><p>The number of jobs to use for the computation. If -1 all CPUs are used.
+If 1 is given, no parallel computing code is used at all, which is
+useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are
+used. Thus for n_jobs = -2, all CPUs but one are used.</p>
+</div></blockquote>
+<p><strong>chunksize</strong> : Integer</p>
+<blockquote>
+<div><p>Jobs/results will be sent between master/slave processes in chunks of
+size chunksize.  If chunksize is too small, communication overhead
+slows things down.  If chunksize is too large, one process ends up
+doing too much work (and large results will up in memory).</p>
+</div></blockquote>
+<p><strong>ordered</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>If True, results are dished out in the order corresponding to iterable.
+If False, results are dished out in whatever order workers return them.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rosetta.parallel.parallel_easy</span> <span class="kn">import</span> <span class="n">imap_easy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">abfunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">some_numbers</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">abfunc</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">results_iterator</span> <span class="o">=</span> <span class="n">imap_easy</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">some_numbers</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results_iterator</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">result</span>
+<span class="go">0</span>
+<span class="go">6</span>
+<span class="go">12</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.parallel.parallel_easy.map_easy">
+<tt class="descclassname">rosetta.parallel.parallel_easy.</tt><tt class="descname">map_easy</tt><big>(</big><em>func</em>, <em>iterable</em>, <em>n_jobs</em><big>)</big><a class="reference internal" href="_modules/rosetta/parallel/parallel_easy.html#map_easy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.parallel.parallel_easy.map_easy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a parallel map of func over iterable.
+Returns all results at once, so if results are big memory issues may arise</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>func</strong> : Function of one variable</p>
+<blockquote>
+<div><p>You can use functools.partial to build this.
+A lambda function will not work</p>
+</div></blockquote>
+<p><strong>iterable</strong> : List, iterator, etc...</p>
+<blockquote>
+<div><p>func is applied to this</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : Integer</p>
+<blockquote class="last">
+<div><p>The number of jobs to use for the computation. If -1 all CPUs are used.
+If 1 is given, no parallel computing code is used at all, which is
+useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are
+used. Thus for n_jobs = -2, all CPUs but one are used.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">partial</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rosetta.parallel.parallel_easy</span> <span class="kn">import</span> <span class="n">map_easy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">abfunc</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="n">x</span> <span class="o">*</span> <span class="n">a</span> <span class="o">*</span> <span class="n">b</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">some_numbers</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">func</span> <span class="o">=</span> <span class="n">partial</span><span class="p">(</span><span class="n">abfunc</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="n">b</span><span class="o">=</span><span class="mi">3</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">map_easy</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="n">some_numbers</span><span class="p">)</span>
+<span class="go">[0, 6, 12, 18, 24]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.parallel.parallel_easy.map_easy_padded_blocks">
+<tt class="descclassname">rosetta.parallel.parallel_easy.</tt><tt class="descname">map_easy_padded_blocks</tt><big>(</big><em>func</em>, <em>iterable</em>, <em>n_jobs</em>, <em>pad</em>, <em>blocksize=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/parallel/parallel_easy.html#map_easy_padded_blocks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.parallel.parallel_easy.map_easy_padded_blocks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a parallel map of func over iterable, computed by splitting
+iterable into padded blocks, then piecing the result together.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>func</strong> : Function of one variable</p>
+<blockquote>
+<div><p>You can use functools.partial to build this.
+A lambda function will not work</p>
+</div></blockquote>
+<p><strong>iterable</strong> : List, iterator, etc...</p>
+<blockquote>
+<div><p>func is applied to this</p>
+</div></blockquote>
+<p><strong>n_jobs</strong> : Integer</p>
+<blockquote>
+<div><p>The number of jobs to use for the computation. If -1 all CPUs are used.
+If 1 is given, no parallel computing code is used at all, which is
+useful for debugging. For n_jobs below -1, (n_cpus + 1 + n_jobs) are
+used. Thus for n_jobs = -2, all CPUs but one are used.</p>
+</div></blockquote>
+<p><strong>pad</strong> : Nonnegative Integer</p>
+<blockquote>
+<div><p>Each block is processed with pad extra on each side.</p>
+</div></blockquote>
+<p><strong>blocksize</strong> : Nonnegative Integer</p>
+<blockquote>
+<div><p>If None, use 100 * pad</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>result</strong> : List</p>
+<blockquote class="last">
+<div><p>Equivalent to list(func(iterable))</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">numbers</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pad</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">n_jobs</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">def</span> <span class="nf">rightmax</span><span class="p">(</span><span class="n">mylist</span><span class="p">):</span>
+<span class="gp">... </span>    <span class="k">return</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">mylist</span><span class="p">[</span><span class="n">i</span><span class="p">:</span> <span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mylist</span><span class="p">))]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">map_easy_padded_blocks</span><span class="p">(</span><span class="n">rightmax</span><span class="p">,</span> <span class="n">numbers</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">pad</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark</span> <span class="o">=</span> <span class="n">rightmax</span><span class="p">(</span><span class="n">numbers</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">==</span> <span class="n">benchmark</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.parallel.pandas_easy">
+<span id="pandas-easy"></span><h3>pandas_easy<a class="headerlink" href="#module-rosetta.parallel.pandas_easy" title="Permalink to this headline">¶</a></h3>
+<p>Functions for helping make pandas parallel.</p>
+<dl class="function">
+<dt id="rosetta.parallel.pandas_easy.groupby_to_scalar_to_series">
+<tt class="descclassname">rosetta.parallel.pandas_easy.</tt><tt class="descname">groupby_to_scalar_to_series</tt><big>(</big><em>df_or_series</em>, <em>func</em>, <em>n_jobs</em>, <em>**groupby_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/parallel/pandas_easy.html#groupby_to_scalar_to_series"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.parallel.pandas_easy.groupby_to_scalar_to_series" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a parallelized, simplified, and restricted version of:
+df_or_series.groupby(<a href="#id1"><span class="problematic" id="id2">**</span></a>groupby_kwargs).apply(func)</p>
+<p>Works ONLY for the simple case that .apply(func) would yield a Series
+of length equal to the number of groups, in other words, func applied
+to each group is a scalar.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>df_or_series</strong> : DataFrame or Series</p>
+<blockquote>
+<div><p>This is what is grouped</p>
+</div></blockquote>
+<p><strong>func</strong> : Function</p>
+<blockquote>
+<div><p>Applied to each group using func(df_or_series)
+Should return one single value (e.g. string or number)
+Must be picklable:  A lambda function will not work!</p>
+</div></blockquote>
+<p><strong>groupby_kwargs</strong> : Keyword args</p>
+<blockquote>
+<div><p>Passed directly to DataFrame.groupby to determine groups.
+The most common one is &#8220;by&#8221;, e.g.</p>
+<blockquote>
+<div><p>by=&#8217;a&#8217;
+by=my_grouper_function
+by=my_grouping_list_of_labels</p>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>result</strong> : Series</p>
+<blockquote class="last">
+<div><p>Index is the group names
+Values are func(group) iterated over every group</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rosetta.parallel.pandas_easy</span> <span class="kn">import</span> <span class="n">groupby_to_series</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span>
+<span class="go">   a  b</span>
+<span class="go">0  6  4</span>
+<span class="go">1  2  5</span>
+<span class="go">2  2  6</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">groupby_to_series</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="nb">max</span><span class="p">,</span> <span class="n">n_jobs</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="s">&#39;a&#39;</span><span class="p">)</span>
+<span class="go">2    b</span>
+<span class="go">6    b</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">s</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">s</span>
+<span class="go">0    1</span>
+<span class="go">1    2</span>
+<span class="go">2    3</span>
+<span class="go">3    4</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">groupby_to_series</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="nb">max</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+<span class="go">a    2</span>
+<span class="go">b    4</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.parallel.pandas_easy.groupby_to_series_to_frame">
+<tt class="descclassname">rosetta.parallel.pandas_easy.</tt><tt class="descname">groupby_to_series_to_frame</tt><big>(</big><em>frame</em>, <em>func</em>, <em>n_jobs</em>, <em>use_apply=True</em>, <em>**groupby_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/parallel/pandas_easy.html#groupby_to_series_to_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.parallel.pandas_easy.groupby_to_series_to_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>A parallel function somewhat similar DataFrame.groupby.apply(func).</p>
+<p>For each group in df_or_series.groupby(<a href="#id3"><span class="problematic" id="id4">**</span></a>groupby_kwargs), compute
+func(group) or group.apply(func) and, assuming each result is a series,
+flatten each series then paste them together.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>frame</strong> : DataFrame</p>
+<p><strong>func</strong> : Function</p>
+<blockquote>
+<div><p>Applied to each group using func(df_or_series)
+Must be picklable:  A lambda function will not work!</p>
+</div></blockquote>
+<p><strong>use_apply</strong> : Boolean</p>
+<blockquote>
+<div><p>If True, use group.apply(func)
+If False, use func(group)</p>
+</div></blockquote>
+<p><strong>groupby_kwargs</strong> : Keyword args</p>
+<blockquote>
+<div><p>Passed directly to DataFrame.groupby to determine groups.
+The most common one is &#8220;by&#8221;, e.g.</p>
+<blockquote>
+<div><p>by=&#8217;a&#8217;
+by=my_grouper_function
+by=my_grouping_list_of_labels</p>
+</div></blockquote>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>result</strong> : DataFrame</p>
+<blockquote class="last">
+<div><p>Index is the group names
+Values are func(group) iterated over every group, then pasted together</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">rosetta.parallel.pandas_easy</span> <span class="kn">import</span> <span class="n">groupby_to_series_to_frame</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">({</span><span class="s">&#39;a&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="s">&#39;b&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;g1&#39;</span><span class="p">,</span> <span class="s">&#39;g1&#39;</span><span class="p">,</span> <span class="s">&#39;g2&#39;</span><span class="p">]</span>
+<span class="go"># Result and benchmark will be equal...despite the fact that you can&#39;t</span>
+<span class="go"># do df.groupby(labels).apply(np.mean)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">labels</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">groupby_to_series_to_frame</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">df</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">use_apply</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">by</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">result</span>
+<span class="go">    a    b</span>
+<span class="go">g1  4  4.5</span>
+<span class="go">g2  2  6.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="text">
+<h2>text<a class="headerlink" href="#text" title="Permalink to this headline">¶</a></h2>
+<p>Text-processing specific</p>
+<ul class="simple">
+<li>Stream text from disk to formats used in common ML processes</li>
+<li>Write processed text to sparse formats</li>
+<li>Helpers for ML tools (e.g. Vowpal Wabbit, Gensim, etc...)</li>
+<li>Other general utilities</li>
+</ul>
+<div class="section" id="module-rosetta.text.filefilter">
+<span id="filefilter"></span><h3>filefilter<a class="headerlink" href="#module-rosetta.text.filefilter" title="Permalink to this headline">¶</a></h3>
+<p>Contains a collection of function that clean, decode and move files around.</p>
+<dl class="class">
+<dt id="rosetta.text.filefilter.PathFinder">
+<em class="property">class </em><tt class="descclassname">rosetta.text.filefilter.</tt><tt class="descname">PathFinder</tt><big>(</big><em>text_base_path=None</em>, <em>file_type='*'</em>, <em>name_strip='\..*'</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/filefilter.html#PathFinder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.filefilter.PathFinder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find and access paths in a directory tree.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.filefilter.get_paths">
+<tt class="descclassname">rosetta.text.filefilter.</tt><tt class="descname">get_paths</tt><big>(</big><em>base_path</em>, <em>file_type='*'</em>, <em>relative=False</em>, <em>get_iter=False</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/filefilter.html#get_paths"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.filefilter.get_paths" title="Permalink to this definition">¶</a></dt>
+<dd><p>Crawls subdirectories and returns an iterator over paths to files that
+match the file_type.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>base_path</strong> : String</p>
+<blockquote>
+<div><p>Path to the directory that will be crawled</p>
+</div></blockquote>
+<p><strong>file_type</strong> : String</p>
+<blockquote>
+<div><p>String to filter files with.  E.g. &#8216;<a href="#id5"><span class="problematic" id="id6">*</span></a>.txt&#8217;.  Note that the filenames
+will be converted to lowercase before this comparison.</p>
+</div></blockquote>
+<p><strong>relative</strong> : Boolean</p>
+<blockquote>
+<div><p>If True, get paths relative to base_path
+If False, get absolute paths</p>
+</div></blockquote>
+<p><strong>get_iter</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>If True, return an iterator over paths rather than a list.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.filefilter.path_to_name">
+<tt class="descclassname">rosetta.text.filefilter.</tt><tt class="descname">path_to_name</tt><big>(</big><em>path</em>, <em>strip_ext=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/filefilter.html#path_to_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.filefilter.path_to_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes one path and returns the filename, excluding the extension.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.filefilter.path_to_newname">
+<tt class="descclassname">rosetta.text.filefilter.</tt><tt class="descname">path_to_newname</tt><big>(</big><em>path</em>, <em>name_level=1</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/filefilter.html#path_to_newname"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.filefilter.path_to_newname" title="Permalink to this definition">¶</a></dt>
+<dd><p>Takes one path and returns a new name, combining the directory structure
+with the filename.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>path</strong> : String</p>
+<p><strong>name_level</strong> : Integer</p>
+<blockquote>
+<div><p>Form the name using items this far back in the path.  E.g. if
+path = mydata/1234/3.txt and name_level == 2, then name = 1234_3</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>name</strong> : String</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.text.streamers">
+<span id="streamers"></span><h3>streamers<a class="headerlink" href="#module-rosetta.text.streamers" title="Permalink to this headline">¶</a></h3>
+<p>Classes for streaming tokens/info from files/sparse files etc...</p>
+<dl class="class">
+<dt id="rosetta.text.streamers.BaseStreamer">
+<em class="property">class </em><tt class="descclassname">rosetta.text.streamers.</tt><tt class="descname">BaseStreamer</tt><a class="reference internal" href="_modules/rosetta/text/streamers.html#BaseStreamer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.BaseStreamer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class...don&#8217;t use this directly.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.streamers.BaseStreamer.single_stream">
+<tt class="descname">single_stream</tt><big>(</big><em>item</em>, <em>cache_list=</em><span class="optional">[</span><span class="optional">]</span>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/streamers.html#BaseStreamer.single_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.BaseStreamer.single_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Stream a single item from source.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>item</strong> : String</p>
+<blockquote>
+<div><p>The single item to pull from info and stream.</p>
+</div></blockquote>
+<p><strong>cache_list</strong> : List of strings</p>
+<blockquote>
+<div><p>Cache these items on every iteration</p>
+</div></blockquote>
+<p><strong>kwargs</strong> : Keyword args</p>
+<blockquote class="last">
+<div><p>Passed on to self.info_stream</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.streamers.BaseStreamer.token_stream">
+<tt class="descname">token_stream</tt><big>(</big><em>cache_list=</em><span class="optional">[</span><span class="optional">]</span>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/streamers.html#BaseStreamer.token_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.BaseStreamer.token_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterator over tokens with possible caching of other info.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>cache_list</strong> : Cache these items as they appear</p>
+<blockquote>
+<div><p>Call self.token_stream(&#8216;doc_id&#8217;, &#8216;tokens&#8217;) to cache
+info[&#8216;doc_id&#8217;] and info[&#8216;tokens&#8217;] (assuming both are available).</p>
+</div></blockquote>
+<p><strong>kwargs</strong> : Keyword args</p>
+<blockquote class="last">
+<div><p>Passed on to self.info_stream</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.streamers.TextFileStreamer">
+<em class="property">class </em><tt class="descclassname">rosetta.text.streamers.</tt><tt class="descname">TextFileStreamer</tt><big>(</big><em>text_base_path=None</em>, <em>file_type='*'</em>, <em>name_strip='\..*'</em>, <em>tokenizer=None</em>, <em>tokenizer_func=None</em>, <em>limit=None</em>, <em>shuffle=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/streamers.html#TextFileStreamer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.TextFileStreamer" title="Permalink to this definition">¶</a></dt>
+<dd><p>For streaming from text files.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.streamers.TextFileStreamer.info_stream">
+<tt class="descname">info_stream</tt><big>(</big><em>paths=None</em>, <em>doc_id=None</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/streamers.html#TextFileStreamer.info_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.TextFileStreamer.info_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterator over paths yielding dictionaries with information
+about the file contained within.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>paths</strong> : list of strings</p>
+<p><strong>doc_id</strong> : list of strings or ints</p>
+<p><strong>limit</strong> : Integer</p>
+<blockquote class="last">
+<div><p>Use limit in place of self.limit.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.streamers.TextFileStreamer.to_vw">
+<tt class="descname">to_vw</tt><big>(</big><em>outfile</em>, <em>n_jobs=1</em>, <em>chunksize=1000</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/streamers.html#TextFileStreamer.to_vw"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.TextFileStreamer.to_vw" title="Permalink to this definition">¶</a></dt>
+<dd><p>Write our filestream to a VW (Vowpal Wabbit) formatted file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>outfile</strong> : filepath or buffer</p>
+<p><strong>n_jobs</strong> : Integer</p>
+<blockquote>
+<div><p>Use n_jobs different jobs to do the processing.  Set = 4 for 4
+jobs.  Set = -1 to use all available, -2 for all except 1,...</p>
+</div></blockquote>
+<p><strong>chunksize</strong> : Integer</p>
+<blockquote class="last">
+<div><p>Workers process this many jobs at once before pickling and sending
+results to master.  If this is too low, communication overhead
+will dominate.  If this is too high, jobs will not be distributed
+evenly.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.streamers.VWStreamer">
+<em class="property">class </em><tt class="descclassname">rosetta.text.streamers.</tt><tt class="descname">VWStreamer</tt><big>(</big><em>sfile=None</em>, <em>cache_sfile=False</em>, <em>limit=None</em>, <em>shuffle=False</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/streamers.html#VWStreamer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.VWStreamer" title="Permalink to this definition">¶</a></dt>
+<dd><p>For streaming from a single VW file.  Since the VW file format does not
+preserve token order, all tokens are unordered.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.streamers.VWStreamer.info_stream">
+<tt class="descname">info_stream</tt><big>(</big><em>doc_id=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/streamers.html#VWStreamer.info_stream"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.streamers.VWStreamer.info_stream" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an iterator over info dicts.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>doc_id</strong> : Iterable over Strings</p>
+<blockquote class="last">
+<div><p>Return info dicts iff doc_id in doc_id</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.text.text_processors">
+<span id="text-processors"></span><h3>text_processors<a class="headerlink" href="#module-rosetta.text.text_processors" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="tokenizer">
+<h4>Tokenizer<a class="headerlink" href="#tokenizer" title="Permalink to this headline">¶</a></h4>
+<p>Classes with a .text_to_token_list method (and a bit more).  Used by other
+modules as a means to convert stings to lists of strings.</p>
+<p>If you have a function that converts strings to lists of strings, you can
+make a tokenizer from it by using MakeTokenizer(my_tokenizing_func).</p>
+</div>
+<div class="section" id="sparseformatter">
+<h4>SparseFormatter<a class="headerlink" href="#sparseformatter" title="Permalink to this headline">¶</a></h4>
+<p>Classes for converting text to sparse representations (e.g. VW or SVMLight).</p>
+</div>
+<div class="section" id="sfilefilter">
+<h4>SFileFilter<a class="headerlink" href="#sfilefilter" title="Permalink to this headline">¶</a></h4>
+<p>Classes for filtering words/rows from a sparse formatted file.</p>
+<dl class="class">
+<dt id="rosetta.text.text_processors.BaseTokenizer">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">BaseTokenizer</tt><a class="reference internal" href="_modules/rosetta/text/text_processors.html#BaseTokenizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.BaseTokenizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class, don&#8217;t use directly.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.text_processors.BaseTokenizer.text_to_counter">
+<tt class="descname">text_to_counter</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#BaseTokenizer.text_to_counter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.BaseTokenizer.text_to_counter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a counter associated to tokens in text.
+Filter/transform words according to the scheme this Tokenizer uses.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>text</strong> : String</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tokens</strong> : Counter</p>
+<blockquote class="last">
+<div><p>keys = the tokens
+values = counts of the tokens in text</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.text_processors.MakeTokenizer">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">MakeTokenizer</tt><big>(</big><em>tokenizer_func</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#MakeTokenizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.MakeTokenizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Makes a subclass of BaseTokenizer out of a function.</p>
+<p class="rubric">Methods</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.text_processors.SFileFilter">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">SFileFilter</tt><big>(</big><em>formatter</em>, <em>bit_precision=18</em>, <em>sfile=None</em>, <em>verbose=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filters results stored in sfiles (sparsely formattted bag-of-words files).</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.compactify">
+<tt class="descname">compactify</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.compactify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.compactify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Removes &#8220;gaps&#8221; in the id values in self.token2id.  Every single id
+value will (probably) be altered.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.filter_extremes">
+<tt class="descname">filter_extremes</tt><big>(</big><em>doc_freq_min=0</em>, <em>doc_freq_max=inf</em>, <em>doc_fraction_min=0</em>, <em>doc_fraction_max=1</em>, <em>token_score_min=0</em>, <em>token_score_max=inf</em>, <em>token_score_quantile_min=0</em>, <em>token_score_quantile_max=1</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.filter_extremes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.filter_extremes" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove extreme tokens from self (calling self.filter_tokens).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>doc_freq_min</strong> : Integer</p>
+<blockquote>
+<div><p>Remove tokens that in less than this number of documents</p>
+</div></blockquote>
+<p><strong>doc_freq_max</strong> : Integer</p>
+<p><strong>doc_fraction_min</strong> : Float in [0, 1]</p>
+<blockquote>
+<div><p>Remove tokens that are in less than this fraction of documents</p>
+</div></blockquote>
+<p><strong>doc_fraction_max</strong> : Float in [0, 1]</p>
+<p><strong>token_score_quantile_min</strong> : Float in [0, 1]</p>
+<blockquote>
+<div><p>Minimum quantile that the token score (usually total token count)
+can be in.</p>
+</div></blockquote>
+<p><strong>token_score_quantile_max</strong> : Float in [0, 1]</p>
+<blockquote>
+<div><p>Maximum quantile that the token score can be in</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.filter_sfile">
+<tt class="descname">filter_sfile</tt><big>(</big><em>infile</em>, <em>outfile</em>, <em>doc_id_list=None</em>, <em>enforce_all_doc_id=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.filter_sfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.filter_sfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alter an sfile by converting tokens to id values, and removing tokens
+not in self.token2id.  Optionally filters on doc_id.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>infile</strong> : file path or buffer</p>
+<p><strong>outfile</strong> : file path or buffer</p>
+<p><strong>doc_id_list</strong> : Iterable over strings</p>
+<blockquote>
+<div><p>Keep only rows with doc_id in this list</p>
+</div></blockquote>
+<p><strong>enforce_all_doc_id</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>If True (and doc_id is not None), raise exception unless all doc_id
+in doc_id_list are seen.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.filter_tokens">
+<tt class="descname">filter_tokens</tt><big>(</big><em>tokens</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.filter_tokens"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.filter_tokens" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove tokens from appropriate attributes.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>tokens</strong> : String or iterable over strings</p>
+<blockquote>
+<div><p>E.g. a single token or list of tokens</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.load_sfile">
+<tt class="descname">load_sfile</tt><big>(</big><em>sfile</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.load_sfile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.load_sfile" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load an sfile, building self.token2id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sfile</strong> : String or open file</p>
+<blockquote>
+<div><p>The sparse formatted file we will load.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>self</strong> :</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.save">
+<tt class="descname">save</tt><big>(</big><em>savepath</em>, <em>protocol=-1</em>, <em>set_id2token=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.save" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pickle self to outfile.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>savefile</strong> : filepath or buffer</p>
+<p><strong>protocol</strong> : 0, 1, 2, -1</p>
+<blockquote>
+<div><p>0 &lt; 1 &lt; 2 in terms of performance.  -1 means use highest available.</p>
+</div></blockquote>
+<p><strong>set_id2token</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>If True, set self.id2token before saving.
+Used to associate tokens with the output of a VW file.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.set_bit_precision_required">
+<tt class="descname">set_bit_precision_required</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.set_bit_precision_required"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.set_bit_precision_required" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets self.bit_precision_required to the minimum bit precision b such
+that all token id values are less than 2^b.</p>
+<p>The idea is that only compactification can change this, so we only
+(automatically) call this after compactification.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.set_id2token">
+<tt class="descname">set_id2token</tt><big>(</big><em>seed=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.set_id2token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.set_id2token" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets self.id2token, resolving collisions as needed (which alters
+self.token2id)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SFileFilter.to_frame">
+<tt class="descname">to_frame</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SFileFilter.to_frame"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SFileFilter.to_frame" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a dataframe representation of self.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.text_processors.SVMLightFormatter">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">SVMLightFormatter</tt><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SVMLightFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SVMLightFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>For formatting in/out of SVM-Light format (info not currently supported)
+<a class="reference external" href="http://svmlight.joachims.org/">http://svmlight.joachims.org/</a></p>
+<p>&lt;line&gt; .=. &lt;target&gt; &lt;feature&gt;:&lt;value&gt; &lt;feature&gt;:&lt;value&gt; ...
+&lt;target&gt; .=. +1 | -1 | 0 | &lt;float&gt;
+&lt;feature&gt; .=. &lt;integer&gt; | &#8220;qid&#8221;
+&lt;value&gt; .=. &lt;float&gt;
+&lt;info&gt; .=. &lt;string&gt;</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.text_processors.SVMLightFormatter.get_sstr">
+<tt class="descname">get_sstr</tt><big>(</big><em>feature_values=None</em>, <em>target=1</em>, <em>importance=None</em>, <em>doc_id=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SVMLightFormatter.get_sstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SVMLightFormatter.get_sstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string reprsenting one record in SVM-Light sparse format
+&lt;line&gt; .=. &lt;target&gt; &lt;feature&gt;:&lt;value&gt; &lt;feature&gt;:&lt;value&gt;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>feature_values</strong> : Dict-like</p>
+<blockquote>
+<div><p>{hash1: value1,...}</p>
+</div></blockquote>
+<p><strong>target</strong> : Real number</p>
+<blockquote>
+<div><p>The value we are trying to predict.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>formatted</strong> : String</p>
+<blockquote class="last">
+<div><p>Formatted in SVM-Light</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.text_processors.SparseFormatter">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">SparseFormatter</tt><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SparseFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SparseFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Base class for sparse formatting, e.g. VW or svmlight.
+Not meant to be directly used.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.text_processors.SparseFormatter.sfile_to_token_iter">
+<tt class="descname">sfile_to_token_iter</tt><big>(</big><em>filepath_or_buffer</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SparseFormatter.sfile_to_token_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SparseFormatter.sfile_to_token_iter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an iterator over filepath_or_buffer that returns, line-by-line,
+a token_list.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>filepath_or_buffer</strong> : string or file handle / StringIO.</p>
+<blockquote>
+<div><p>File should be formatted according to self.format.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>token_iter</strong> : Iterator</p>
+<blockquote class="last">
+<div><p>E.g. token_iter.next() gets the next line as a list of tokens.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SparseFormatter.sstr_to_dict">
+<tt class="descname">sstr_to_dict</tt><big>(</big><em>sstr</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SparseFormatter.sstr_to_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SparseFormatter.sstr_to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a dict representation of sparse record string.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sstr</strong> : String</p>
+<blockquote>
+<div><p>String representation of one record.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>record_dict</strong> : Dict</p>
+<blockquote class="last">
+<div><p>possible keys = &#8216;target&#8217;, &#8216;importance&#8217;, &#8216;doc_id&#8217;, &#8216;feature_values&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>rstrips newline characters from sstr before parsing.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SparseFormatter.sstr_to_info">
+<tt class="descname">sstr_to_info</tt><big>(</big><em>sstr</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SparseFormatter.sstr_to_info"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SparseFormatter.sstr_to_info" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the full info dictionary corresponding to a sparse record
+string.  This holds &#8220;everything.&#8221;</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sstr</strong> : String</p>
+<blockquote>
+<div><p>String representation of one record.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>info</strong> : Dict</p>
+<blockquote class="last">
+<div><dl class="docutils">
+<dt>possible keys = &#8216;tokens&#8217;, &#8216;target&#8217;, &#8216;importance&#8217;, &#8216;doc_id&#8217;,</dt>
+<dd><p class="first last">&#8216;feature_values&#8217;, etc...</p>
+</dd>
+</dl>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.text_processors.SparseFormatter.sstr_to_token_list">
+<tt class="descname">sstr_to_token_list</tt><big>(</big><em>sstr</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#SparseFormatter.sstr_to_token_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.SparseFormatter.sstr_to_token_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convertes a sparse record string to a list of tokens (with repeats)
+corresponding to sstr.</p>
+<p>E.g. if sstr represented the dict {&#8216;hi&#8217;: 2, &#8216;bye&#8217;: 1}, then
+token_list = [&#8216;hi&#8217;, &#8216;hi&#8217;, &#8216;bye&#8217;]  (up to permutation).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>sstr</strong> : String</p>
+<blockquote>
+<div><p>Formatted according to self.format_name
+Note that the values in sstr must be integers.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>token_list</strong> : List of Strings</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.text_processors.TokenizerBasic">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">TokenizerBasic</tt><a class="reference internal" href="_modules/rosetta/text/text_processors.html#TokenizerBasic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.TokenizerBasic" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple tokenizer.  Extracts word counts from text.</p>
+<p>Keeps only non-stopwords, converts to lowercase,
+keeps words of length &gt;=2.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.text_processors.TokenizerBasic.text_to_token_list">
+<tt class="descname">text_to_token_list</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#TokenizerBasic.text_to_token_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.TokenizerBasic.text_to_token_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a list of tokens.
+Filter/transform words according to the scheme this Tokenizer uses.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>text</strong> : String</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>tokens</strong> : List</p>
+<blockquote class="last">
+<div><p>Tokenized text, e.g. [&#8216;hello&#8217;, &#8216;my&#8217;, &#8216;name&#8217;, &#8216;is&#8217;, &#8216;ian&#8217;]</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.text_processors.TokenizerPOSFilter">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">TokenizerPOSFilter</tt><big>(</big><em>pos_types=</em><span class="optional">[</span><span class="optional">]</span>, <em>sent_tokenizer=&lt;function sent_tokenize at 0x2cd9de8&gt;</em>, <em>word_tokenizer=&lt;rosetta.text.text_processors.TokenizerBasic object at 0x3cd5290&gt;</em>, <em>word_tokenizer_func=None</em>, <em>pos_tagger=&lt;function pos_tag at 0x2c8a668&gt;</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#TokenizerPOSFilter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.TokenizerPOSFilter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tokenizes, does POS tagging, then keeps words that match particular POS.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.text_processors.TokenizerPOSFilter.text_to_token_list">
+<tt class="descname">text_to_token_list</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#TokenizerPOSFilter.text_to_token_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.TokenizerPOSFilter.text_to_token_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tokenize a list of text that (possibly) includes multiple sentences.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.text_processors.VWFormatter">
+<em class="property">class </em><tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">VWFormatter</tt><a class="reference internal" href="_modules/rosetta/text/text_processors.html#VWFormatter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.VWFormatter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts in and out of VW format (namespaces currently not supported).
+Many valid VW inputs are possible, we ONLY support</p>
+<p>[target] [Importance [Tag]]| feature1[:value1] feature2[:value2] ...</p>
+<p>Every single whitespace, pipe, colon, and newline is significant.</p>
+<p>See:
+<a class="reference external" href="https://github.com/JohnLangford/vowpal_wabbit/wiki/Input-format">https://github.com/JohnLangford/vowpal_wabbit/wiki/Input-format</a>
+<a class="reference external" href="http://hunch.net/~vw/validate.html">http://hunch.net/~vw/validate.html</a></p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.text_processors.VWFormatter.get_sstr">
+<tt class="descname">get_sstr</tt><big>(</big><em>feature_values=None</em>, <em>target=None</em>, <em>importance=None</em>, <em>doc_id=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#VWFormatter.get_sstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.VWFormatter.get_sstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a string reprsenting one record in sparse VW format:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>feature_values</strong> : Dict-like</p>
+<blockquote>
+<div><p>{feature1: value1,...}</p>
+</div></blockquote>
+<p><strong>target</strong> : Real number</p>
+<blockquote>
+<div><p>The value we are trying to predict.</p>
+</div></blockquote>
+<p><strong>importance</strong> : Real number</p>
+<blockquote>
+<div><p>The importance weight to associate to this example.</p>
+</div></blockquote>
+<p><strong>doc_id</strong> : Number or string</p>
+<blockquote>
+<div><p>A name for this example.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>formatted</strong> : String</p>
+<blockquote class="last">
+<div><p>Formatted in VW format</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.text_processors.collision_probability">
+<tt class="descclassname">rosetta.text.text_processors.</tt><tt class="descname">collision_probability</tt><big>(</big><em>vocab_size</em>, <em>bit_precision</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/text_processors.html#collision_probability"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.text_processors.collision_probability" title="Permalink to this definition">¶</a></dt>
+<dd><p>Approximate probability of at least one collision
+(assuming perfect hashing).  See the Wikipedia article on
+&#8220;The birthday problem&#8221; for details.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>vocab_size</strong> : Integer</p>
+<blockquote>
+<div><p>Number of unique words in vocabulary</p>
+</div></blockquote>
+<p><strong>bit_precision</strong> : Integer</p>
+<blockquote class="last">
+<div><p>Number of bits in space we are hashing to</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-rosetta.text.nlp">
+<span id="nlp"></span><h3>nlp<a class="headerlink" href="#module-rosetta.text.nlp" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="rosetta.text.nlp.bigram_tokenize">
+<tt class="descclassname">rosetta.text.nlp.</tt><tt class="descname">bigram_tokenize</tt><big>(</big><em>text</em>, <em>word_tok=&lt;function word_tokenize at 0x3cd7230&gt;</em>, <em>skip_regex='\\.|</em>, <em>|:|;|\\?|!'</em>, <em>**word_tok_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/nlp.html#bigram_tokenize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.nlp.bigram_tokenize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Same as bigram_tokenize_iter, except returns a list.</p>
+<p>Bigram tokenizer generator function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.nlp.bigram_tokenize_iter">
+<tt class="descclassname">rosetta.text.nlp.</tt><tt class="descname">bigram_tokenize_iter</tt><big>(</big><em>text</em>, <em>word_tok=&lt;function word_tokenize at 0x3cd7230&gt;</em>, <em>skip_regex='\\.|</em>, <em>|:|;|\\?|!'</em>, <em>**word_tok_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/nlp.html#bigram_tokenize_iter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.nlp.bigram_tokenize_iter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bigram tokenizer generator function.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.nlp.word_tokenize">
+<tt class="descclassname">rosetta.text.nlp.</tt><tt class="descname">word_tokenize</tt><big>(</big><em>text</em>, <em>L=1</em>, <em>numeric=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/nlp.html#word_tokenize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.nlp.word_tokenize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Word tokenizer to replace the nltk.word_tokenize()</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.text.vw_helpers">
+<span id="vw-helpers"></span><h3>vw_helpers<a class="headerlink" href="#module-rosetta.text.vw_helpers" title="Permalink to this headline">¶</a></h3>
+<p>Wrappers to help with Vowpal Wabbit (VW).</p>
+<dl class="class">
+<dt id="rosetta.text.vw_helpers.LDAResults">
+<em class="property">class </em><tt class="descclassname">rosetta.text.vw_helpers.</tt><tt class="descname">LDAResults</tt><big>(</big><em>topics_file</em>, <em>predictions_file</em>, <em>num_topics</em>, <em>sfile_filter</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#LDAResults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.LDAResults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Facilitates working with results of VW lda runs.</p>
+<p>See <a class="reference external" href="http://hunch.net/~vw/">http://hunch.net/~vw/</a>  as a starting place for VW information.</p>
+<p>See <a class="reference external" href="https://github.com/JohnLangford/vowpal_wabbit/wiki/lda.pdf">https://github.com/JohnLangford/vowpal_wabbit/wiki/lda.pdf</a>
+for a brief tutorial of lda in VW.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.vw_helpers.LDAResults.cosine_similarity">
+<tt class="descname">cosine_similarity</tt><big>(</big><em>frame1</em>, <em>frame2</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#LDAResults.cosine_similarity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.LDAResults.cosine_similarity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes doc-doc similarity between rows of two frames containing
+document topic weights.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>frame1, frame2</strong> : DataFrame or Series</p>
+<blockquote>
+<div><p>Rows are different records, columns are topic weights.
+self.pr_topic_g_doc is an example of a (large) frame of this type.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>sims</strong> : DataFrame</p>
+<blockquote class="last">
+<div><p>sims.ix[i, j] is similarity between frame1[i] and frame2[j]</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.vw_helpers.LDAResults.predict">
+<tt class="descname">predict</tt><big>(</big><em>tokenized_text</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#LDAResults.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.LDAResults.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a probability distribution over topics given that a (tokenized)
+document is equal to tokenized_text.</p>
+<p>This is NOT equivalent to prob_token_topic(c_token=tokenized_text),
+since that is an OR statement about the tokens, and this is an AND.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>tokenized_text</strong> : List of strings</p>
+<blockquote>
+<div><p>Represents the tokens that are in some document text.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>prob_topics</strong> : Series</p>
+<blockquote class="last">
+<div><p>self.pr_topic_g_doc is an example of a (large) frame of this type.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<dl class="docutils">
+<dt>P(topic | tok1, tok2) propto P(topic) P(tok1, tok2 | topic)</dt>
+<dd>= P(topic) P(tok1 | topic) P(tok2 | topic)</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.vw_helpers.LDAResults.print_topics">
+<tt class="descname">print_topics</tt><big>(</big><em>num_words=5</em>, <em>outfile=&lt;open file '&lt;stdout&gt;'</em>, <em>mode 'w' at 0x2b977f6b6150&gt;</em>, <em>show_doc_fraction=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#LDAResults.print_topics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.LDAResults.print_topics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Print the top results for self.pr_token_g_topic for all topics</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>num_words</strong> : Integer</p>
+<blockquote>
+<div><p>Print the num_words words (ordered by P[w|topic]) in each topic.</p>
+</div></blockquote>
+<p><strong>outfile</strong> : filepath or buffer</p>
+<blockquote>
+<div><p>Write results to this file.</p>
+</div></blockquote>
+<p><strong>show_doc_fraction</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>If True, print doc_fraction along with the topic weight</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.vw_helpers.LDAResults.prob_doc_topic">
+<tt class="descname">prob_doc_topic</tt><big>(</big><em>doc=None</em>, <em>topic=None</em>, <em>c_doc=None</em>, <em>c_topic=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#LDAResults.prob_doc_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.LDAResults.prob_doc_topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return joint probabilities of (doc, topic),
+restricted to subsets, conditioned on variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>doc</strong> : list-like or string</p>
+<blockquote>
+<div><p>Restrict returned probabilities to these doc_ids</p>
+</div></blockquote>
+<p><strong>topic</strong> : list-like or string</p>
+<blockquote>
+<div><p>Restrict returned probabilities to these topics</p>
+</div></blockquote>
+<p><strong>c_doc</strong> : list-like or string</p>
+<blockquote>
+<div><p>Condition on doc_id in c_doc</p>
+</div></blockquote>
+<p><strong>c_topic</strong> : list-like or string</p>
+<blockquote class="last">
+<div><p>Condition on topic in c_topic</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<dl class="docutils">
+<dt>prob_doc_topic(c_topic=[&#8216;topic_0&#8217;])</dt>
+<dd>= P(doc, topic | topic in [&#8216;topic_0&#8217;])
+for all possible (doc, topic) pairs</dd>
+<dt>prob_doc_topic(doc=[&#8216;doc0&#8217;, &#8216;doc1&#8217;], c_topic=[&#8216;topic_0&#8217;])</dt>
+<dd>= P(doc, topic | topic in [&#8216;topic_0&#8217;])
+for all (doc, topic) pairs with doc in [&#8216;doc0&#8217;, &#8216;doc1&#8217;]</dd>
+<dt>prob_doc_topic(doc=[&#8216;doc0&#8217;, &#8216;doc1&#8217;], topic=[&#8216;topic_0&#8217;])</dt>
+<dd>= P(doc, topic)
+for all (doc, topic) pairs
+with doc in [&#8216;doc0&#8217;, &#8216;doc1&#8217;] and topic in [&#8216;topic_0&#8217;]</dd>
+</dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.vw_helpers.LDAResults.prob_token_topic">
+<tt class="descname">prob_token_topic</tt><big>(</big><em>token=None</em>, <em>topic=None</em>, <em>c_token=None</em>, <em>c_topic=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#LDAResults.prob_token_topic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.LDAResults.prob_token_topic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return joint densities of (token, topic),
+restricted to subsets, conditioned on variables.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>token</strong> : list-like or string</p>
+<blockquote>
+<div><p>Restrict returned probabilities to these tokens</p>
+</div></blockquote>
+<p><strong>topic</strong> : list-like or string</p>
+<blockquote>
+<div><p>Restrict returned probabilities to these topics</p>
+</div></blockquote>
+<p><strong>c_token</strong> : list-like or string</p>
+<blockquote>
+<div><p>Condition on token in c_token</p>
+</div></blockquote>
+<p><strong>c_topic</strong> : list-like or string</p>
+<blockquote class="last">
+<div><p>Condition on topic in c_topic</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<dl class="docutils">
+<dt>prob_token_topic(c_topic=[&#8216;topic_0&#8217;])</dt>
+<dd>= P(token, topic | topic in [&#8216;topic_0&#8217;])
+for all possible (token, topic) pairs</dd>
+<dt>prob_token_topic(token=[&#8216;war&#8217;, &#8216;peace&#8217;], c_topic=[&#8216;topic_0&#8217;])</dt>
+<dd>= P(token, topic | topic in [&#8216;topic_0&#8217;])
+for all (token, topic) pairs with token in [&#8216;war&#8217;, &#8216;peace]</dd>
+<dt>prob_token_topic(token=[&#8216;war&#8217;, &#8216;peace&#8217;], topic=[&#8216;topic_0&#8217;])</dt>
+<dd>= P(token, topic)
+for all (token, topic) pairs
+with token in [&#8216;war&#8217;, &#8216;peace] and topic in [&#8216;topic_0&#8217;]</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.vw_helpers.find_start_line_lda_predictions">
+<tt class="descclassname">rosetta.text.vw_helpers.</tt><tt class="descname">find_start_line_lda_predictions</tt><big>(</big><em>predictions_file</em>, <em>num_topics</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#find_start_line_lda_predictions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.find_start_line_lda_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the line number (zero indexed) of the start of the last set of
+predictions in predictions_file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>predictions_file</strong> : filepath or buffer</p>
+<blockquote>
+<div><p>The -p output of a VW lda run</p>
+</div></blockquote>
+<p><strong>num_topics</strong> : Integer</p>
+<blockquote class="last">
+<div><p>The number of topics you should see</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The predictions_file contains repeated predictions...one for every pass.
+We parse out and include only the last predictions by looking for repeats
+of the first lines doc_id field.  We thus, at this time, require the VW
+formatted file to have, in the last column, a unique doc_id associated
+with the doc.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.vw_helpers.parse_lda_predictions">
+<tt class="descclassname">rosetta.text.vw_helpers.</tt><tt class="descname">parse_lda_predictions</tt><big>(</big><em>predictions_file</em>, <em>num_topics</em>, <em>start_line</em>, <em>normalize=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#parse_lda_predictions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.parse_lda_predictions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a DataFrame representation of a VW prediction file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>predictions_file</strong> : filepath or buffer</p>
+<blockquote>
+<div><p>The -p output of a VW lda run</p>
+</div></blockquote>
+<p><strong>num_topics</strong> : Integer</p>
+<blockquote>
+<div><p>The number of topics you should see</p>
+</div></blockquote>
+<p><strong>start_line</strong> : Integer</p>
+<blockquote>
+<div><p>Start reading the predictions file here.
+The predictions file contains repeated predictions, one for every pass.
+You generally do not want every prediction.</p>
+</div></blockquote>
+<p><strong>normalize</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>Normalize the rows so that they represent probabilities of topic
+given doc_id.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.vw_helpers.parse_lda_topics">
+<tt class="descclassname">rosetta.text.vw_helpers.</tt><tt class="descname">parse_lda_topics</tt><big>(</big><em>topics_file</em>, <em>num_topics</em>, <em>normalize=True</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#parse_lda_topics"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.parse_lda_topics" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a DataFrame representation of the topics output of an lda VW run.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>topics_file</strong> : filepath or buffer</p>
+<blockquote>
+<div><p>The &#8211;readable_model output of a VW lda run</p>
+</div></blockquote>
+<p><strong>num_topics</strong> : Integer</p>
+<blockquote>
+<div><p>The number of topics in every valid row</p>
+</div></blockquote>
+<p><strong>normalize</strong> : Boolean</p>
+<blockquote class="last">
+<div><p>Normalize the rows so that they represent probabilities of topic
+given hash_val</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>The trick is dealing with lack of a marker for the information printed
+on top, and the inconsistant delimiter choice.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.vw_helpers.parse_varinfo">
+<tt class="descclassname">rosetta.text.vw_helpers.</tt><tt class="descname">parse_varinfo</tt><big>(</big><em>varinfo_file</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/vw_helpers.html#parse_varinfo"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.vw_helpers.parse_varinfo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Uses the output of the vw-varinfo utility to get a DataFrame with variable
+info.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>varinfo_file</strong> : Path or buffer</p>
+<blockquote class="last">
+<div><p>The output of vw-varinfo</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.text.gensim_helpers">
+<span id="gensim-helpers"></span><h3>gensim_helpers<a class="headerlink" href="#module-rosetta.text.gensim_helpers" title="Permalink to this headline">¶</a></h3>
+<p>Helper objects/functions specifically for use with Gensim.</p>
+<dl class="class">
+<dt id="rosetta.text.gensim_helpers.StreamerCorpus">
+<em class="property">class </em><tt class="descclassname">rosetta.text.gensim_helpers.</tt><tt class="descname">StreamerCorpus</tt><big>(</big><em>streamer</em>, <em>dictionary</em>, <em>doc_id=None</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/gensim_helpers.html#StreamerCorpus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.gensim_helpers.StreamerCorpus" title="Permalink to this definition">¶</a></dt>
+<dd><p>A &#8220;corpus type&#8221; object built with token streams and dictionaries.</p>
+<p>Depending on your method for streaming tokens, this could be slow...
+Before modeling, it&#8217;s usually better to serialize this corpus using:</p>
+<p>self.to_corpus_plus(fname)
+or
+gensim.corpora.SvmLightCorpus.serialize(path, self)</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.text.gensim_helpers.StreamerCorpus.serialize">
+<tt class="descname">serialize</tt><big>(</big><em>fname</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/gensim_helpers.html#StreamerCorpus.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.gensim_helpers.StreamerCorpus.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save to svmlight (plus) format, generating files:
+fname, fname.index, fname.doc_id</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.text.gensim_helpers.SvmLightPlusCorpus">
+<em class="property">class </em><tt class="descclassname">rosetta.text.gensim_helpers.</tt><tt class="descname">SvmLightPlusCorpus</tt><big>(</big><em>fname</em>, <em>doc_id=None</em>, <em>doc_id_filter=None</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/gensim_helpers.html#SvmLightPlusCorpus"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.gensim_helpers.SvmLightPlusCorpus" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extends gensim.corpora.SvmLightCorpus, providing methods to work with
+(e.g. filter by) doc_ids.</p>
+<p class="rubric">Methods</p>
+<dl class="classmethod">
+<dt id="rosetta.text.gensim_helpers.SvmLightPlusCorpus.from_streamer_dict">
+<em class="property">classmethod </em><tt class="descname">from_streamer_dict</tt><big>(</big><em>streamer</em>, <em>dictionary</em>, <em>fname</em>, <em>doc_id=None</em>, <em>limit=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/gensim_helpers.html#SvmLightPlusCorpus.from_streamer_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.gensim_helpers.SvmLightPlusCorpus.from_streamer_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize from a Streamer and gensim.corpora.dictionary, serializing
+the corpus (to disk) in SvmLightPlus format, then returning a
+SvmLightPlusCorpus.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>streamer</strong> : Streamer compatible object.</p>
+<blockquote>
+<div><p>Method streamer.token_stream() returns a stream of lists of words.</p>
+</div></blockquote>
+<p><strong>dictionary</strong> : gensim.corpora.Dictionary object</p>
+<p><strong>fname</strong> : String</p>
+<blockquote>
+<div><p>Path to save the bag-of-words file at</p>
+</div></blockquote>
+<p><strong>doc_id</strong> : Iterable over strings</p>
+<blockquote>
+<div><p>Limit all streaming results to docs with these doc_ids</p>
+</div></blockquote>
+<p><strong>limit</strong> : Integer</p>
+<blockquote>
+<div><p>Limit all streaming results to this many</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>corpus</strong> : SvmLightCorpus</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.text.gensim_helpers.SvmLightPlusCorpus.serialize">
+<tt class="descname">serialize</tt><big>(</big><em>fname</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/gensim_helpers.html#SvmLightPlusCorpus.serialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.gensim_helpers.SvmLightPlusCorpus.serialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Save to svmlight (plus) format, generating files:
+fname, fname.index, fname.doc_id</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>fname</strong> : String</p>
+<blockquote>
+<div><p>Path to save the bag-of-words file at</p>
+</div></blockquote>
+<p><strong>kwargs</strong> : Additional keyword arguments</p>
+<blockquote class="last">
+<div><p>Passed to SvmLightCorpus.serialize</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.gensim_helpers.get_topics_df">
+<tt class="descclassname">rosetta.text.gensim_helpers.</tt><tt class="descname">get_topics_df</tt><big>(</big><em>corpus</em>, <em>lda</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/gensim_helpers.html#get_topics_df"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.gensim_helpers.get_topics_df" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a delimited file with doc_id and topics scores.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.text.gensim_helpers.get_words_docfreq">
+<tt class="descclassname">rosetta.text.gensim_helpers.</tt><tt class="descname">get_words_docfreq</tt><big>(</big><em>dictionary</em><big>)</big><a class="reference internal" href="_modules/rosetta/text/gensim_helpers.html#get_words_docfreq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.text.gensim_helpers.get_words_docfreq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a df with token id, doc freq as columns and words as index.</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="modeling">
+<h2>modeling<a class="headerlink" href="#modeling" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>General ML modeling utilities</li>
+</ul>
+<div class="section" id="module-rosetta.modeling.eda">
+<span id="eda"></span><h3>eda<a class="headerlink" href="#module-rosetta.modeling.eda" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="rosetta.modeling.eda.get_decent_cols">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">get_decent_cols</tt><big>(</big><em>df</em>, <em>col_list_to_choose_from=None</em>, <em>null_frac=0.9</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#get_decent_cols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.get_decent_cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a list of columns such that the fraction of nulls is less than
+null_frac.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>df</strong> : Pandas.DataFrame</p>
+<p><strong>col_list_to_choose_from</strong> : list or None</p>
+<blockquote>
+<div><p>Only consider these columns.  If None, consider all columns in df</p>
+</div></blockquote>
+<p><strong>null_frac</strong> : Numeric, between 0 and 1</p>
+<blockquote class="last">
+<div><p>Maximum allowed fraction of nulls in a &#8220;decent&#8221; column</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.eda.get_labels">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">get_labels</tt><big>(</big><em>series</em>, <em>bins=10</em>, <em>quantiles=False</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#get_labels"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.get_labels" title="Permalink to this definition">¶</a></dt>
+<dd><p>Divides series into bins and returns labels corresponding to midpoints of
+bins.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>series</strong> : Pandas.Series of numeric data</p>
+<p><strong>bins</strong> : Positive Integer, optional</p>
+<blockquote>
+<div><p>Number of bins to divide series</p>
+</div></blockquote>
+<p><strong>quantiles</strong> : Boolean, optional</p>
+<blockquote class="last">
+<div><p>If True, bin data using quantiles rather than an evenly divided range</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.eda.hist_cols">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">hist_cols</tt><big>(</big><em>df</em>, <em>cols_to_plot</em>, <em>num_cols</em>, <em>num_rows</em>, <em>figsize=None</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#hist_cols"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.hist_cols" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots histograms of columns of a DataFrame as subplots in one big plot.
+Handles nans and extreme values in a &#8220;graceful&#8221; manner by removing them
+and reporting their occurance.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>df</strong> : Pandas DataFrame</p>
+<p><strong>cols_to_plot</strong> : List</p>
+<blockquote>
+<div><p>Column names of df that will be plotted</p>
+</div></blockquote>
+<p><strong>num_cols, num_rows</strong> : Positive integers</p>
+<blockquote>
+<div><p>Number of columns and rows in the plot</p>
+</div></blockquote>
+<p><strong>figsize</strong> : (x, y) tuple, optional</p>
+<blockquote>
+<div><p>Size of the figure</p>
+</div></blockquote>
+<p class="last"><strong>**kwargs</strong> : Keyword args to pass on to plot</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.eda.hist_one_col">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">hist_one_col</tt><big>(</big><em>col</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#hist_one_col"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.hist_one_col" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots a histogram one column.  Handles nans and extreme values in a
+&#8220;graceful&#8221; manner.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.eda.plot_reducedY_vs_binnedX">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">plot_reducedY_vs_binnedX</tt><big>(</big><em>x</em>, <em>y</em>, <em>Y_reducer=&lt;function mean at 0x1c4e410&gt;</em>, <em>X_reducer=&lt;function mean at 0x1c4e410&gt;</em>, <em>bins=10</em>, <em>quantiles=False</em>, <em>plot_count_X=False</em>, <em>**plt_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#plot_reducedY_vs_binnedX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.plot_reducedY_vs_binnedX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bin X and, inside every bin, apply Y_reducer to the Y values.  Then plot.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>x</strong> : Pandas.Series with numeric data</p>
+<p><strong>y</strong> : Pandas.Series with numeric data = 0 or 1</p>
+<p><strong>Y_reducer</strong> : function</p>
+<blockquote>
+<div><p>Used to aggregate the Y values in every bin</p>
+</div></blockquote>
+<p><strong>X_reducer</strong> : function</p>
+<blockquote>
+<div><p>Used to aggregate the X values in every bin.  This gives us the bin
+labels that are used as the indices.</p>
+</div></blockquote>
+<p><strong>bins</strong> : Positive Integer, optional</p>
+<blockquote>
+<div><p>Number of bins to divide series</p>
+</div></blockquote>
+<p><strong>quantiles</strong> : Boolean, optional</p>
+<blockquote>
+<div><p>If True, bin data using quantiles rather than an evenly divided range</p>
+</div></blockquote>
+<p><strong>plot_count_X</strong> : Boolean, optional</p>
+<blockquote>
+<div><p>If True, plot count_X versus x in a separate subplot</p>
+</div></blockquote>
+<p><strong>**kwargs</strong> : Extra keywordargs passed to plot</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>y_reduced</strong> : Series</p>
+<blockquote>
+<div><p>The reduced y values with an index equal to the bin centers.</p>
+</div></blockquote>
+<p><strong>count_X</strong> : Series</p>
+<blockquote class="last">
+<div><p>The number of X variables in the bin.  Index is the bin centers.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Suppose Y is binary.  Then to plot P[Y=1|X=x] (for x inside the bins),
+as well as #[X=x], use:</p>
+<p>eda.plot_reducedY_vs_binnedX(x, y, Y_reducer=np.mean, plot_count_X=True)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.eda.plot_scatterXY">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">plot_scatterXY</tt><big>(</big><em>x</em>, <em>y</em>, <em>stride=1</em>, <em>plot_XequalsY=False</em>, <em>**plt_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#plot_scatterXY"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.plot_scatterXY" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot a XY scatter plot of two Series.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>x, y</strong> : Pandas.Series</p>
+<p><strong>stride</strong> : Positive integer</p>
+<blockquote>
+<div><p>If stride == n, then plot only every nth point</p>
+</div></blockquote>
+<p><strong>plot_XequalsY</strong> : Boolean</p>
+<blockquote>
+<div><p>If True, plot the line X = Y in red.</p>
+</div></blockquote>
+<p class="last"><strong>plt_kwargs</strong> : Additional kwargs to pass to plt</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.eda.plot_scatter_matrix">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">plot_scatter_matrix</tt><big>(</big><em>df</em>, <em>cols_to_plot</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#plot_scatter_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.plot_scatter_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plots the pandas scatter matrix for the DataFrame df restricted to
+cols_to_plot.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.eda.reducedY_vs_binnedX">
+<tt class="descclassname">rosetta.modeling.eda.</tt><tt class="descname">reducedY_vs_binnedX</tt><big>(</big><em>x</em>, <em>y</em>, <em>Y_reducer=&lt;function mean at 0x1c4e410&gt;</em>, <em>X_reducer='midpoint'</em>, <em>bins=10</em>, <em>quantiles=False</em>, <em>labels=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/eda.html#reducedY_vs_binnedX"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.eda.reducedY_vs_binnedX" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bin X and, inside every bin, apply Y_reducer to the Y values.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>x</strong> : Pandas.Series with numeric data</p>
+<p><strong>y</strong> : Pandas.Series with numeric data = 0 or 1</p>
+<p><strong>Y_reducer</strong> : function</p>
+<blockquote>
+<div><p>Used to aggregate the Y values in every bin</p>
+</div></blockquote>
+<p><strong>X_reducer</strong> : function or &#8216;midpoint&#8217;</p>
+<blockquote>
+<div><p>Used to aggregate the X values in every bin.  This gives us the bin
+labels that are used as the indices.
+If &#8216;midpoint&#8217;, then use the bin midpoint.</p>
+</div></blockquote>
+<p><strong>bins</strong> : Positive Integer, optional</p>
+<blockquote>
+<div><p>Number of bins to divide series</p>
+</div></blockquote>
+<p><strong>quantiles</strong> : Boolean, optional</p>
+<blockquote>
+<div><p>If True, bin data using quantiles rather than an evenly divided range</p>
+</div></blockquote>
+<p><strong>labels</strong> : List-like, with len(labels) = len(x), optional</p>
+<blockquote>
+<div><p>If given, use these labels to bin X rather than bins.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>y_reduced</strong> : Series</p>
+<blockquote>
+<div><p>The reduced y values with an index equal to the reduced X</p>
+</div></blockquote>
+<p><strong>count_X</strong> : Series</p>
+<blockquote class="last">
+<div><p>The number of X variables in each bin.  Index is the reduced value.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Suppose Y is binary.  Then to compute P[Y=1|X=x] (for x inside the bins),
+as well as #[X=x], use:</p>
+<p>P_Y_g_X, count_X = eda.reducedY_vs_binnedX(x, y, Y_reducer=np.mean)</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.modeling.prediction_plotter">
+<span id="prediction-plotter"></span><h3>prediction_plotter<a class="headerlink" href="#module-rosetta.modeling.prediction_plotter" title="Permalink to this headline">¶</a></h3>
+<p>Helpful module for plotting predictions</p>
+<dl class="class">
+<dt id="rosetta.modeling.prediction_plotter.BasePlotter2D">
+<em class="property">class </em><tt class="descclassname">rosetta.modeling.prediction_plotter.</tt><tt class="descname">BasePlotter2D</tt><a class="reference internal" href="_modules/rosetta/modeling/prediction_plotter.html#BasePlotter2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.prediction_plotter.BasePlotter2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract base class for 2D plotters.  Not to be used directly.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.modeling.prediction_plotter.BasePlotter2D.plot">
+<tt class="descname">plot</tt><big>(</big><em>clf</em>, <em>X</em>, <em>y</em>, <em>mode='predict'</em>, <em>contourf_kwargs={}</em>, <em>scatter_kwargs={}</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/prediction_plotter.html#BasePlotter2D.plot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.prediction_plotter.BasePlotter2D.plot" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot levelsets of clf then plot the X/y data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>clf</strong> : Trained sklearn classifier</p>
+<p><strong>mode</strong> : &#8216;predict&#8217;, &#8216;predict_proba&#8217;</p>
+<blockquote>
+<div><p>If &#8216;predict&#8217;, plot the 0/1 levelsets using clf.predict
+If &#8216;predct_proba&#8217;, plot a contour plot of clf.predict_proba.</p>
+</div></blockquote>
+<p><strong>contourf_kwargs</strong> : Dict</p>
+<blockquote>
+<div><p>kwargs passed to pylab.contourf</p>
+</div></blockquote>
+<p><strong>scatter_kwargs</strong> : Dict</p>
+<blockquote class="last">
+<div><p>kwargs passed to pylab.scatter</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.modeling.prediction_plotter.BasePlotter2D.plot_levelsets">
+<tt class="descname">plot_levelsets</tt><big>(</big><em>clf</em>, <em>box_ends=None</em>, <em>mode='predict'</em>, <em>**contourf_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/prediction_plotter.html#BasePlotter2D.plot_levelsets"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.prediction_plotter.BasePlotter2D.plot_levelsets" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot level sets of the model clf.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>clf</strong> : Trained sklearn model</p>
+<p><strong>box_ends</strong> : 4-tuple</p>
+<blockquote>
+<div><p>xmin, xmax, ymin, ymax
+plot levelsets within box defined by box_ends</p>
+</div></blockquote>
+<p><strong>box_ends</strong> : 4-tuple</p>
+<blockquote>
+<div><p>xmin, xmax, ymin, ymax
+plot levelsets within box defined by box_ends
+Over-rides self.box_ends if self.box_ends is not set.</p>
+</div></blockquote>
+<p><strong>mode</strong> : &#8216;predict&#8217;, &#8216;predict_proba&#8217;</p>
+<blockquote>
+<div><p>If &#8216;predict&#8217;, plot the levelsets using clf.predict
+If &#8216;predct_proba&#8217;, plot a contour plot of clf.predict_proba.</p>
+</div></blockquote>
+<p><strong>contourf_kwargs</strong> : Keyword arguments</p>
+<blockquote class="last">
+<div><p>Passed to pylab.contourf</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.modeling.prediction_plotter.ClassifierPlotter2D">
+<em class="property">class </em><tt class="descclassname">rosetta.modeling.prediction_plotter.</tt><tt class="descname">ClassifierPlotter2D</tt><big>(</big><em>y_markers=None</em>, <em>y_names=None</em>, <em>x_names=None</em>, <em>cmap='PuBu'</em>, <em>box_ends=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/prediction_plotter.html#ClassifierPlotter2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.prediction_plotter.ClassifierPlotter2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>For plotting 2D classifiers.</p>
+<p>Initialize the ClassifierPlotter2D, then train different (2-d) classifiers
+on different data sets and plot the data and level sets of the classifier.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.modeling.prediction_plotter.ClassifierPlotter2D.plot_data">
+<tt class="descname">plot_data</tt><big>(</big><em>X</em>, <em>y</em>, <em>**scatter_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/prediction_plotter.html#ClassifierPlotter2D.plot_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.prediction_plotter.ClassifierPlotter2D.plot_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the (X, y) data as a bunch of labeled markers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>X</strong> : np.ndarray</p>
+<p><strong>y</strong> : np.ndarray</p>
+<blockquote>
+<div><p>Numeric data only</p>
+</div></blockquote>
+<p><strong>scatter_kwargs</strong> : Keyword arguments</p>
+<blockquote class="last">
+<div><p>Passed to pylab.scatter()</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="rosetta.modeling.prediction_plotter.RegressorPlotter2D">
+<em class="property">class </em><tt class="descclassname">rosetta.modeling.prediction_plotter.</tt><tt class="descname">RegressorPlotter2D</tt><big>(</big><em>x_names=None</em>, <em>y_name=None</em>, <em>cmap='PuBu'</em>, <em>box_ends=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/prediction_plotter.html#RegressorPlotter2D"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.prediction_plotter.RegressorPlotter2D" title="Permalink to this definition">¶</a></dt>
+<dd><p>For plotting 2D regressors.</p>
+<p>Initialize the RegressorPlotter2D, then train different (2-d) regressors
+on different data sets and plot the data and level sets of the regressor.</p>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.modeling.prediction_plotter.RegressorPlotter2D.plot_data">
+<tt class="descname">plot_data</tt><big>(</big><em>X</em>, <em>y</em>, <em>**scatter_kwargs</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/prediction_plotter.html#RegressorPlotter2D.plot_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.prediction_plotter.RegressorPlotter2D.plot_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot the (X, y) data as filled in circles.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>X</strong> : np.ndarray</p>
+<p><strong>y</strong> : np.ndarray</p>
+<blockquote>
+<div><p>Numeric data only</p>
+</div></blockquote>
+<p><strong>scatter_kwargs</strong> : Keyword arguments</p>
+<blockquote class="last">
+<div><p>Passed to pylab.scatter()</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.modeling.var_create">
+<span id="var-create"></span><h3>var_create<a class="headerlink" href="#module-rosetta.modeling.var_create" title="Permalink to this headline">¶</a></h3>
+<dl class="function">
+<dt id="rosetta.modeling.var_create.build_xy_for_linearize">
+<tt class="descclassname">rosetta.modeling.var_create.</tt><tt class="descname">build_xy_for_linearize</tt><big>(</big><em>x</em>, <em>y</em>, <em>bins=10</em>, <em>Y_reducer=&lt;function mean at 0x1c4e410&gt;</em>, <em>x_lims=None</em>, <em>endpoints=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/var_create.html#build_xy_for_linearize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.var_create.build_xy_for_linearize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return x and y for use in linearization.  Use with var_create.interp.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>x</strong> : Pandas.Series</p>
+<p><strong>y</strong> : Pandas.Series</p>
+<p><strong>bins</strong> : positive integer</p>
+<blockquote>
+<div><p>Number of bins for x</p>
+</div></blockquote>
+<p><strong>Y_reducer</strong> : Function</p>
+<blockquote>
+<div><p>Used to reduce Y in each of the bins.  E.g np.mean, logit_of_mean.</p>
+</div></blockquote>
+<p><strong>x_lims</strong> : 2-tuple, (xmin, xmax)</p>
+<blockquote>
+<div><p>Rescaled x will be constant outside of this range.
+Choose xmin, xmax such that you have enough data in the interval
+(xmin, xmax)</p>
+</div></blockquote>
+<p><strong>endpoints</strong> : Array-like</p>
+<blockquote>
+<div><p>[xmin, xmax, ymin, ymax].  Makes sure F(xmin) = ymin, etc...</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>x</strong> : Array</p>
+<blockquote>
+<div><p>The bin midpoints (with adjunstments at the ends)</p>
+</div></blockquote>
+<p><strong>y</strong> : Array</p>
+<blockquote class="last">
+<div><p>y reduced in the bins</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.var_create.interp">
+<tt class="descclassname">rosetta.modeling.var_create.</tt><tt class="descname">interp</tt><big>(</big><em>x</em>, <em>y</em>, <em>t=1</em>, <em>scaling=None</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/var_create.html#interp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.var_create.interp" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return interpolation helpers for x and y.
+See build_xy_for_linearize for use in linearization.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>x</strong> : Array-like</p>
+<p><strong>y</strong> : Array-like</p>
+<p><strong>t</strong> : Real number in [0, 1]</p>
+<blockquote>
+<div><p>With F(x) the linearization function, re-set F(x) = t*F(x) + (1-t)*x</p>
+</div></blockquote>
+<p><strong>scaling</strong> : String</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>If None, the output is not rescaled and Y_reducer(bin_j) = x_j where</dt>
+<dd><p class="first last">x_j is the midpoint of bin_j.</p>
+</dd>
+</dl>
+<p>If &#8216;standardize&#8217;, then output will have zero mean and unit variance
+If &#8216;unit&#8217;, then output will be on the interval [0, 1]</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>F_x</strong> : Pandas.Series</p>
+<blockquote>
+<div><p>A rescaled version of x.</p>
+</div></blockquote>
+<p><strong>F</strong> : Function that will rescale x</p>
+<blockquote class="last">
+<div><p>Cannot be pickled... :(</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>x4linear, y4linear = vc.build_xy_for_linearize(y_score, y)
+F_x, F = interp(x4linear, y4linear)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.var_create.logit">
+<tt class="descclassname">rosetta.modeling.var_create.</tt><tt class="descname">logit</tt><big>(</big><em>series</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/var_create.html#logit"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.var_create.logit" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logit for Pandas.Series</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.var_create.logit_of_mean">
+<tt class="descclassname">rosetta.modeling.var_create.</tt><tt class="descname">logit_of_mean</tt><big>(</big><em>series</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/var_create.html#logit_of_mean"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.var_create.logit_of_mean" title="Permalink to this definition">¶</a></dt>
+<dd><p>Logit of the mean of a pandas series</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.var_create.sigmoidize">
+<tt class="descclassname">rosetta.modeling.var_create.</tt><tt class="descname">sigmoidize</tt><big>(</big><em>(x - mid) / scale) sig(z) = exp(z) / (1 + exp(z)</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/var_create.html#sigmoidize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.var_create.sigmoidize" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>x</strong> : np.ndarray, ndim=1</p>
+<p><strong>scale</strong> : positive real number</p>
+<p><strong>mid</strong> : real number</p>
+<blockquote class="last">
+<div><p>If None, use the mean</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.var_create.standardize">
+<tt class="descclassname">rosetta.modeling.var_create.</tt><tt class="descname">standardize</tt><big>(</big><em>x</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/var_create.html#standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.var_create.standardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standardizes a Series or DataFrame.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.modeling.fitting">
+<span id="fitting"></span><h3>fitting<a class="headerlink" href="#module-rosetta.modeling.fitting" title="Permalink to this headline">¶</a></h3>
+<p>Common functions for fitting regression and classification models.</p>
+<dl class="class">
+<dt id="rosetta.modeling.fitting.CoefficientConverter">
+<em class="property">class </em><tt class="descclassname">rosetta.modeling.fitting.</tt><tt class="descname">CoefficientConverter</tt><big>(</big><em>df</em>, <em>ones_column=None</em>, <em>dont_standardize=</em><span class="optional">[</span><span class="optional">]</span>, <em>dont_winsorize=</em><span class="optional">[</span><span class="optional">]</span>, <em>lower_quantile=0</em>, <em>upper_quantile=1</em>, <em>max_std=inf</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#CoefficientConverter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.CoefficientConverter" title="Permalink to this definition">¶</a></dt>
+<dd><p>For [un]standardizing/winsorizing coefficients and data.
+CoefficientConverter is initialized with one dataset, from this the
+standardization/winsorization rules are learned.
+The functions can be applied to other datasets.</p>
+<dl class="docutils">
+<dt>Standardization part of module provides the fundamental relation:</dt>
+<dd>X.dot(self.unstandardize_params(w_st)) = self.standardize(X).dot(w_st)</dd>
+</dl>
+<p>WORKFLOW 1
+1)  Initialize with a DataFrame.  From this frame we learn the rules.
+2)  To fit, we use self.transform to transform a (possibly) new DataFrame.</p>
+<blockquote>
+<div>This fit results in a set of &#8220;transformed params&#8221; w_tr</div></blockquote>
+<ol class="arabic simple" start="3">
+<li>To predict Y_hat corresponding to new input X, we first compute
+X_tr = self.transform(X), and then use X_tr.dot(w_tr)</li>
+</ol>
+<p>WORKFLOW 2  (standardization only!!)
+1)  Initialize with a dataframe.  From this frame we learn the</p>
+<blockquote>
+<div>standardization rules.</div></blockquote>
+<dl class="docutils">
+<dt>2a) To fit, we use self.standardize to standardize a (possibly) new</dt>
+<dd>DataFrame.  This fit results in a set of &#8220;standardized params&#8221; w_st.</dd>
+<dt>2b) We obtain the &#8220;unstandardized params&#8221;</dt>
+<dd>w = self.unstandardized_params(w_st)</dd>
+</dl>
+<ol class="arabic simple" start="3">
+<li>To predict Y_hat corresponding to new input X, we use X.dot(w)</li>
+</ol>
+<p class="rubric">Methods</p>
+<dl class="method">
+<dt id="rosetta.modeling.fitting.CoefficientConverter.standardize">
+<tt class="descname">standardize</tt><big>(</big><em>data</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#CoefficientConverter.standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.CoefficientConverter.standardize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a standardized version of data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><strong>data</strong> : pandas Series or DataFrame</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>data is standardized according to the rules that self was initialized
+with, i.e. the rules implicit in self.stats.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.modeling.fitting.CoefficientConverter.transform">
+<tt class="descname">transform</tt><big>(</big><em>data</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#CoefficientConverter.transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.CoefficientConverter.transform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Winsorize then standardize data.  Returns a copy.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.modeling.fitting.CoefficientConverter.unstandardize_params">
+<tt class="descname">unstandardize_params</tt><big>(</big><em>w_st</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#CoefficientConverter.unstandardize_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.CoefficientConverter.unstandardize_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns &#8220;w&#8221;, an unstandardized version of w_st so that
+X.dot(w) = self.standardize(X).dot(w_st)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>w_st</strong> : Pandas.Series</p>
+<blockquote class="last">
+<div><p>Index is names of variables
+Values are the fitted parameter values</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="rosetta.modeling.fitting.CoefficientConverter.winsorize">
+<tt class="descname">winsorize</tt><big>(</big><em>data</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#CoefficientConverter.winsorize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.CoefficientConverter.winsorize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Winsorize the data using the rules determined during initialization.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.fitting.get_MSerr">
+<tt class="descclassname">rosetta.modeling.fitting.</tt><tt class="descname">get_MSerr</tt><big>(</big><em>Y</em>, <em>Y_hat</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#get_MSerr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.get_MSerr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the mean square error</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.fitting.get_R2">
+<tt class="descclassname">rosetta.modeling.fitting.</tt><tt class="descname">get_R2</tt><big>(</big><em>Y</em>, <em>Y_hat</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#get_R2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.get_R2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Gets the coefficient of determination R^2.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.fitting.get_relative_error">
+<tt class="descclassname">rosetta.modeling.fitting.</tt><tt class="descname">get_relative_error</tt><big>(</big><em>reality</em>, <em>estimate</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#get_relative_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.get_relative_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compares estimate to reality and returns the the mean-square error:</p>
+<p><a href="#id7"><span class="problematic" id="id8">|</span></a>estimate - reality|_F / <a href="#id9"><span class="problematic" id="id10">|</span></a>reality|_F  where F is the Frobenius norm.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.fitting.standardize">
+<tt class="descclassname">rosetta.modeling.fitting.</tt><tt class="descname">standardize</tt><big>(</big><em>df</em>, <em>dont_standardize=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#standardize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.standardize" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>df</strong> : pandas DataFrame</p>
+<blockquote>
+<div><p>Contains independent variables</p>
+</div></blockquote>
+<p><strong>dont_standardize</strong> : List</p>
+<blockquote>
+<div><p>Names of variables to not standardize</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first"><strong>Tuple of DataFrames: standardized_df, stats_df</strong> :</p>
+<blockquote class="last">
+<div><p>standardized_df is the standardized version of df
+stats_df contains the mean and std of the variables</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="rosetta.modeling.fitting.winsorize">
+<tt class="descclassname">rosetta.modeling.fitting.</tt><tt class="descname">winsorize</tt><big>(</big><em>series</em>, <em>lower_quantile=0</em>, <em>upper_quantile=1</em>, <em>max_std=inf</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/fitting.html#winsorize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.fitting.winsorize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Truncate all items in series that are in extreme quantiles.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>series</strong> : pandas.Series.  Real valued.</p>
+<p><strong>upper_quantile</strong> : Real number in [0, 1]</p>
+<blockquote>
+<div><p>The upper quantile above which we trim</p>
+</div></blockquote>
+<p><strong>lower_quantile</strong> : Real number in [0, 1]</p>
+<blockquote>
+<div><p>The lower quantile below which we trim</p>
+</div></blockquote>
+<p><strong>max_std</strong> : Non-negative real</p>
+<blockquote>
+<div><p>Trim values that are more than max_std standard deviations away
+from the mean</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>winsorized_series</strong> : pandas.Series</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Trimming according to max_std is done AFTER quantile trimming.
+I.e. the std is computed on the series that has already been trimmed by
+quantile.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-rosetta.modeling.categorical_fitter">
+<span id="categorical-fitter"></span><h3>categorical_fitter<a class="headerlink" href="#module-rosetta.modeling.categorical_fitter" title="Permalink to this headline">¶</a></h3>
+<p>Various functions for fitting categorical models.
+Put functions specific to logistic regression in multinomial_fitter</p>
+<dl class="function">
+<dt id="rosetta.modeling.categorical_fitter.predict_proba_cv">
+<tt class="descclassname">rosetta.modeling.categorical_fitter.</tt><tt class="descname">predict_proba_cv</tt><big>(</big><em>clf</em>, <em>X</em>, <em>y</em>, <em>n_folds=5</em><big>)</big><a class="reference internal" href="_modules/rosetta/modeling/categorical_fitter.html#predict_proba_cv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#rosetta.modeling.categorical_fitter.predict_proba_cv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an out-of-sample clf.predict_proba(X, y).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters :</th><td class="field-body"><p class="first"><strong>clf</strong> : sklearn classifier with a predict_proba method</p>
+<p><strong>X</strong> : 2-D numpy array or DataFrame</p>
+<p><strong>y</strong> : 1-D numpy array or Series</p>
+<blockquote>
+<div><p>Use this along with StratifiedKFold to determine splits.</p>
+</div></blockquote>
+<p><strong>n_folds: int</strong> :</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns :</th><td class="field-body"><p class="first last"><strong>probas</strong> : np.ndarray or series</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="shared-modules">
+<h2>shared modules<a class="headerlink" href="#shared-modules" title="Permalink to this headline">¶</a></h2>
+<p>Shared by other modules.</p>
+<div class="section" id="module-rosetta.common">
+<span id="common"></span><h3>common<a class="headerlink" href="#module-rosetta.common" title="Permalink to this headline">¶</a></h3>
+<p>Common functions/classes for dataprep.</p>
+</div>
+<div class="section" id="module-rosetta.common_math">
+<span id="common-math"></span><h3>common_math<a class="headerlink" href="#module-rosetta.common_math" title="Permalink to this headline">¶</a></h3>
+<p>Common math functions.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="#">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Welcome to rosetta&#8217;s documentation!</a><ul>
+</ul>
+</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
+<li><a class="reference internal" href="#all-modules-and-classes">All Modules and Classes</a><ul>
+<li><a class="reference internal" href="#cmd">cmd</a><ul>
+<li><a class="reference internal" href="#module-rosetta.cmd.cut">cut</a></li>
+<li><a class="reference internal" href="#module-rosetta.cmd.subsample">subsample</a></li>
+<li><a class="reference internal" href="#module-rosetta.cmd.split">split</a></li>
+<li><a class="reference internal" href="#module-rosetta.cmd.row_filter">row_filter</a></li>
+<li><a class="reference internal" href="#module-rosetta.cmd.files_to_vw">files_to_vw</a></li>
+<li><a class="reference internal" href="#module-rosetta.cmd.join_csv">join_csv</a></li>
+<li><a class="reference internal" href="#module-rosetta.cmd.concat_csv">concat_csv</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#parallel">parallel</a><ul>
+<li><a class="reference internal" href="#module-rosetta.parallel.parallel_easy">parallel_easy</a></li>
+<li><a class="reference internal" href="#module-rosetta.parallel.pandas_easy">pandas_easy</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#text">text</a><ul>
+<li><a class="reference internal" href="#module-rosetta.text.filefilter">filefilter</a></li>
+<li><a class="reference internal" href="#module-rosetta.text.streamers">streamers</a></li>
+<li><a class="reference internal" href="#module-rosetta.text.text_processors">text_processors</a><ul>
+<li><a class="reference internal" href="#tokenizer">Tokenizer</a></li>
+<li><a class="reference internal" href="#sparseformatter">SparseFormatter</a></li>
+<li><a class="reference internal" href="#sfilefilter">SFileFilter</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-rosetta.text.nlp">nlp</a></li>
+<li><a class="reference internal" href="#module-rosetta.text.vw_helpers">vw_helpers</a></li>
+<li><a class="reference internal" href="#module-rosetta.text.gensim_helpers">gensim_helpers</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#modeling">modeling</a><ul>
+<li><a class="reference internal" href="#module-rosetta.modeling.eda">eda</a></li>
+<li><a class="reference internal" href="#module-rosetta.modeling.prediction_plotter">prediction_plotter</a></li>
+<li><a class="reference internal" href="#module-rosetta.modeling.var_create">var_create</a></li>
+<li><a class="reference internal" href="#module-rosetta.modeling.fitting">fitting</a></li>
+<li><a class="reference internal" href="#module-rosetta.modeling.categorical_fitter">categorical_fitter</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#shared-modules">shared modules</a><ul>
+<li><a class="reference internal" href="#module-rosetta.common">common</a></li>
+<li><a class="reference internal" href="#module-rosetta.common_math">common_math</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="#">rosetta 0.1.0 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, rosetta development team.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

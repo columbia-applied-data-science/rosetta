@@ -1,0 +1,587 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>rosetta.text.vw_helpers &mdash; rosetta 0.1.0 documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '0.1.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="rosetta 0.1.0 documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for rosetta.text.vw_helpers</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Wrappers to help with Vowpal Wabbit (VW).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">text_processors</span>
+<span class="kn">from</span> <span class="nn">..common</span> <span class="kn">import</span> <span class="n">smart_open</span>
+<span class="kn">from</span> <span class="nn">..common_math</span> <span class="kn">import</span> <span class="n">series_to_frame</span>
+
+
+<div class="viewcode-block" id="parse_varinfo"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.parse_varinfo">[docs]</a><span class="k">def</span> <span class="nf">parse_varinfo</span><span class="p">(</span><span class="n">varinfo_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uses the output of the vw-varinfo utility to get a DataFrame with variable</span>
+<span class="sd">    info.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    varinfo_file : Path or buffer</span>
+<span class="sd">        The output of vw-varinfo</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">varinfo_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+        <span class="c"># For some reason, pandas is confused...so just split the lines</span>
+        <span class="c"># Create a dict {item1: [...], item2: [...],...} for each item in the</span>
+        <span class="c"># header</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="n">open_file</span><span class="o">.</span><span class="n">next</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="n">rows</span> <span class="o">=</span> <span class="p">{</span><span class="n">col_name</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">col_name</span> <span class="ow">in</span> <span class="n">header</span><span class="p">}</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">open_file</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()):</span>
+                <span class="n">rows</span><span class="p">[</span><span class="n">header</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+    <span class="c"># Create a data frame</span>
+    <span class="n">varinfo</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span>
+    <span class="c"># Format columns correctly</span>
+    <span class="n">varinfo</span><span class="o">.</span><span class="n">FeatureName</span> <span class="o">=</span> <span class="n">varinfo</span><span class="o">.</span><span class="n">FeatureName</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;^&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+    <span class="n">varinfo</span><span class="o">.</span><span class="n">HashVal</span> <span class="o">=</span> <span class="n">varinfo</span><span class="o">.</span><span class="n">HashVal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">varinfo</span><span class="o">.</span><span class="n">MaxVal</span> <span class="o">=</span> <span class="n">varinfo</span><span class="o">.</span><span class="n">MaxVal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">varinfo</span><span class="o">.</span><span class="n">MinVal</span> <span class="o">=</span> <span class="n">varinfo</span><span class="o">.</span><span class="n">MinVal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">varinfo</span><span class="o">.</span><span class="n">RelScore</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">varinfo</span><span class="o">.</span><span class="n">RelScore</span><span class="o">.</span><span class="n">str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;%&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="o">/</span> <span class="mi">100</span><span class="p">)</span>
+    <span class="n">varinfo</span><span class="o">.</span><span class="n">Weight</span> <span class="o">=</span> <span class="n">varinfo</span><span class="o">.</span><span class="n">Weight</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="c"># Rename columns to decent Python names</span>
+    <span class="n">varinfo</span> <span class="o">=</span> <span class="n">varinfo</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span>
+        <span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="s">&#39;FeatureName&#39;</span><span class="p">:</span> <span class="s">&#39;feature_name&#39;</span><span class="p">,</span> <span class="s">&#39;HashVal&#39;</span><span class="p">:</span> <span class="s">&#39;hash_val&#39;</span><span class="p">,</span>
+            <span class="s">&#39;MaxVal&#39;</span><span class="p">:</span> <span class="s">&#39;max_val&#39;</span><span class="p">,</span> <span class="s">&#39;MinVal&#39;</span><span class="p">:</span> <span class="s">&#39;min_val&#39;</span><span class="p">,</span> <span class="s">&#39;RelScore&#39;</span><span class="p">:</span> <span class="s">&#39;rel_score&#39;</span><span class="p">,</span>
+            <span class="s">&#39;Weight&#39;</span><span class="p">:</span> <span class="s">&#39;weight&#39;</span><span class="p">})</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s">&#39;hash_val&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">varinfo</span>
+
+</div>
+<div class="viewcode-block" id="parse_lda_topics"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.parse_lda_topics">[docs]</a><span class="k">def</span> <span class="nf">parse_lda_topics</span><span class="p">(</span><span class="n">topics_file</span><span class="p">,</span> <span class="n">num_topics</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Returns a DataFrame representation of the topics output of an lda VW run.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    topics_file : filepath or buffer</span>
+<span class="sd">        The --readable_model output of a VW lda run</span>
+<span class="sd">    num_topics : Integer</span>
+<span class="sd">        The number of topics in every valid row</span>
+<span class="sd">    normalize : Boolean</span>
+<span class="sd">        Normalize the rows so that they represent probabilities of topic</span>
+<span class="sd">        given hash_val</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The trick is dealing with lack of a marker for the information printed</span>
+<span class="sd">    on top, and the inconsistant delimiter choice.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s">&#39;topic_%0&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_topics</span> <span class="o">//</span> <span class="mi">10</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;d&#39;</span>
+    <span class="n">topics</span> <span class="o">=</span> <span class="p">{</span><span class="n">fmt</span> <span class="o">%</span> <span class="n">i</span><span class="p">:</span> <span class="p">[]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_topics</span><span class="p">)}</span>
+    <span class="n">topics</span><span class="p">[</span><span class="s">&#39;hash_val&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c"># The topics file contains a bunch of informational printout stuff at</span>
+    <span class="c"># the top.  Figure out what line this ends on</span>
+    <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">topics_file</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+        <span class="c"># Once we detect that we&#39;re in the valid rows, there better not be</span>
+        <span class="c"># any exceptions!</span>
+        <span class="n">in_valid_rows</span> <span class="o">=</span> <span class="bp">False</span>
+        <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">open_file</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="c"># If this row raises an exception, then it isn&#39;t a valid row</span>
+                <span class="c"># Sometimes trailing space...that&#39;s the reason for split()</span>
+                <span class="c"># rather than csv.reader or a direct pandas read.</span>
+                <span class="n">split_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+                <span class="n">hash_val</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">split_line</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+                <span class="n">topic_weights</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">split_line</span><span class="p">[</span><span class="mi">1</span><span class="p">:]]</span>
+                <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">topic_weights</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_topics</span>
+                <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">weight</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">topic_weights</span><span class="p">):</span>
+                    <span class="n">topics</span><span class="p">[</span><span class="n">fmt</span> <span class="o">%</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">weight</span><span class="p">)</span>
+                <span class="n">topics</span><span class="p">[</span><span class="s">&#39;hash_val&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hash_val</span><span class="p">)</span>
+                <span class="n">in_valid_rows</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="ne">AssertionError</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">in_valid_rows</span><span class="p">:</span>
+                    <span class="k">raise</span>
+
+    <span class="n">topics</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">topics</span><span class="p">)</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s">&#39;hash_val&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+        <span class="n">topics</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">topics</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">topics</span>
+
+</div>
+<div class="viewcode-block" id="find_start_line_lda_predictions"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.find_start_line_lda_predictions">[docs]</a><span class="k">def</span> <span class="nf">find_start_line_lda_predictions</span><span class="p">(</span><span class="n">predictions_file</span><span class="p">,</span> <span class="n">num_topics</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return the line number (zero indexed) of the start of the last set of</span>
+<span class="sd">    predictions in predictions_file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions_file : filepath or buffer</span>
+<span class="sd">        The -p output of a VW lda run</span>
+<span class="sd">    num_topics : Integer</span>
+<span class="sd">        The number of topics you should see</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The predictions_file contains repeated predictions...one for every pass.</span>
+<span class="sd">    We parse out and include only the last predictions by looking for repeats</span>
+<span class="sd">    of the first lines doc_id field.  We thus, at this time, require the VW</span>
+<span class="sd">    formatted file to have, in the last column, a unique doc_id associated</span>
+<span class="sd">    with the doc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">predictions_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">line_num</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">open_file</span><span class="p">):</span>
+            <span class="n">split_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="c"># Currently only deal with topics + a doc_id</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">split_line</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_topics</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="s">&quot;Is num_topics correct?&quot;</span>
+            <span class="n">doc_id</span> <span class="o">=</span> <span class="n">split_line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">line_num</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">first_doc_id</span> <span class="o">=</span> <span class="n">doc_id</span>
+            <span class="k">if</span> <span class="n">doc_id</span> <span class="o">==</span> <span class="n">first_doc_id</span><span class="p">:</span>
+                <span class="n">start_line</span> <span class="o">=</span> <span class="n">line_num</span>
+
+    <span class="k">return</span> <span class="n">start_line</span>
+
+</div>
+<div class="viewcode-block" id="parse_lda_predictions"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.parse_lda_predictions">[docs]</a><span class="k">def</span> <span class="nf">parse_lda_predictions</span><span class="p">(</span>
+    <span class="n">predictions_file</span><span class="p">,</span> <span class="n">num_topics</span><span class="p">,</span> <span class="n">start_line</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a DataFrame representation of a VW prediction file.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    predictions_file : filepath or buffer</span>
+<span class="sd">        The -p output of a VW lda run</span>
+<span class="sd">    num_topics : Integer</span>
+<span class="sd">        The number of topics you should see</span>
+<span class="sd">    start_line : Integer</span>
+<span class="sd">        Start reading the predictions file here.</span>
+<span class="sd">        The predictions file contains repeated predictions, one for every pass.</span>
+<span class="sd">        You generally do not want every prediction.</span>
+<span class="sd">    normalize : Boolean</span>
+<span class="sd">        Normalize the rows so that they represent probabilities of topic</span>
+<span class="sd">        given doc_id.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">doc_id_stored</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c"># Use this rather than pandas.read_csv due to inconsistent use of sep</span>
+    <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">predictions_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">open_file</span><span class="p">:</span>
+        <span class="c"># We may have already opened and read this file in order to</span>
+        <span class="c"># find the start_line</span>
+        <span class="n">open_file</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">line_num</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">open_file</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">line_num</span> <span class="o">&lt;</span> <span class="n">start_line</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">split_line</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+            <span class="n">topic_weights</span> <span class="o">=</span> <span class="n">split_line</span><span class="p">[:</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">topic_weights</span><span class="p">)</span> <span class="o">==</span> <span class="n">num_topics</span><span class="p">,</span> <span class="s">&quot;Is num_topics correct?&quot;</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">topic_weights</span><span class="p">)</span>
+            <span class="n">doc_id_stored</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">split_line</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">fmt</span> <span class="o">=</span> <span class="s">&#39;topic_%0&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">num_topics</span> <span class="o">//</span> <span class="mi">10</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;d&#39;</span>
+    <span class="n">topic_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">fmt</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_topics</span><span class="p">)]</span>
+    <span class="n">predictions</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="n">lines</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">doc_id_stored</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">topic_names</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">predictions</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;doc_id&#39;</span>
+
+    <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">predictions</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">predictions</span>
+
+</div>
+<div class="viewcode-block" id="LDAResults"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.LDAResults">[docs]</a><span class="k">class</span> <span class="nc">LDAResults</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Facilitates working with results of VW lda runs.</span>
+
+<span class="sd">    See http://hunch.net/~vw/  as a starting place for VW information.</span>
+
+<span class="sd">    See https://github.com/JohnLangford/vowpal_wabbit/wiki/lda.pdf</span>
+<span class="sd">    for a brief tutorial of lda in VW.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">topics_file</span><span class="p">,</span> <span class="n">predictions_file</span><span class="p">,</span> <span class="n">num_topics</span><span class="p">,</span> <span class="n">sfile_filter</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        topics_file : filepath or buffer</span>
+<span class="sd">            The --readable_model output of a VW lda run</span>
+<span class="sd">        predictions_file : filepath or buffer</span>
+<span class="sd">            The -p output of a VW lda run</span>
+<span class="sd">        num_topics : Integer</span>
+<span class="sd">            The number of topics in every valid row</span>
+<span class="sd">        sfile_filter : filepath, buffer, or loaded text_processors.SFileFilter</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_topics</span> <span class="o">=</span> <span class="n">num_topics</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sfile_filter</span><span class="p">,</span> <span class="n">text_processors</span><span class="o">.</span><span class="n">SFileFilter</span><span class="p">):</span>
+            <span class="n">sfile_filter</span> <span class="o">=</span> <span class="n">text_processors</span><span class="o">.</span><span class="n">SFileFilter</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">sfile_filter</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">sfile_frame</span> <span class="o">=</span> <span class="n">sfile_filter</span><span class="o">.</span><span class="n">to_frame</span><span class="p">()</span>
+
+        <span class="c"># Load the topics file</span>
+        <span class="n">topics</span> <span class="o">=</span> <span class="n">parse_lda_topics</span><span class="p">(</span><span class="n">topics_file</span><span class="p">,</span> <span class="n">num_topics</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+        <span class="n">topics</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">reindex</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">sfile_filter</span><span class="o">.</span><span class="n">id2token</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="n">topics</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="n">sfile_filter</span><span class="o">.</span><span class="n">id2token</span><span class="p">)</span>
+
+        <span class="c"># Load the predictions</span>
+        <span class="n">start_line</span> <span class="o">=</span> <span class="n">find_start_line_lda_predictions</span><span class="p">(</span>
+            <span class="n">predictions_file</span><span class="p">,</span> <span class="n">num_topics</span><span class="p">)</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="n">parse_lda_predictions</span><span class="p">(</span>
+            <span class="n">predictions_file</span><span class="p">,</span> <span class="n">num_topics</span><span class="p">,</span> <span class="n">start_line</span><span class="p">,</span> <span class="n">normalize</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_docs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">predictions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">num_tokens</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">topics</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">topics</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">tokens</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">docs</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span>
+
+        <span class="c"># Check that the topics/docs/token names are unique with no overlap</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_check_names</span><span class="p">(</span><span class="n">topics</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+
+        <span class="c"># Set probabilities</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_set_probabilities</span><span class="p">(</span><span class="n">topics</span><span class="p">,</span> <span class="n">predictions</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">st</span> <span class="o">=</span> <span class="s">&quot;LDAResults for </span><span class="si">%d</span><span class="s"> topics, </span><span class="si">%d</span><span class="s"> docs, </span><span class="si">%d</span><span class="s"> topics, </span><span class="si">%d</span><span class="s"> tokens&quot;</span> <span class="o">%</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">num_topics</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_docs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_topics</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_tokens</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">st</span>
+
+    <span class="k">def</span> <span class="nf">_check_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topics</span><span class="p">,</span> <span class="n">predictions</span><span class="p">):</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">docs</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">topics</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">columns</span>
+
+        <span class="k">for</span> <span class="n">names</span> <span class="ow">in</span> <span class="p">[</span><span class="n">tokens</span><span class="p">,</span> <span class="n">docs</span><span class="p">,</span> <span class="n">topics</span><span class="p">]:</span>
+            <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">names</span><span class="p">))</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">names</span><span class="p">),</span> <span class="s">&quot;Names must be unique&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_set_probabilities</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">topics</span><span class="p">,</span> <span class="n">predictions</span><span class="p">):</span>
+        <span class="n">topic_sums</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic</span> <span class="o">=</span> <span class="n">topic_sums</span> <span class="o">/</span> <span class="n">topic_sums</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="n">word_sums</span> <span class="o">=</span> <span class="n">topics</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_token</span> <span class="o">=</span> <span class="n">word_sums</span> <span class="o">/</span> <span class="n">word_sums</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic_token</span> <span class="o">=</span> <span class="n">topics</span> <span class="o">/</span> <span class="n">topics</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="n">doc_sums</span> <span class="o">=</span> <span class="n">predictions</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_doc</span> <span class="o">=</span> <span class="n">doc_sums</span> <span class="o">/</span> <span class="n">doc_sums</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic_doc</span> <span class="o">=</span> <span class="n">predictions</span> <span class="o">/</span> <span class="n">predictions</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="c"># New stuff</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_token_topic</span> <span class="o">=</span> <span class="n">topics</span> <span class="o">/</span> <span class="n">topics</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_token_topic</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;token&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pr_doc_topic</span> <span class="o">=</span> <span class="n">predictions</span> <span class="o">/</span> <span class="n">predictions</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+<div class="viewcode-block" id="LDAResults.prob_token_topic"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.LDAResults.prob_token_topic">[docs]</a>    <span class="k">def</span> <span class="nf">prob_token_topic</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">token</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">c_token</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">c_topic</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return joint densities of (token, topic),</span>
+<span class="sd">        restricted to subsets, conditioned on variables.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        token : list-like or string</span>
+<span class="sd">            Restrict returned probabilities to these tokens</span>
+<span class="sd">        topic : list-like or string</span>
+<span class="sd">            Restrict returned probabilities to these topics</span>
+<span class="sd">        c_token : list-like or string</span>
+<span class="sd">            Condition on token in c_token</span>
+<span class="sd">        c_topic : list-like or string</span>
+<span class="sd">            Condition on topic in c_topic</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        prob_token_topic(c_topic=[&#39;topic_0&#39;])</span>
+<span class="sd">          = P(token, topic | topic in [&#39;topic_0&#39;])</span>
+<span class="sd">          for all possible (token, topic) pairs</span>
+
+<span class="sd">        prob_token_topic(token=[&#39;war&#39;, &#39;peace&#39;], c_topic=[&#39;topic_0&#39;])</span>
+<span class="sd">          = P(token, topic | topic in [&#39;topic_0&#39;])</span>
+<span class="sd">          for all (token, topic) pairs with token in [&#39;war&#39;, &#39;peace]</span>
+
+<span class="sd">        prob_token_topic(token=[&#39;war&#39;, &#39;peace&#39;], topic=[&#39;topic_0&#39;])</span>
+<span class="sd">          = P(token, topic)</span>
+<span class="sd">          for all (token, topic) pairs</span>
+<span class="sd">          with token in [&#39;war&#39;, &#39;peace] and topic in [&#39;topic_0&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob_func</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">pr_token_topic</span><span class="p">,</span> <span class="n">token</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">c_token</span><span class="p">,</span> <span class="n">c_topic</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;token&#39;</span>
+
+        <span class="k">return</span> <span class="n">df</span>
+</div>
+<div class="viewcode-block" id="LDAResults.prob_doc_topic"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.LDAResults.prob_doc_topic">[docs]</a>    <span class="k">def</span> <span class="nf">prob_doc_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doc</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">c_doc</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">c_topic</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return joint probabilities of (doc, topic),</span>
+<span class="sd">        restricted to subsets, conditioned on variables.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        doc : list-like or string</span>
+<span class="sd">            Restrict returned probabilities to these doc_ids</span>
+<span class="sd">        topic : list-like or string</span>
+<span class="sd">            Restrict returned probabilities to these topics</span>
+<span class="sd">        c_doc : list-like or string</span>
+<span class="sd">            Condition on doc_id in c_doc</span>
+<span class="sd">        c_topic : list-like or string</span>
+<span class="sd">            Condition on topic in c_topic</span>
+
+<span class="sd">        Examples</span>
+<span class="sd">        --------</span>
+<span class="sd">        prob_doc_topic(c_topic=[&#39;topic_0&#39;])</span>
+<span class="sd">          = P(doc, topic | topic in [&#39;topic_0&#39;])</span>
+<span class="sd">          for all possible (doc, topic) pairs</span>
+
+<span class="sd">        prob_doc_topic(doc=[&#39;doc0&#39;, &#39;doc1&#39;], c_topic=[&#39;topic_0&#39;])</span>
+<span class="sd">          = P(doc, topic | topic in [&#39;topic_0&#39;])</span>
+<span class="sd">          for all (doc, topic) pairs with doc in [&#39;doc0&#39;, &#39;doc1&#39;]</span>
+
+<span class="sd">        prob_doc_topic(doc=[&#39;doc0&#39;, &#39;doc1&#39;], topic=[&#39;topic_0&#39;])</span>
+<span class="sd">          = P(doc, topic)</span>
+<span class="sd">          for all (doc, topic) pairs</span>
+<span class="sd">          with doc in [&#39;doc0&#39;, &#39;doc1&#39;] and topic in [&#39;topic_0&#39;]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prob_func</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pr_doc_topic</span><span class="p">,</span> <span class="n">doc</span><span class="p">,</span> <span class="n">topic</span><span class="p">,</span> <span class="n">c_doc</span><span class="p">,</span> <span class="n">c_topic</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;doc&#39;</span>
+
+        <span class="k">return</span> <span class="n">df</span>
+</div>
+<div class="viewcode-block" id="LDAResults.cosine_similarity"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.LDAResults.cosine_similarity">[docs]</a>    <span class="k">def</span> <span class="nf">cosine_similarity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">frame1</span><span class="p">,</span> <span class="n">frame2</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Computes doc-doc similarity between rows of two frames containing</span>
+<span class="sd">        document topic weights.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        frame1, frame2 : DataFrame or Series</span>
+<span class="sd">            Rows are different records, columns are topic weights.</span>
+<span class="sd">            self.pr_topic_g_doc is an example of a (large) frame of this type.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        sims : DataFrame</span>
+<span class="sd">            sims.ix[i, j] is similarity between frame1[i] and frame2[j]</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># Convert to frames</span>
+        <span class="n">frame1</span> <span class="o">=</span> <span class="n">series_to_frame</span><span class="p">(</span><span class="n">frame1</span><span class="p">)</span>
+        <span class="n">frame2</span> <span class="o">=</span> <span class="n">series_to_frame</span><span class="p">(</span><span class="n">frame2</span><span class="p">)</span>
+        <span class="c"># Normalize</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="p">(</span><span class="n">frame1</span> <span class="o">*</span> <span class="n">frame1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">)</span>
+        <span class="n">frame1</span> <span class="o">=</span> <span class="n">frame1</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">norm</span> <span class="o">=</span> <span class="p">(</span><span class="n">frame2</span> <span class="o">*</span> <span class="n">frame2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">)</span>
+        <span class="n">frame2</span> <span class="o">=</span> <span class="n">frame2</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">norm</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">frame1</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">frame2</span><span class="p">)</span>
+</div>
+    <span class="k">def</span> <span class="nf">_prob_func</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">,</span> <span class="n">rows</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">c_rows</span><span class="p">,</span> <span class="n">c_cols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        General pmf for functions of two variables.</span>
+<span class="sd">        For use with prob_token_topic, prob_doc_topic</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">rows</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">rows</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cols</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">cols</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_rows</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">c_rows</span> <span class="o">=</span> <span class="p">[</span><span class="n">c_rows</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c_cols</span><span class="p">,</span> <span class="nb">basestring</span><span class="p">):</span>
+            <span class="n">c_cols</span> <span class="o">=</span> <span class="p">[</span><span class="n">c_cols</span><span class="p">]</span>
+
+        <span class="c"># Restrict using the conditionals</span>
+        <span class="k">if</span> <span class="n">c_cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="n">c_cols</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">c_rows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">c_rows</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">df</span> <span class="o">=</span> <span class="n">df</span> <span class="o">/</span> <span class="n">df</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+
+        <span class="c"># Cut out according to variables</span>
+        <span class="k">if</span> <span class="n">cols</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[:,</span> <span class="n">cols</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">rows</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">ix</span><span class="p">[</span><span class="n">rows</span><span class="p">,</span> <span class="p">:]</span>
+
+        <span class="k">return</span> <span class="n">df</span>
+
+<div class="viewcode-block" id="LDAResults.predict"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.LDAResults.predict">[docs]</a>    <span class="k">def</span> <span class="nf">predict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tokenized_text</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Returns a probability distribution over topics given that a (tokenized)</span>
+<span class="sd">        document is equal to tokenized_text.</span>
+
+<span class="sd">        This is NOT equivalent to prob_token_topic(c_token=tokenized_text),</span>
+<span class="sd">        since that is an OR statement about the tokens, and this is an AND.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        tokenized_text : List of strings</span>
+<span class="sd">            Represents the tokens that are in some document text.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        prob_topics : Series</span>
+<span class="sd">            self.pr_topic_g_doc is an example of a (large) frame of this type.</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)</span>
+<span class="sd">                              = P(topic) P(tok1 | topic) P(tok2 | topic)</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c"># P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)</span>
+        <span class="c"># = P(topic) P(tok1 | topic) P(tok2 | topic)</span>
+
+        <span class="c"># Multiply out P(tok1 | topic) P(tok2 | topic) </span>
+        <span class="n">na_val</span> <span class="o">=</span> <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_topics</span>
+        <span class="n">fun</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">tok</span><span class="p">:</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">prob_token_topic</span><span class="p">(</span><span class="n">token</span><span class="o">=</span><span class="n">tok</span><span class="p">,</span> <span class="n">topic</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">topics</span><span class="p">)</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="n">na_val</span><span class="p">)</span>
+            <span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="nb">reduce</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">x</span> <span class="o">*</span> <span class="n">y</span><span class="p">,</span> <span class="p">(</span><span class="n">fun</span><span class="p">(</span><span class="n">tok</span><span class="p">)</span> <span class="k">for</span> <span class="n">tok</span> <span class="ow">in</span> <span class="n">tokenized_text</span><span class="p">))</span>
+
+        <span class="c"># Multiply by P(topic)</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic</span> <span class="o">*</span> <span class="n">probs</span>
+
+        <span class="k">return</span> <span class="n">probs</span> <span class="o">/</span> <span class="n">probs</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="LDAResults.print_topics"><a class="viewcode-back" href="../../../index.html#rosetta.text.vw_helpers.LDAResults.print_topics">[docs]</a>    <span class="k">def</span> <span class="nf">print_topics</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span> <span class="n">num_words</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">outfile</span><span class="o">=</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">show_doc_fraction</span><span class="o">=</span><span class="bp">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Print the top results for self.pr_token_g_topic for all topics</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        num_words : Integer</span>
+<span class="sd">            Print the num_words words (ordered by P[w|topic]) in each topic.</span>
+<span class="sd">        outfile : filepath or buffer</span>
+<span class="sd">            Write results to this file.</span>
+<span class="sd">        show_doc_fraction : Boolean</span>
+<span class="sd">            If True, print doc_fraction along with the topic weight</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">header</span> <span class="o">=</span> <span class="s">&quot; Printing top </span><span class="si">%d</span><span class="s"> tokens in every topic&quot;</span> <span class="o">%</span> <span class="n">num_words</span>
+        <span class="n">outstr</span> <span class="o">=</span> <span class="s">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">10</span> <span class="o">+</span> <span class="n">header</span> <span class="o">+</span> <span class="s">&quot;=&quot;</span> <span class="o">*</span> <span class="mi">10</span>
+
+        <span class="k">for</span> <span class="n">topic_name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic</span><span class="o">.</span><span class="n">index</span><span class="p">:</span>
+            <span class="n">outstr</span> <span class="o">+=</span> <span class="p">(</span>
+                <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="s">&quot;-&quot;</span> <span class="o">*</span> <span class="mi">30</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">Topic name: </span><span class="si">%s</span><span class="s">.  P[</span><span class="si">%s</span><span class="s">] = </span><span class="si">%.4f</span><span class="s">&#39;</span> <span class="o">%</span> 
+                <span class="p">(</span><span class="n">topic_name</span><span class="p">,</span> <span class="n">topic_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic</span><span class="p">[</span><span class="n">topic_name</span><span class="p">]))</span>
+            <span class="n">sorted_topic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_token_g_topic</span><span class="p">[</span><span class="n">topic_name</span><span class="p">]</span><span class="o">.</span><span class="n">order</span><span class="p">(</span>
+                <span class="n">ascending</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">num_words</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">show_doc_fraction</span><span class="p">:</span>
+                <span class="n">sorted_topic</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sfile_frame</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sorted_topic</span><span class="p">,</span> <span class="n">how</span><span class="o">=</span><span class="s">&#39;right&#39;</span><span class="p">)</span>
+                <span class="n">sorted_topic</span> <span class="o">=</span> <span class="n">sorted_topic</span><span class="p">[[</span><span class="n">topic_name</span><span class="p">,</span> <span class="s">&#39;doc_freq&#39;</span><span class="p">]]</span>
+
+            <span class="n">outstr</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span> <span class="o">+</span> <span class="n">sorted_topic</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+        <span class="k">with</span> <span class="n">smart_open</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">outstr</span><span class="p">)</span>
+</div>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pr_token_g_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic_token</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pr_topic</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pr_topic_g_token</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic_token</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pr_token</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pr_doc_g_topic</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c"># Note:  self.pr_topic is computed using a different file than</span>
+        <span class="c"># self.pr_topic_doc....the resultant implied pr_topic series differ</span>
+        <span class="c"># unless many passes are used.</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic_doc</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pr_topic</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">pr_topic_g_doc</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">pr_topic_doc</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">pr_doc</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">rosetta 0.1.0 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, rosetta development team.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
