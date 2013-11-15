@@ -3,7 +3,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to rosetta's documentation!
+===================================
+Rosetta
 ===================================
 
 Contents:
@@ -20,14 +21,19 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+----
+
 All Modules and Classes
 =======================
 
+
+----
 
 cmd
 ---
 
 Unix-like command line utilities.  Filters (read from stdin/write to stdout) for files
+
 Installation should put these in your path.  To see help, do
 
 .. code-block:: none
@@ -62,6 +68,8 @@ concat_csv
 ~~~~~~~~~~~
 .. automodule:: rosetta.cmd.concat_csv
 
+----
+
 parallel
 --------
 
@@ -77,6 +85,8 @@ pandas_easy
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. automodule:: rosetta.parallel.pandas_easy
    :members:
+
+----
 
 text
 ----
@@ -118,6 +128,8 @@ gensim_helpers
 .. automodule:: rosetta.text.gensim_helpers
    :members:
 
+----
+
 modeling
 --------
 
@@ -132,6 +144,15 @@ prediction_plotter
 ~~~~~~~~~~~~~~~~~~
 .. automodule:: rosetta.modeling.prediction_plotter
    :members:
+
+prediction_plotter examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. plot:: ../examples/plot_classifiers.py
+   :include-source:
+
+.. plot:: ../examples/plot_regressors.py
+   :include-source:
 
 var_create
 ~~~~~~~~~~

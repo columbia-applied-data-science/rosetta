@@ -1,4 +1,14 @@
-#!/usr/bin/env python
+#! python
+"""
+Splits a file or stdin into multiple files.  Assumes a header.
+
+Allows grouping by a key column and then sending identical groups to
+the same file, possibly keeping only one member of each group.  To do
+this, the data must first be sorted by the key column.
+
+Automatically names output files by appending e.g. _split-0-40, _split-1-60
+for a 40/60 split filename.
+"""
 from optparse import OptionParser
 import sys
 import csv
@@ -22,8 +32,6 @@ def main():
 
     Automatically names output files by appending e.g. _split-0-40, _split-1-60
     for a 40/60 split filename.
-
-    Assumes the first row is a header.
 
     EXAMPLES
     --------

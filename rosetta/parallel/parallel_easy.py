@@ -175,7 +175,7 @@ def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None):
     assert pad + blocksize < len(mylist)
 
     # Get an iterator over padded blocks
-    block_idx, pads_used = get_split_idx(len(mylist), blocksize, pad=pad)
+    block_idx, pads_used = _get_split_idx(len(mylist), blocksize, pad=pad)
     block_iter = (mylist[start: end] for start, end in block_idx)
 
     # Process each block
@@ -188,7 +188,7 @@ def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None):
     return result
 
 
-def get_split_idx(N, blocksize, pad=0):
+def _get_split_idx(N, blocksize, pad=0):
     """
     Returns a list of indexes dividing an array into blocks of size blocksize
     with optional padding.  Padding takes into account that the resultant block
@@ -212,13 +212,13 @@ def get_split_idx(N, blocksize, pad=0):
 
     Examples
     --------
-    >>> split_idx, pads_used = get_split_idx(5, 2)
+    >>> split_idx, pads_used = _get_split_idx(5, 2)
     >>> print split_idx
     [(0, 2), (2, 4), (4, 5)]
     >>> print pads_used
     [(0, 0), (0, 0), (0, 0)]
 
-    >>> get_split_idx(5, 2, pad=1)
+    >>> _get_split_idx(5, 2, pad=1)
     >>> print split_idx
     [(0, 3), (1, 5), (3, 5)]
     >>> print pads_used
