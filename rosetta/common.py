@@ -4,7 +4,13 @@ Common functions/classes for dataprep.
 import numpy as np
 import cPickle
 import itertools
+import os 
+import re
+import sys
+import shutil
 
+from docx import opendocx, getdocumenttext
+from unidecode import unidecode
 
 ###############################################################################
 # Decorators
@@ -203,6 +209,80 @@ def print_dicts(dicts, prepend_str=''):
             print_dicts(value, next_prepend_str)
         else:
             print "%s%s = %.5f" % (prepend_str, key, value)
+
+
+###############################################################################
+# Functions for converting various format files to .txt 
+###############################################################################
+def file_to_txt(file_path, dst_dir):
+    """
+    Takes a file path and writes the file in txt format to dst_dir. 
+    If file is alread .txt, then simply copies the file.
+    
+    Notes
+    -----
+    Currently only support pdf, txt, doc and docx.
+
+    """
+    file_name = os.path.split(file_path)[1]
+    name, ext = os.path.splitext(file_name)
+    ext = re.sub(r'\.', '', ext)
+    try:
+        eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt() 
+    except NameError:
+        sys.stdout.write('file type %s not supported, skipping %s'%(ext, 
+            file_name))
+        pass
+
+
+def _txt_to_txt(file_path, dst_dir):
+    """
+    Simply copies the file to the target dir.    
+    """
+    file_name = os.path.split(file_path)[1]
+    shutil.copyfile(file_path, os.path.join(dst_dir, file_name))
+
+
+def _pdf_to_txt(file_path, dst_dir):
+    """
+    Uses the pdftotxt unix util, with --layout option, to convert file_name
+    to .txt and save in dst_dir
+    """
+    file_name = os.path.split(file_path)[1]
+    file_dst = os.path.join(dst_dir, re.sub(r'pdf', 'txt', file_name))
+    os.system('pdftotext -layout %s %s'%(file_path, file_dst))
+    
+
+def _doc_to_txt(file_path, dst_dir):
+    """
+    Uses catdoc unix util to convert file_name
+    to .txt and save in dst_dir.
+
+    Notes
+    -----
+    To install catdoc: 
+        apt-get catdoc on unix/linux
+        brew install on mac
+    """
+    file_name = os.path.split(file_path)[1]
+    file_dst = os.path.join(dst_dir, re.sub(r'doc', 'txt', file_name))
+    return os.system('catdoc -w %s > %s'%(file_path, file_dst))
+    
+
+
+def _docx_to_txt(file_path, dst_dir):
+    """
+    Uses the pdftotxt unix util, with --layout option, to convert file_name
+    to .txt and save in dst_dir
+    """
+    file_name = os.path.split(file_path)[1]
+    file_dst = os.path.join(dst_dir, re.sub(r'docx', 'txt', file_name))
+    doc = opendocx(file_path)
+    txt = '\n'.join(getdocumenttext(doc))
+    txt = unidecode(txt)
+    with smart_open(file_dst, 'w') as f:
+        f.write(txt)
+
 
 
 ###############################################################################
