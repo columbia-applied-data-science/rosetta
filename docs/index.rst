@@ -145,15 +145,6 @@ prediction_plotter
 .. automodule:: rosetta.modeling.prediction_plotter
    :members:
 
-prediction_plotter examples
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. plot:: ../examples/plot_classifiers.py
-   :include-source:
-
-.. plot:: ../examples/plot_regressors.py
-   :include-source:
-
 var_create
 ~~~~~~~~~~
 .. automodule:: rosetta.modeling.var_create
@@ -177,7 +168,33 @@ Shared by other modules.
 common
 ~~~~~~
 .. automodule:: rosetta.common
+   :members:
 
 common_math
 ~~~~~~~~~~~
 .. automodule:: rosetta.common_math
+   :members:
+
+----
+
+Examples
+========
+
+modeling examples
+-----------------
+
+prediction_plotter examples
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. plot:: ../examples/plot_classifiers.py
+   :include-source:
+
+.. plot:: ../examples/plot_regressors.py
+   :include-source:
+
+
+eda examples
+~~~~~~~~~~~~~~
+
+.. plot:: ../examples/eda_examples.py
+   :include-source:
