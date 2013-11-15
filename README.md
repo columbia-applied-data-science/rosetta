@@ -32,10 +32,15 @@ See the `examples/` directory for more details.
 
 Install
 -------
-Check out the dev branch or a tagged release from the [rosettarepo][rosettarepo].  Then (so long as you have `pip`).
-
+Check out the master branch from the [rosettarepo][rosettarepo].  Then, (so long as you have `pip`).
+    
+    cd rosetta
     make
     make test
+
+Getting the source (above) is the preferred method since the code changes often, but if you don't use Git you can download a tagged release (tarball) [here](https://github.com/columbia-applied-data-science/rosetta/releases).  Then
+
+    pip install rosetta-X.X.X.tar.gz
 
 Development
 -----------
@@ -50,16 +55,28 @@ You can check the latest sources with
 
 Feel free to contribute a bug report or a request by opening an [issue](https://github.com/columbia-applied-data-science/rosetta/issues)
 
-Before contributing code, read `CONTRIBUTING.md`
+The preferred method to contribute is to fork and send a pull request.  Before doing this, read `CONTRIBUTING.md`
 
 Dependencies
 ------------
+
+* Major dependencies on Pandas and numpy.
+* Minor dependencies on Gensim.
+* Some examples need scikit-learn.
 
 Testing
 -------
 From the base repo directory, `rosetta/`, you can run all tests with
 
     make test
+
+Documentation
+-------------
+
+Documentation is hosted at [here](http://pythonhosted.org/rosetta).  This does NOT auto-update.  To make new docs:
+
+    cd docs/
+    make html
 
 History
 -------

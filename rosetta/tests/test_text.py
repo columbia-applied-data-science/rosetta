@@ -233,6 +233,49 @@ class TestLDAResults(unittest.TestCase):
         benchmark.index.name = 'doc'
         assert_frame_equal(result, benchmark)
 
+    def test_predict_1(self):
+        tokenized_text = ['w0', 'w1', 'w0']
+        result = self.lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 0.111111 , 'topic_1': 0.888889})
+        assert_series_equal(result, benchmark)
+
+    def test_predict_2(self):
+        tokenized_text = ['w0', 'w1', 'w0', 'extratoken']
+        result = self.lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 0.111111 , 'topic_1': 0.888889})
+        assert_series_equal(result, benchmark)
+
+    def test_cosine_similarity_1(self):
+        frame = self.lda.pr_topic_g_doc
+        result = self.lda.cosine_similarity(frame, frame)
+        assert_allclose(np.diag(result.values), 1)
+
+    def test_cosine_similarity_2(self):
+        topics = ['topic_0', 'topic_1']
+        frame1 = pd.DataFrame({'doc1': [1, 0], 'doc2': [0, 1]}, index=topics)
+        frame2 = pd.DataFrame({'doc3': [1, 0]}, index=topics)
+        result = self.lda.cosine_similarity(frame1, frame2)
+        benchmark = pd.DataFrame({'doc3': [1, 0]}, index=['doc1', 'doc2'])
+        assert_frame_equal(result, benchmark.astype(float))
+
+    def test_cosine_similarity_3(self):
+        topics = ['topic_0', 'topic_1', 'topic_3']
+        frame1 = pd.DataFrame(
+            {'doc1': [0.5, 0.5, 0], 'doc2': [0, 0.5, 0.5]}, index=topics)
+        frame2 = pd.DataFrame({'doc3': [0.5, 0, 0.5]}, index=topics)
+        result = self.lda.cosine_similarity(frame1, frame2)
+        benchmark = pd.DataFrame({'doc3': [0.5, 0.5]}, index=['doc1', 'doc2'])
+        assert_frame_equal(result, benchmark.astype(float))
+
+    def test_cosine_similarity_4(self):
+        topics = ['topic_0', 'topic_1']
+        frame1 = pd.DataFrame({'doc1': [1, 0], 'doc2': [0, 1]}, index=topics)
+        frame2 = pd.Series({'topic_0': 1, 'topic_1': 0})
+        frame2.name = 'doc3'
+        result = self.lda.cosine_similarity(frame1, frame2)
+        benchmark = pd.DataFrame({'doc3': [1, 0]}, index=['doc1', 'doc2'])
+        assert_frame_equal(result, benchmark.astype(float))
+
     def test_repr(self):
         result = self.lda.__repr__()
         benchmark = 'LDAResults for 2 topics, 2 docs, 2 topics, 2 tokens'

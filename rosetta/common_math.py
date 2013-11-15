@@ -86,3 +86,21 @@ def get_item_names(data):
         raise TypeError("Argument type %s is a type not handled" % type(data))
 
     return items
+
+
+def series_to_frame(data):
+    """
+    If length(N) Series, return an N x 1 Frame with name equal to the series
+    name.  If frame, passthrough.
+
+    Parameters
+    ----------
+    data : pandas Series or DataFrame.
+    """
+    if isinstance(data, pd.Series) or isinstance(data, pd.DataFrame):
+        data = pd.DataFrame(data)
+    else:
+        raise ValueError("type(data) = %s is not handled" % type(data))
+
+    return data
+

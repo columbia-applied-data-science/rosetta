@@ -4,9 +4,11 @@ Wrappers to help with Vowpal Wabbit (VW).
 import sys
 
 import pandas as pd
+import numpy as np
 
 from . import text_processors
 from ..common import smart_open
+from ..common_math import series_to_frame
 
 
 def parse_varinfo(varinfo_file):
@@ -224,6 +226,9 @@ class LDAResults(object):
 
         self.num_docs = len(predictions)
         self.num_tokens = len(topics)
+        self.topics = topics.columns.tolist()
+        self.tokens = topics.index.tolist()
+        self.docs = predictions.index.tolist()
 
         # Check that the topics/docs/token names are unique with no overlap
         self._check_names(topics, predictions)
@@ -336,9 +341,38 @@ class LDAResults(object):
 
         return df
 
+    def cosine_similarity(self, frame1, frame2):
+        """
+        Computes doc-doc similarity between rows of two frames containing
+        document topic weights.
+
+        Parameters
+        ----------
+        frame1, frame2 : DataFrame or Series
+            Rows are different records, columns are topic weights.
+            self.pr_topic_g_doc is an example of a (large) frame of this type.
+
+        Returns
+        -------
+        sims : DataFrame
+            sims.ix[i, j] is similarity between frame1[i] and frame2[j]
+        """
+        # Convert to frames
+        frame1 = series_to_frame(frame1)
+        frame2 = series_to_frame(frame2)
+        # Normalize
+        norm = (frame1 * frame1).sum(axis=0).apply(np.sqrt)
+        frame1 = frame1.div(norm, axis=1)
+
+        norm = (frame2 * frame2).sum(axis=0).apply(np.sqrt)
+        frame2 = frame2.div(norm, axis=1)
+
+        return frame1.T.dot(frame2)
+
     def _prob_func(self, df, rows, cols, c_rows, c_cols):
         """
         General pmf for functions of two variables.
+        For use with prob_token_topic, prob_doc_topic
         """
         df = df.copy()
 
@@ -365,6 +399,45 @@ class LDAResults(object):
             df = df.ix[rows, :]
 
         return df
+
+    def predict(self, tokenized_text):
+        """
+        Returns a probability distribution over topics given that a (tokenized)
+        document is equal to tokenized_text.
+
+        This is NOT equivalent to prob_token_topic(c_token=tokenized_text),
+        since that is an OR statement about the tokens, and this is an AND.
+
+        Parameters
+        ----------
+        tokenized_text : List of strings
+            Represents the tokens that are in some document text.
+
+        Returns
+        -------
+        prob_topics : Series
+            self.pr_topic_g_doc is an example of a (large) frame of this type.
+
+        Notes
+        -----
+        P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)
+                              = P(topic) P(tok1 | topic) P(tok2 | topic)
+        """
+        # P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)
+        # = P(topic) P(tok1 | topic) P(tok2 | topic)
+
+        # Multiply out P(tok1 | topic) P(tok2 | topic) 
+        na_val = 1. / self.num_topics
+        fun = lambda tok: (
+            self.prob_token_topic(token=tok, topic=self.topics).fillna(na_val)
+            .values.ravel())
+        probs = reduce(
+            lambda x, y: x * y, (fun(tok) for tok in tokenized_text))
+
+        # Multiply by P(topic)
+        probs = self.pr_topic * probs
+
+        return probs / probs.sum()
 
     def print_topics(
         self, num_words=5, outfile=sys.stdout, show_doc_fraction=True):
