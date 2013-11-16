@@ -256,8 +256,8 @@ def _filepath_clean_copy(file_path):
     This implicitely assumes that no chars which need to be escaped
     are contained in the dir path, just in the file name.
     """
-    if re.search(r'[, \']', file_path):
-        clean_file_path = re.sub(r'[, \']', '_', file_path)
+    if re.search(r'[,\s|:\']', file_path):
+        clean_file_path = re.sub(r'[,\s|:\']', '_', file_path)
         shutil.copyfile(file_path, clean_file_path)
         return clean_file_path
     else:
