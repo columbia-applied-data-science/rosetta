@@ -334,7 +334,7 @@ class VWFormatter(SparseFormatter):
             Formatted in VW format
         """
         if doc_id:
-            assert not re.search(r'[|\s:]', doc_id)
+            assert not re.search(r'[|\s:]', doc_id), "Malformed VW string"
             # If doc_id, then we must have importance.
             # The doc_id sits right against the pipe.
             assert importance is not None

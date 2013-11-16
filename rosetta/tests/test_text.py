@@ -73,6 +73,12 @@ class TestVWFormatter(unittest.TestCase):
         benchmark = " 1 %s| hello:1 dude:3" % doc_id
         self.assertEqual(result, benchmark)
 
+    def test_get_sstr_02(self):
+        doc_id = 'myname|'
+        for doc_id in ['id|', 'id ', 'my:id', '|id', ':id', 'i:d', 'i d']:
+            with self.assertRaises(AssertionError):
+                self.formatter.get_sstr(doc_id=doc_id)
+
     def test_write_dict_01(self):
         record_str = " 3.2 doc_id1| hello:1 bye:2"
         result = self.formatter.sstr_to_dict(record_str)
