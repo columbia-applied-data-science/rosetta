@@ -277,7 +277,7 @@ def _pdf_to_txt(file_path, dst_dir):
     to .txt and save in dst_dir
     """
     file_name = os.path.split(file_path)[1]
-    file_dst = os.path.join(dst_dir, re.sub(r'\.pdf$', 'txt', file_name))
+    file_dst = os.path.join(dst_dir, re.sub(r'\.pdf$', '.txt', file_name))
     with open(file_dst, 'w') as f:
         return subprocess.call(["pdftotext",  "-layout", file_path], stdout=f)
     
@@ -294,7 +294,7 @@ def _doc_to_txt(file_path, dst_dir):
         brew install on mac
     """
     file_name = os.path.split(file_path)[1]
-    file_dst = os.path.join(dst_dir, re.sub(r'\.doc$', 'txt', file_name))
+    file_dst = os.path.join(dst_dir, re.sub(r'\.doc$', '.txt', file_name))
     with open(file_dst, 'w') as f:
         return subprocess.call(["catdoc",  "-w", file_path], stdout=f)
 
@@ -305,7 +305,7 @@ def _docx_to_txt(file_path, dst_dir):
     to .txt and save in dst_dir
     """
     file_name = os.path.split(file_path)[1]
-    file_dst = os.path.join(dst_dir, re.sub(r'\.docx$', 'txt', file_name))
+    file_dst = os.path.join(dst_dir, re.sub(r'\.docx$', '.txt', file_name))
     doc = opendocx(file_path)
     txt = '\n'.join(getdocumenttext(doc))
     txt = unidecode(txt)
