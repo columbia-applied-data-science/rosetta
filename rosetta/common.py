@@ -8,6 +8,7 @@ import os
 import re
 import sys
 import shutil
+import subprocess
 
 from docx import opendocx, getdocumenttext
 from unidecode import unidecode
