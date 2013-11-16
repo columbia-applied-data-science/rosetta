@@ -224,16 +224,43 @@ def file_to_txt(file_path, dst_dir):
     Currently only support pdf, txt, doc and docx.
 
     """
+    try:
+        file_path = _filepath_clean_copy(file_path)
+    except IOError:
+        sys.stdout.write('unable to process file %s'%file_path)
     file_name = os.path.split(file_path)[1]
     name, ext = os.path.splitext(file_name)
     ext = re.sub(r'\.', '', ext)
     try:
-        eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt() 
+        out = eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt() 
+        if out: sys.stdout.write('unable to process file %s'%file_path)
     except NameError:
         sys.stdout.write('file type %s not supported, skipping %s'%(ext, 
             file_name))
         pass
 
+
+def _filepath_clean_copy(file_path):
+    """
+    creates a copy of the file with chars which need to be escapes
+    replaced with a '_'; 
+
+    Returns
+    -------
+    filepath : str
+        clean filepath
+
+    Notes
+    -----
+    This implicitely assumes that no chars which need to be escaped
+    are contained in the dir path, just in the file name.
+    """
+    if re.search(r'[, \']', file_path):
+        clean_file_path = re.sub(r'[, \']', '_', file_path)
+        shutil.copyfile(file_path, clean_file_path)
+        return clean_file_path
+    else:
+        return file_path
 
 def _txt_to_txt(file_path, dst_dir):
     """
