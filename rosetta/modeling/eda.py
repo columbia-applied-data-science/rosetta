@@ -95,9 +95,10 @@ def reducedY_vs_binnedX(
         count_X = count_X.rename(reindex_map)
 
     ## Rename the axis
+    count_X.index.name = x.name
     count_X.name = '#[X=x]'
     y_reduced.index.name = x.name
-    count_X.index.name = x.name
+    y_reduced.name = y.name
 
     return y_reduced, count_X
 
@@ -125,13 +126,6 @@ def plot_reducedY_vs_binnedX(
         If True, plot count_X versus x in a separate subplot
     **kwargs : Extra keywordargs passed to plot
 
-    Returns
-    -------
-    y_reduced : Series
-        The reduced y values with an index equal to the bin centers.
-    count_X : Series
-        The number of X variables in the bin.  Index is the bin centers.
-
     Examples
     --------
     Suppose Y is binary.  Then to plot P[Y=1|X=x] (for x inside the bins),
@@ -143,7 +137,7 @@ def plot_reducedY_vs_binnedX(
         x, y, Y_reducer, X_reducer, bins, quantiles)
 
     # Set a default figure size
-    plt_kwargs.setdefault('figsize', (15, 5))
+    plt_kwargs.setdefault('figsize', (10, 5))
     # We handle the subplots ourselves
     plt_kwargs['subplots'] = False
 
@@ -189,14 +183,6 @@ def get_labels(series, bins=10, quantiles=False):
     return labels
 
 
-def plot_scatter_matrix(df, cols_to_plot, **kwargs):
-    """
-    Plots the pandas scatter matrix for the DataFrame df restricted to
-    cols_to_plot.
-    """
-    pd.scatter_matrix(df.get(cols_to_plot), **kwargs)
-
-
 def get_decent_cols(df, col_list_to_choose_from=None, null_frac=0.9):
     """
     Returns a list of columns such that the fraction of nulls is less than
@@ -212,13 +198,13 @@ def get_decent_cols(df, col_list_to_choose_from=None, null_frac=0.9):
     """
     assert (null_frac <= 1) and (null_frac >= 0)
 
-    if not col_list_to_choose_from:
+    if col_list_to_choose_from is None:
         col_list_to_choose_from = df.columns
 
     decent_cols = []
     for col_name in col_list_to_choose_from:
         col = df[col_name]
-        if col.isnull().sum() < 0.9 * len(col):
+        if col.isnull().sum() < null_frac * len(col):
             decent_cols.append(col_name)
 
     return decent_cols
