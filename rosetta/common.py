@@ -267,7 +267,8 @@ def _txt_to_txt(file_path, dst_dir):
     Simply copies the file to the target dir.    
     """
     file_name = os.path.split(file_path)[1]
-    shutil.copyfile(file_path, os.path.join(dst_dir, file_name))
+    file_dst = os.path.join(dst_dir, file_name)
+    return subprocess.call(['cp', file_path, file_dst])
 
 
 def _pdf_to_txt(file_path, dst_dir):
@@ -277,7 +278,8 @@ def _pdf_to_txt(file_path, dst_dir):
     """
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'pdf', 'txt', file_name))
-    os.system('pdftotext -layout %s %s'%(file_path, file_dst))
+    with open(file_dst, 'w') as f:
+        return subprocess.call(["pdftotext",  "-layout", file_path], stdout=f)
     
 
 def _doc_to_txt(file_path, dst_dir):
@@ -293,8 +295,8 @@ def _doc_to_txt(file_path, dst_dir):
     """
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'doc', 'txt', file_name))
-    return os.system('catdoc -w %s > %s'%(file_path, file_dst))
-    
+    with open(file_dst, 'w') as f:
+        return subprocess.call(["catdoc",  "-w", file_path], stdout=f)
 
 
 def _docx_to_txt(file_path, dst_dir):
@@ -307,8 +309,9 @@ def _docx_to_txt(file_path, dst_dir):
     doc = opendocx(file_path)
     txt = '\n'.join(getdocumenttext(doc))
     txt = unidecode(txt)
-    with smart_open(file_dst, 'w') as f:
+    with open(file_dst, 'w') as f:
         f.write(txt)
+    return 0
 
 
 
