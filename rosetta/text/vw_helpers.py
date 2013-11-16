@@ -186,12 +186,10 @@ def parse_lda_predictions(
 
 class LDAResults(object):
     """
-    Facilitates working with results of VW lda runs.
-
-    See http://hunch.net/~vw/  as a starting place for VW information.
-
-    See https://github.com/JohnLangford/vowpal_wabbit/wiki/lda.pdf
-    for a brief tutorial of lda in VW.
+    Facilitates working with results of VW lda runs.  Only useful when you're
+    following the workflow outlined here:
+    
+    https://github.com/columbia-applied-data-science/rosetta/blob/master/examples/vw_helpers.md
     """
     def __init__(
         self, topics_file, predictions_file, num_topics, sfile_filter):
@@ -205,6 +203,7 @@ class LDAResults(object):
         num_topics : Integer
             The number of topics in every valid row
         sfile_filter : filepath, buffer, or loaded text_processors.SFileFilter
+            Contains the token2id and id2token mappings
         """
         self.num_topics = num_topics
 

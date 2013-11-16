@@ -6,10 +6,15 @@ Tools for data science with a focus on text processing.
 * Focuses on "medium data", i.e. data too big to fit into memory but too small to necessitate the use of a cluster.
 * Integrates with existing scientific Python stack as well as select outside tools.
 
-Packages
+Examples
 --------
 
-See the `examples/` directory for more details.
+* See the `examples/` directory.  
+* The [docs](http://pythonhosted.org/rosetta/#examples) contain plots of example output.
+
+
+Packages
+--------
 
 ### `cmd` 
 * Unix-like command line utilities.  Filters (read from stdin/write to stdout) for files
