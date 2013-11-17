@@ -232,7 +232,7 @@ def file_to_txt(file_path, dst_dir):
     try:
         file_path = _filepath_clean_copy(file_path)
     except IOError:
-        sys.stdout.write('unable to process file %s'%file_path)
+        sys.stdout.write('unable to clean file_name %s \n'%file_path)
     file_name = os.path.split(file_path)[1]
     name, ext = os.path.splitext(file_name)
     ext = re.sub(r'\.', '', ext)
@@ -240,10 +240,9 @@ def file_to_txt(file_path, dst_dir):
         out = eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt() 
         if out: sys.stdout.write('unable to process file %s'%file_path)
     except NameError:
-        sys.stdout.write('file type %s not supported, skipping %s'%(ext, 
+        sys.stdout.write('file type %s not supported, skipping %s \n'%(ext, 
             file_name))
         pass
-
 
 def _filepath_clean_copy(file_path):
     """
@@ -252,20 +251,18 @@ def _filepath_clean_copy(file_path):
 
     Returns
     -------
-    filepath : str
-        clean filepath
+    file_name : str
+        clean file name
 
-    Notes
-    -----
-    This implicitely assumes that no chars which need to be escaped
-    are contained in the dir path, just in the file name.
     """
-    if re.search(r'[,\s|:\']', file_path):
-        clean_file_path = re.sub(r'[,\s|:\']', '_', file_path)
+    dir_name, file_name = os.path.split(file_path)
+    if re.search(r'[,\s|:\']', file_name):
+        clean_file_name = re.sub(r'[,\s|:\']', '_', file_name)
+        clean_file_path = os.path.join(dir_name, clean_file_name)
         shutil.copyfile(file_path, clean_file_path)
-        return clean_file_path
     else:
-        return file_path
+        clean_file_path = file_path
+    return clean_file_path
 
 def _txt_to_txt(file_path, dst_dir):
     """
