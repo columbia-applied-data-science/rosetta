@@ -8,6 +8,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
 from rosetta.text import text_processors, vw_helpers, nlp
+from rosetta.common import DocIDError
 
 
 class TestWordTokenizers(unittest.TestCase):
@@ -75,8 +76,9 @@ class TestVWFormatter(unittest.TestCase):
 
     def test_get_sstr_02(self):
         doc_id = 'myname|'
-        for doc_id in ['id|', 'id ', 'my:id', '|id', ':id', 'i:d', 'i d']:
-            with self.assertRaises(AssertionError):
+        for doc_id in [
+            'id|', 'id ', 'my:id', '|id', ':id', 'i:d', 'i d', "'id", ":'"]:
+            with self.assertRaises(DocIDError):
                 self.formatter.get_sstr(doc_id=doc_id)
 
     def test_write_dict_01(self):

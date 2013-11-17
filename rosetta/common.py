@@ -187,6 +187,10 @@ class ConfigurationSyntaxError(Exception):
     pass
 
 
+class DocIDError(Exception):
+    pass
+
+
 ###############################################################################
 # Functions for printing objects
 ###############################################################################
