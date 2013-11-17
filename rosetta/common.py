@@ -256,8 +256,10 @@ def _filepath_clean_copy(file_path):
 
     """
     dir_name, file_name = os.path.split(file_path)
-    if re.search(r'[,\s|:\']', file_name):
-        clean_file_name = re.sub(r'[,\s|:\']', '_', file_name)
+    name, ext = os.path.splitext(file_name)
+    if re.search(r'[,\s|:\'\.]', name):
+        clean_name = re.sub(r'[,\s|:\'\.]', '_', name)
+        clean_file_name = clean_name + ext
         clean_file_path = os.path.join(dir_name, clean_file_name)
         shutil.copyfile(file_path, clean_file_path)
     else:
