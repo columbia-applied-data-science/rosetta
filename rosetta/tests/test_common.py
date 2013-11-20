@@ -17,7 +17,7 @@ class TestCommon(unittest.TestCase):
     def setUp(self):
         self.outfile = StringIO()
         #for testing file_to_txt
-        self.test_path = './rosetta/tests'
+        self.test_path = os.path.abspath('./rosetta/tests')
         self.testdata_path = os.path.join(self.test_path, 'data')
         self.testtemp_path = os.path.join(self.test_path, 'temp')
         self.testpdf_path = os.path.join(self.testdata_path, 'test.pdf')
@@ -46,28 +46,35 @@ class TestCommon(unittest.TestCase):
         #import pdb; pdb.set_trace()
 
         common.file_to_txt(self.testpdf_path, self.testtemp_path)
-        temppdf_path = os.path.join(self.testtemp_path, 'test.pdf')
-        with open(temppdf_path, 'w') as f:
+        temppdf_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(temppdf_path) as f:
             self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
         
         common.file_to_txt(self.testdoc_path, self.testtemp_path)
-        tempdoc_path = os.path.join(self.testtemp_path, 'test.doc')
-        with open(tempdoc_path, 'w') as f:
+        tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(tempdoc_path) as f:
             self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
         
         common.file_to_txt(self.testpdf_path, self.testtemp_path)
-        tempdocx_path = os.path.join(self.testtemp_path, 'test.docx')
-        with open(tempdocx_path, 'w') as f:
+        tempdocx_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(tempdocx_path) as f:
             self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
 
         common.file_to_txt(self.testtxt_path, self.testtemp_path)
         temptxt_path = os.path.join(self.testtemp_path, 'test.txt')
-        with open(temptxt_path, 'w') as f:
+        with open(temptxt_path) as f:
             self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
 
     def tearDown(self):
         self.outfile.close()
-        os.system('rm %s'%os.path.join(self.testtemp_path, 'test*'))
-
+        
 
 
