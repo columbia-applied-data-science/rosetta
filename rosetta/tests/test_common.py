@@ -4,6 +4,7 @@ tests for common, common_abc, etc...
 import os
 import sys
 import unittest
+import subprocess
 from StringIO import StringIO
 from numpy.testing import assert_allclose
 
@@ -43,21 +44,24 @@ class TestCommon(unittest.TestCase):
             self.assertTrue(isinstance(f, StringIO))
 
     def test_file_to_txt(self):
-        #import pdb; pdb.set_trace()
 
-        common.file_to_txt(self.testpdf_path, self.testtemp_path)
-        temppdf_path = os.path.join(self.testtemp_path, 'test.txt')
-        with open(temppdf_path) as f:
-            self.assertTrue(isinstance(f, file))
-        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
-
+        if cmd_exists('pdftotext'):
+            common.file_to_txt(self.testpdf_path, self.testtemp_path)
+            temppdf_path = os.path.join(self.testtemp_path, 'test.txt')
+            with open(temppdf_path) as f:
+                self.assertTrue(isinstance(f, file))
+            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        else:
+            sys.stdout.write('Please install unix utility pdftotext')
         
-        common.file_to_txt(self.testdoc_path, self.testtemp_path)
-        tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
-        with open(tempdoc_path) as f:
-            self.assertTrue(isinstance(f, file))
-        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
-
+        if cmd_exists('catdoc'):
+            common.file_to_txt(self.testdoc_path, self.testtemp_path)
+            tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
+            with open(tempdoc_path) as f:
+                self.assertTrue(isinstance(f, file))
+            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        else:
+            sys.stdout.write('Please install unix utility catdoc')
         
         common.file_to_txt(self.testpdf_path, self.testtemp_path)
         tempdocx_path = os.path.join(self.testtemp_path, 'test.txt')
@@ -77,4 +81,6 @@ class TestCommon(unittest.TestCase):
         self.outfile.close()
         
 
-
+def cmd_exists(cmd):
+    return subprocess.call("type " + cmd, shell=True, 
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
