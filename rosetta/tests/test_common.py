@@ -7,7 +7,7 @@ import unittest
 from StringIO import StringIO
 from numpy.testing import assert_allclose
 
-from rosetta import common, tests
+from rosetta import common
 
 
 class TestCommon(unittest.TestCase):
@@ -17,7 +17,7 @@ class TestCommon(unittest.TestCase):
     def setUp(self):
         self.outfile = StringIO()
         #for testing file_to_txt
-        self.test_path = os.path.split(tests.__file__)[0]
+        self.test_path = './rosetta/tests'
         self.testdata_path = os.path.join(self.test_path, 'data')
         self.testtemp_path = os.path.join(self.test_path, 'temp')
         self.testpdf_path = os.path.join(self.testdata_path, 'test.pdf')
@@ -42,7 +42,6 @@ class TestCommon(unittest.TestCase):
         with common.smart_open(StringIO(), 'w') as f:
             self.assertTrue(isinstance(f, StringIO))
 
-    @unittest.skip("Skipping test until linux problem fixed")
     def test_file_to_txt(self):
         #import pdb; pdb.set_trace()
 
