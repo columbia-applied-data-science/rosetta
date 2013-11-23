@@ -6,6 +6,7 @@ from random import shuffle
 import re
 from functools import partial
 import sys
+import os
 
 from rosetta.parallel.parallel_easy import imap_easy
 
@@ -237,6 +238,22 @@ class TextFileStreamer(BaseStreamer):
         """
         return dict(zip(self.doc_id, self.paths))
 
+    @lazyprop
+    def file_stat(self):
+        """
+        Builds a dictionary of os.stats file info. Currently included
+        last modification time & last access time (seconds since epoch),
+        size (in bytes).
+        """
+        return [self._file_stat(p) for p in self.paths]
+
+    def _file_stat(self, path):
+        """
+        Retrieves os.stats info for file.
+        """
+        return {'mtime': os.path.getmtime(path), 'atime': os.path.getatime(path),
+                'size': os.path.getsize(path)}
+
     def info_stream(self, paths=None, doc_id=None, limit=None):
         """
         Returns an iterator over paths yielding dictionaries with information
@@ -256,7 +273,7 @@ class TextFileStreamer(BaseStreamer):
             paths = [self._doc_id_to_path[str(doc)] for doc in doc_id]
         elif paths is None:
             paths = self.paths
-
+    
         for index, onepath in enumerate(paths):
             if index == limit:
                 raise StopIteration
@@ -266,8 +283,10 @@ class TextFileStreamer(BaseStreamer):
                 doc_id = re.sub(
                     self.name_strip, '', filefilter.path_to_name
                     (onepath, strip_ext=False))
+                stat_dict = self._file_stat(onepath)
                 info_dict = {'text': text, 'cached_path': onepath,
                         'doc_id': doc_id}
+                info_dict.update(stat_dict)
                 if self.tokenizer:
                     info_dict['tokens'] = (
                         self.tokenizer.text_to_token_list(text))
