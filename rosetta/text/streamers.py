@@ -5,11 +5,12 @@ from collections import Counter
 from random import shuffle
 import re
 from functools import partial
+import sys
 
 from rosetta.parallel.parallel_easy import imap_easy
 
 from .. import common
-from ..common import lazyprop, smart_open
+from ..common import lazyprop, smart_open, DocIDError
 from . import filefilter, text_processors
 
 
@@ -273,7 +274,7 @@ class TextFileStreamer(BaseStreamer):
 
             yield info_dict
 
-    def to_vw(self, outfile, n_jobs=1, chunksize=1000):
+    def to_vw(self, outfile, n_jobs=1, chunksize=1000, raise_on_bad_id=True):
         """
         Write our filestream to a VW (Vowpal Wabbit) formatted file.
 
@@ -288,6 +289,10 @@ class TextFileStreamer(BaseStreamer):
             results to master.  If this is too low, communication overhead
             will dominate.  If this is too high, jobs will not be distributed
             evenly.
+        raise_on_bad_id : Boolean
+            If True, raise DocIDError when the doc_id (formed by self) is not
+            a valid VW "Tag".  I.e. contains :, |, ', or whitespace.
+            If False, print warning.
         """
         # Note:  This is similar to declass/cmd/files_to_vw.py
         # This implementation is more complicated, due to the fact that a
@@ -301,7 +306,7 @@ class TextFileStreamer(BaseStreamer):
 
         formatter = text_processors.VWFormatter()
 
-        func = partial(_group_to_sstr, self, formatter)
+        func = partial(_group_to_sstr, self, formatter, raise_on_bad_id)
         # Process one group at a time...set imap_easy chunksize arg to 1
         # since each group contains many paths.
         results_iterator = imap_easy(func, path_group_iter, n_jobs, 1)
@@ -312,7 +317,7 @@ class TextFileStreamer(BaseStreamer):
                     open_outfile.write(sstr + '\n')
 
 
-def _group_to_sstr(streamer, formatter, path_group):
+def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
     """
     Return a list of sstr's (sparse string representations).  One for every
     path in path_group.
@@ -327,8 +332,16 @@ def _group_to_sstr(streamer, formatter, path_group):
         doc_id = info_dict['doc_id']
         tokens = info_dict['tokens']
         feature_values = Counter(tokens)
-        tok_sstr = formatter.get_sstr(
-            feature_values, importance=1, doc_id=doc_id)
+        try:
+            tok_sstr = formatter.get_sstr(
+                feature_values, importance=1, doc_id=doc_id)
+        except DocIDError as e:
+            msg = e.message + "\npath = %s\n" % info_dict['cached_path']
+            if raise_on_bad_id:
+                raise DocIDError(msg)
+            else:
+                msg = "WARNING: " + msg
+                sys.stderr.write(msg)
 
         group_results.append(tok_sstr)
 

@@ -4,10 +4,11 @@ tests for common, common_abc, etc...
 import os
 import sys
 import unittest
+import subprocess
 from StringIO import StringIO
 from numpy.testing import assert_allclose
 
-from rosetta import common, tests
+from rosetta import common
 
 
 class TestCommon(unittest.TestCase):
@@ -17,7 +18,7 @@ class TestCommon(unittest.TestCase):
     def setUp(self):
         self.outfile = StringIO()
         #for testing file_to_txt
-        self.test_path = os.path.split(tests.__file__)[0]
+        self.test_path = os.path.abspath('./rosetta/tests')
         self.testdata_path = os.path.join(self.test_path, 'data')
         self.testtemp_path = os.path.join(self.test_path, 'temp')
         self.testpdf_path = os.path.join(self.testdata_path, 'test.pdf')
@@ -42,33 +43,44 @@ class TestCommon(unittest.TestCase):
         with common.smart_open(StringIO(), 'w') as f:
             self.assertTrue(isinstance(f, StringIO))
 
-    @unittest.skip("Skipping test until linux problem fixed")
     def test_file_to_txt(self):
-        #import pdb; pdb.set_trace()
 
-        common.file_to_txt(self.testpdf_path, self.testtemp_path)
-        temppdf_path = os.path.join(self.testtemp_path, 'test.pdf')
-        with open(temppdf_path, 'w') as f:
-            self.assertTrue(isinstance(f, file))
+        if cmd_exists('pdftotext'):
+            common.file_to_txt(self.testpdf_path, self.testtemp_path)
+            temppdf_path = os.path.join(self.testtemp_path, 'test.txt')
+            with open(temppdf_path) as f:
+                self.assertTrue(isinstance(f, file))
+            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        else:
+            sys.stdout.write('Please install unix utility pdftotext')
         
-        common.file_to_txt(self.testdoc_path, self.testtemp_path)
-        tempdoc_path = os.path.join(self.testtemp_path, 'test.doc')
-        with open(tempdoc_path, 'w') as f:
-            self.assertTrue(isinstance(f, file))
+        if cmd_exists('catdoc'):
+            common.file_to_txt(self.testdoc_path, self.testtemp_path)
+            tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
+            with open(tempdoc_path) as f:
+                self.assertTrue(isinstance(f, file))
+            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        else:
+            sys.stdout.write('Please install unix utility catdoc')
         
         common.file_to_txt(self.testpdf_path, self.testtemp_path)
-        tempdocx_path = os.path.join(self.testtemp_path, 'test.docx')
-        with open(tempdocx_path, 'w') as f:
+        tempdocx_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(tempdocx_path) as f:
             self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
 
         common.file_to_txt(self.testtxt_path, self.testtemp_path)
         temptxt_path = os.path.join(self.testtemp_path, 'test.txt')
-        with open(temptxt_path, 'w') as f:
+        with open(temptxt_path) as f:
             self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
 
     def tearDown(self):
         self.outfile.close()
-        os.system('rm %s'%os.path.join(self.testtemp_path, 'test*'))
+        
 
-
-
+def cmd_exists(cmd):
+    return subprocess.call("type " + cmd, shell=True, 
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0

@@ -24,7 +24,7 @@ import nltk
 import numpy as np
 import pandas as pd
 
-from ..common import smart_open
+from ..common import smart_open, DocIDError
 from ..common_abc import SaveLoad
 from . import nlp
 
@@ -334,7 +334,11 @@ class VWFormatter(SparseFormatter):
             Formatted in VW format
         """
         if doc_id:
-            assert not re.search(r'[|\s:]', doc_id), "Malformed VW string"
+            if re.search(r"[|\s:']", doc_id):
+                msg = (
+                "Malformed VW string %s.  Strings cannot have |, :, ', "
+                "or whitespace")
+                raise DocIDError(msg)
             # If doc_id, then we must have importance.
             # The doc_id sits right against the pipe.
             assert importance is not None
@@ -846,3 +850,5 @@ def collision_probability(vocab_size, bit_precision):
 
 class CollisionError(Exception):
     pass
+
+
