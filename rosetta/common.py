@@ -279,6 +279,11 @@ def _pdf_to_txt(file_path, dst_dir):
     """
     Uses the pdftotxt unix util, with --layout option, to convert file_name
     to .txt and save in dst_dir
+
+    Notes
+    -----
+    Download and install Xpdf from http://www.foolabs.com/xpdf/download.html
+    Follow the instruciton in INSTALL - should work on most *nix systems. 
     """
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'\.pdf$', '.txt', file_name))
@@ -305,8 +310,8 @@ def _doc_to_txt(file_path, dst_dir):
 
 def _docx_to_txt(file_path, dst_dir):
     """
-    Uses the pdftotxt unix util, with --layout option, to convert file_name
-    to .txt and save in dst_dir
+    Uses the docx python module to extract text from a docx file and save 
+    to .txt in dst_dir.
     """
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'\.docx$', '.txt', file_name))
