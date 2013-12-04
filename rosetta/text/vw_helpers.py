@@ -493,6 +493,8 @@ class LDAResults(object):
         using the existing token-topic weights.  Does NOT update previous
         results/weights.
         """
+        # Follows Hoffman et al "Online learning for latent Dirichlet..."
+        # Code is adapted from gensim.LDAModel.__getitem__
         assert self.alpha is not None, (
             "Must set self.alpha to use predict.  "
             "Do this during initialization")
@@ -527,7 +529,7 @@ class LDAResults(object):
         while (loop_count < maxiter) and (mean_change > atol):
             lastgamma = gamma
 
-            # We represent phi implicitly to save memory and time.
+            # We represent phi implicitly here.
             # Substituting the value of the optimal phi back into
             # the update for gamma gives this update. Cf. Lee&Seung 2001.
             gamma = (
