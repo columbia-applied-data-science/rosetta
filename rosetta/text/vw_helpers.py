@@ -489,7 +489,9 @@ class LDAResults(object):
         using the existing token-topic weights.  Does NOT update previous
         results/weights.
         """
-        assert self.alpha is not None, "Must specify self.alpha to use predict"
+        assert self.alpha is not None, (
+            "Must set self.alpha to use predict.  "
+            "Do this during initialization")
 
         counts = Counter(tokenized_text)
         counts = pd.Series(
