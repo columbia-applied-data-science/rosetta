@@ -8,7 +8,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
 from rosetta.text import text_processors, vw_helpers, nlp
-from rosetta.common import DocIDError
+from rosetta.common import DocIDError, TokenError
 
 
 class TestWordTokenizers(unittest.TestCase):
@@ -357,6 +357,13 @@ class TestLDAResults(unittest.TestCase):
         results = lda.predict(tokenized_text)
         benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
         assert_allclose(results.values, benchmark.values, atol=1e-3)
+
+    def test_predict_6(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        tokenized_text = ['newtoken', 'newtoken']
+        with self.assertRaises(TokenError) as cm:
+            results = lda.predict(tokenized_text, raise_on_unknown=True)
 
     def tearDown(self):
         self.outfile.close()

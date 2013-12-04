@@ -179,6 +179,14 @@ class BadDataError(Exception):
     pass
 
 
+class TokenError(Exception):
+    """
+    Raise when tokens are passed to a method/function and you don't know how
+    to deal with them.
+    """
+    pass
+
+
 class ConfigurationSyntaxError(Exception):
     """
     Dummy class that is exactly like the Exception class.

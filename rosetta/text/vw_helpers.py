@@ -10,7 +10,7 @@ import numpy as np
 from scipy.special import gammaln, digamma, psi # gamma function utils
 
 from . import text_processors
-from ..common import smart_open
+from ..common import smart_open, TokenError
 from ..common_math import series_to_frame
 
 
@@ -461,7 +461,8 @@ class LDAResults(object):
 
         return probs / probs.sum()
 
-    def predict(self, tokenized_text, maxiter=50, atol=1e-3):
+    def predict(
+        self, tokenized_text, maxiter=50, atol=1e-3, raise_on_unknown=False):
         """
         Returns a probability distribution over topics given that one
         (tokenized) document is equal to tokenized_text.
@@ -477,6 +478,9 @@ class LDAResults(object):
             Maximum iterations used in updating parameters.
         atol : Float
             Absolute tolerance for change in parameters before converged.
+        raise_on_unknown : Boolean
+            If True, raise TokenError when all tokens are unknown to
+            this model.
 
         Returns
         -------
@@ -497,6 +501,10 @@ class LDAResults(object):
         counts = pd.Series(
             {k: counts[k] for k in counts if k in set(self.tokens)}
             ).astype(float)
+
+        if len(counts) == 0 and raise_on_unknown:
+            raise TokenError(
+                "No tokens have been seen before by this LDAResults")
 
         # Do an "E step"
         # Initialize the variational distribution q(theta|gamma) for the chunk
