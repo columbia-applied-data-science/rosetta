@@ -504,7 +504,8 @@ class LDAResults(object):
 
         if len(counts) == 0 and raise_on_unknown:
             raise TokenError(
-                "No tokens have been seen before by this LDAResults")
+                "No tokens in tokenized_text have been seen before by this "
+                "LDAResults")
 
         # Do an "E step"
         # Initialize the variational distribution q(theta|gamma) for the chunk
