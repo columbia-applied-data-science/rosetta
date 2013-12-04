@@ -349,6 +349,15 @@ class TestLDAResults(unittest.TestCase):
         benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
         assert_allclose(results.values, benchmark.values, atol=1e-3)
 
+    def test_predict_5(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        lda.alpha = 0.1
+        tokenized_text = ['newtoken', 'newtoken']
+        results = lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
+        assert_allclose(results.values, benchmark.values, atol=1e-3)
+
     def tearDown(self):
         self.outfile.close()
 
