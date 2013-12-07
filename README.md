@@ -83,6 +83,19 @@ Documentation is hosted at [here](http://pythonhosted.org/rosetta).  This does N
     cd docs/
     make html
 
+Note: you need to upload this documentation manually on pypi. 
+
+
+Releases
+--------
+* Github: Rosetta releases are hosted [here](https://github.com/columbia-applied-data-science/rosetta/releases) and you can create new releases via "draft new release."
+* PiPy: Rosetta releases are hosted [here](https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=rosetta). As a registered owner you can create a release by:
+
+    python setup.py register
+    python setup.py sdist upload
+
+Note: update the release version in setup.py and make sure to upload a new documentation version (see Documenation).:
+
 History
 -------
 *Rosetta* refers to the [Rosetta Stone](http://en.wikipedia.org/wiki/Rosetta_Stone), the ancient Egyptian tablet discovered just over 200 years ago. The tablet contained fragmented text in three different languages and the uncovering of its meaning is considered an essential key to our understanding of Ancient Egyptian civilization. We would like this project to provide individuals the necessary tools to process and unearth insight in the ever-growing volumes of textual data of today.
