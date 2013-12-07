@@ -40,7 +40,8 @@ def _cli():
 
     parser.add_argument(
         "-d", "--delimiter",
-        help="Use DELIMITER as the column delimiter in infile."
+        help=r"Use DELIMITER as the column delimiter in infile."
+        " For tabs use one of -d t  -d tab -d \\t -d '\\t'"
         "  [default: %(default)s]", default=',')
 
     parser.add_argument(
@@ -65,6 +66,10 @@ def _cli():
         "that row. ")
 
     args = parser.parse_args()
+
+    # Deal with tabs
+    if args.delimiter in ['t', '\\t', '\t', 'tab']:
+        args.delimiter = '\t'
 
     for mode in ['contains', 'equals', 'not_contains', 'not_equals']:
         if args.__dict__[mode]:

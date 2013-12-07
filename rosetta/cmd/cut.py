@@ -13,7 +13,7 @@ from rosetta import common
 
 
 def main():
-    epilog = """
+    epilog = r"""
 
     Examples
     ---------
@@ -22,10 +22,6 @@ def main():
 
     Read a comma delimited csv file, data.csv, remove 'name', 'age' columns
     $ python cut.py -r name,age test/commafile.csv
-
-    Keep the "name" column in a a tab delimited dataset
-    $ python cut.py -d'\t' -k name  test/tabfile.csv
-    Note that -dt  -dtab -d\t -d'\t' -d\\t  also work
     """
     parser = argparse.ArgumentParser(
         description=globals()['__doc__'], epilog=epilog,
@@ -57,6 +53,7 @@ def main():
     parser.add_argument(
         "-d", "--delimiter",
         help="Use DELIMITER as the column delimiter in infile."
+        " For tabs use one of -d t  -d tab -d \\t -d '\\t'"
         "  [default: %(default)s]", default=',')
 
     args = parser.parse_args()

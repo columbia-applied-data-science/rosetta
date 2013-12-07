@@ -45,7 +45,9 @@ def main():
         "percent of rows. [default: %(default)s] ")
     parser.add_argument(
         "-d", "--delimiter", default=',',
-        help="Use DELIMITER as the column delimiter.  [default: %(default)s]")
+        help="Use DELIMITER as the column delimiter.  "
+        " For tabs use one of -d t  -d tab -d \\t -d '\\t'"
+        "[default: %(default)s]")
     parser.add_argument(
         "-k", "--key_column",
         help="Subsample in the space of values of key_column.  ")
