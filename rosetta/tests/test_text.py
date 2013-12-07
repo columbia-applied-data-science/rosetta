@@ -8,7 +8,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
 from rosetta.text import text_processors, vw_helpers, nlp
-from rosetta.common import DocIDError
+from rosetta.common import DocIDError, TokenError
 
 
 class TestWordTokenizers(unittest.TestCase):
@@ -151,27 +151,39 @@ class TestLDAResults(unittest.TestCase):
         self.outfile = StringIO()
 
         formatter = text_processors.VWFormatter()
-        sff = text_processors.SFileFilter(
+        self.sff = text_processors.SFileFilter(
             formatter, bit_precision=8, verbose=False)
-        sff.id2token = {0: 'w0', 1: 'w1'}
+        self.sff.id2token = {0: 'w0', 1: 'w1'}
         sfile = StringIO(" 1 doc1| w0:1 w1:2\n 1 doc2| w0:3 w1:4")
-        sff.load_sfile(sfile)
+        self.sff.load_sfile(sfile)
 
-        topics_file_1 = StringIO(
+        self.topics_file_1 = StringIO(
             "Version 7.3\nlabel: 11\n"
             "0 1 2\n"
             "1 3 4")
-        num_topics_1 = 2
-        predictions_file_1 = StringIO(
+        self.topics_file_2 = StringIO(
+            "Version 7.3\nlabel: 11\n"
+            "0 1 0\n"
+            "1 0 1")
+        self.num_topics_1 = 2
+        self.predictions_file_1 = StringIO(
             "0.0 0.0 doc1\n"
             "0.0 0.0 doc2\n"
             "1 2 doc1\n"
             "39 58 doc2")
-        self.lda = vw_helpers.LDAResults(
-            topics_file_1, predictions_file_1, num_topics_1, sff)
+
+    def choose_lda(self, name='lda'):
+        if name == 'lda':
+            return vw_helpers.LDAResults(
+                self.topics_file_1, self.predictions_file_1,
+                self.num_topics_1, self.sff)
+        elif name == 'lda_2':
+            return vw_helpers.LDAResults(
+                self.topics_file_2, self.predictions_file_1, self.num_topics_1,
+                self.sff, alpha=1e-5)
 
     def test_print_topics_1(self):
-        self.lda.print_topics(num_words=2, outfile=self.outfile)
+        self.choose_lda().print_topics(num_words=2, outfile=self.outfile)
         result = self.outfile.getvalue()
         benchmark = (
             u'========== Printing top 2 tokens in every topic==========\n-----'
@@ -184,85 +196,78 @@ class TestLDAResults(unittest.TestCase):
         self.assertEqual(result, benchmark)
 
     def test_set_probabilities_marginals(self):
+        lda = self.choose_lda()
         pr_doc = pd.Series({'doc1': 3./(3+39+58), 'doc2': (39.+58)/(3+39+58)})
-        assert_series_equal(self.lda.pr_doc, pr_doc)
+        assert_series_equal(lda.pr_doc, pr_doc)
 
         pr_topic = pd.Series({'topic_0': 4./10, 'topic_1': 6./10})
-        assert_series_equal(self.lda.pr_topic, pr_topic)
+        assert_series_equal(lda.pr_topic, pr_topic)
 
         # Use the topics file for the token marginals
         # Should be almost equal to results obtained with the predictions file
         pr_token = pd.Series({'w0': 3./10, 'w1': 7./10})
-        assert_series_equal(self.lda.pr_token, pr_token)
+        assert_series_equal(lda.pr_token, pr_token)
 
     def test_prob_1(self):
-        result = self.lda.prob_token_topic(token='w0', c_token=['w1'])
+        result = self.choose_lda().prob_token_topic(token='w0', c_token=['w1'])
         benchmark = pd.DataFrame(
             {'topic_0': [np.nan], 'topic_1': [np.nan]}, index=['w0'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
 
     def test_prob_2(self):
-        result = self.lda.prob_token_topic(c_token=['w1'])
+        result = self.choose_lda().prob_token_topic(c_token=['w1'])
         benchmark = pd.DataFrame(
             {'topic_0': [3/7.], 'topic_1': [4/7.]}, index=['w1'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
 
     def test_prob_3(self):
-        result = self.lda.prob_token_topic(topic=['topic_0'], token=['w0'])
+        result = self.choose_lda().prob_token_topic(
+            topic=['topic_0'], token=['w0'])
         benchmark = pd.DataFrame({'topic_0': [1/10.]}, index=['w0'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
 
     def test_prob_4(self):
-        result = self.lda.prob_token_topic(c_topic=['topic_0'])
+        result = self.choose_lda().prob_token_topic(c_topic=['topic_0'])
         benchmark = pd.DataFrame({'topic_0': [1/4., 3/4.]}, index=['w0', 'w1'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
 
     def test_prob_5(self):
-        result = self.lda.prob_token_topic(token=['w0'], c_topic=['topic_0'])
+        result = self.choose_lda().prob_token_topic(
+            token=['w0'], c_topic=['topic_0'])
         benchmark = pd.DataFrame({'topic_0': [1/4.]}, index=['w0'])
         benchmark.index.name = 'token'
         assert_frame_equal(result, benchmark)
 
     def test_prob_6(self):
-        result = self.lda.prob_doc_topic(doc=['doc1'], c_topic=['topic_0'])
+        result = self.choose_lda().prob_doc_topic(
+            doc=['doc1'], c_topic=['topic_0'])
         benchmark = pd.DataFrame({'topic_0': [1/40.]}, index=['doc1'])
         benchmark.index.name = 'doc'
         assert_frame_equal(result, benchmark)
 
     def test_prob_7(self):
-        result = self.lda.prob_doc_topic(
+        result = self.choose_lda().prob_doc_topic(
             doc=['doc1', 'doc2'], c_topic=['topic_0'])
         benchmark = pd.DataFrame(
             {'topic_0': [1/40., 39/40.]}, index=['doc1', 'doc2'])
         benchmark.index.name = 'doc'
         assert_frame_equal(result, benchmark)
 
-    def test_predict_1(self):
-        tokenized_text = ['w0', 'w1', 'w0']
-        result = self.lda.predict(tokenized_text)
-        benchmark = pd.Series({'topic_0': 0.111111 , 'topic_1': 0.888889})
-        assert_series_equal(result, benchmark)
-
-    def test_predict_2(self):
-        tokenized_text = ['w0', 'w1', 'w0', 'extratoken']
-        result = self.lda.predict(tokenized_text)
-        benchmark = pd.Series({'topic_0': 0.111111 , 'topic_1': 0.888889})
-        assert_series_equal(result, benchmark)
-
     def test_cosine_similarity_1(self):
-        frame = self.lda.pr_topic_g_doc
-        result = self.lda.cosine_similarity(frame, frame)
+        lda = self.choose_lda()
+        frame = lda.pr_topic_g_doc
+        result = lda.cosine_similarity(frame, frame)
         assert_allclose(np.diag(result.values), 1)
 
     def test_cosine_similarity_2(self):
         topics = ['topic_0', 'topic_1']
         frame1 = pd.DataFrame({'doc1': [1, 0], 'doc2': [0, 1]}, index=topics)
         frame2 = pd.DataFrame({'doc3': [1, 0]}, index=topics)
-        result = self.lda.cosine_similarity(frame1, frame2)
+        result = self.choose_lda().cosine_similarity(frame1, frame2)
         benchmark = pd.DataFrame({'doc3': [1, 0]}, index=['doc1', 'doc2'])
         assert_frame_equal(result, benchmark.astype(float))
 
@@ -271,7 +276,7 @@ class TestLDAResults(unittest.TestCase):
         frame1 = pd.DataFrame(
             {'doc1': [0.5, 0.5, 0], 'doc2': [0, 0.5, 0.5]}, index=topics)
         frame2 = pd.DataFrame({'doc3': [0.5, 0, 0.5]}, index=topics)
-        result = self.lda.cosine_similarity(frame1, frame2)
+        result = self.choose_lda().cosine_similarity(frame1, frame2)
         benchmark = pd.DataFrame({'doc3': [0.5, 0.5]}, index=['doc1', 'doc2'])
         assert_frame_equal(result, benchmark.astype(float))
 
@@ -280,14 +285,85 @@ class TestLDAResults(unittest.TestCase):
         frame1 = pd.DataFrame({'doc1': [1, 0], 'doc2': [0, 1]}, index=topics)
         frame2 = pd.Series({'topic_0': 1, 'topic_1': 0})
         frame2.name = 'doc3'
-        result = self.lda.cosine_similarity(frame1, frame2)
+        result = self.choose_lda().cosine_similarity(frame1, frame2)
         benchmark = pd.DataFrame({'doc3': [1, 0]}, index=['doc1', 'doc2'])
         assert_frame_equal(result, benchmark.astype(float))
 
     def test_repr(self):
-        result = self.lda.__repr__()
+        result = self.choose_lda().__repr__()
         benchmark = 'LDAResults for 2 topics, 2 docs, 2 topics, 2 tokens'
         self.assertEqual(result, benchmark)
+
+    def test_dirichlet_expectation(self):
+        # Compares to gensim results...computed offline.
+        # Note that gensim uses the transpose of what we do
+        lda = self.choose_lda('lda_2')
+        alpha = np.array([[ 0.01584447,  0.54600594,  0.89841365],
+                       [ 0.00665433,  0.68964706,  0.07415024]])
+        result = lda._dirichlet_expectation(pd.DataFrame(alpha)).values
+        benchmark = np.array([[ -18.67733743, -105.85684345],
+                           [  -1.50807069,   -1.00494437],
+                           [  -0.13470677,  -13.32429878]]).T
+        assert_allclose(result, benchmark, atol=1e-4)
+
+    def test_expElogbeta(self):
+        # Make sure equal to exponential of dirichlet_expectation when we
+        # pass in all ones
+        lda = self.choose_lda('lda')
+        lda._lambda_word_sums = pd.Series(
+            np.ones(lda.num_topics), index=lda.topics)
+        result = lda._expElogbeta
+        benchmark = np.exp(lda._dirichlet_expectation(lda.pr_token_topic))
+        assert_frame_equal(result, benchmark)
+
+    def test_predict_1(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        tokenized_text = ['w0']
+        results = lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 1., 'topic_1': 0.})
+        assert_allclose(results.values, benchmark.values, atol=1e-3)
+
+    def test_predict_2(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        tokenized_text = ['w1']
+        results = lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 0., 'topic_1': 1.})
+        assert_allclose(results.values, benchmark.values, atol=1e-3)
+
+    def test_predict_3(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        tokenized_text = ['w1', 'w0']
+        results = lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
+        assert_allclose(results.values, benchmark.values, atol=1e-3)
+
+    def test_predict_4(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        lda.alpha = 1000000
+        tokenized_text = ['w0']
+        results = lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
+        assert_allclose(results.values, benchmark.values, atol=1e-3)
+
+    def test_predict_5(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        lda.alpha = 0.1
+        tokenized_text = ['newtoken', 'newtoken']
+        results = lda.predict(tokenized_text)
+        benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
+        assert_allclose(results.values, benchmark.values, atol=1e-3)
+
+    def test_predict_6(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        tokenized_text = ['newtoken', 'newtoken']
+        with self.assertRaises(TokenError) as cm:
+            results = lda.predict(tokenized_text, raise_on_unknown=True)
 
     def tearDown(self):
         self.outfile.close()

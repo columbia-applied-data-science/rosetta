@@ -3,12 +3,22 @@ Wrappers to help with Vowpal Wabbit (VW).
 """
 import sys
 
+from collections import Counter
+
 import pandas as pd
 import numpy as np
+from scipy.special import gammaln, digamma, psi # gamma function utils
 
 from . import text_processors
-from ..common import smart_open
+from ..common import smart_open, TokenError
 from ..common_math import series_to_frame
+
+
+###############################################################################
+# Globals
+###############################################################################
+
+EPS = 1e-100
 
 
 def parse_varinfo(varinfo_file):
@@ -188,11 +198,12 @@ class LDAResults(object):
     """
     Facilitates working with results of VW lda runs.  Only useful when you're
     following the workflow outlined here:
-    
+
     https://github.com/columbia-applied-data-science/rosetta/blob/master/examples/vw_helpers.md
     """
     def __init__(
-        self, topics_file, predictions_file, num_topics, sfile_filter):
+        self, topics_file, predictions_file, num_topics, sfile_filter,
+        alpha=None, verbose=False):
         """
         Parameters
         ----------
@@ -204,8 +215,14 @@ class LDAResults(object):
             The number of topics in every valid row
         sfile_filter : filepath, buffer, or loaded text_processors.SFileFilter
             Contains the token2id and id2token mappings
+        alpha : Float
+            Value of topics Dirichlet hyperparameter used (by VW).
+            Needed if you want to do self.predict().
+        verbose : Boolean
         """
         self.num_topics = num_topics
+        self.alpha = alpha
+        self.verbose = verbose
 
         if not isinstance(sfile_filter, text_processors.SFileFilter):
             sfile_filter = text_processors.SFileFilter.load(sfile_filter)
@@ -250,6 +267,11 @@ class LDAResults(object):
             assert len(set(names)) == len(names), "Names must be unique"
 
     def _set_probabilities(self, topics, predictions):
+        """
+        Set probabilities that we store as attributes.
+        Others can be derived and appear as "properties"
+        (in the decorator sense).
+        """
         topic_sums = topics.sum()
         self.pr_topic = topic_sums / topic_sums.sum()
 
@@ -262,7 +284,8 @@ class LDAResults(object):
         self.pr_topic_doc = predictions / predictions.sum().sum()
 
         # New stuff
-        self.pr_token_topic = topics / topics.sum().sum()
+        self._lambda_word_sums = topics.sum()
+        self.pr_token_topic = topics / self._lambda_word_sums.sum()
         self.pr_token_topic.index.name = 'token'
         self.pr_doc_topic = predictions / predictions.sum().sum()
 
@@ -399,10 +422,13 @@ class LDAResults(object):
 
         return df
 
-    def predict(self, tokenized_text):
+ 
+
+    def predict(
+        self, tokenized_text, maxiter=50, atol=1e-3, raise_on_unknown=False):
         """
-        Returns a probability distribution over topics given that a (tokenized)
-        document is equal to tokenized_text.
+        Returns a probability distribution over topics given that one
+        (tokenized) document is equal to tokenized_text.
 
         This is NOT equivalent to prob_token_topic(c_token=tokenized_text),
         since that is an OR statement about the tokens, and this is an AND.
@@ -411,6 +437,13 @@ class LDAResults(object):
         ----------
         tokenized_text : List of strings
             Represents the tokens that are in some document text.
+        maxiter : Integer
+            Maximum iterations used in updating parameters.
+        atol : Float
+            Absolute tolerance for change in parameters before converged.
+        raise_on_unknown : Boolean
+            If True, raise TokenError when all tokens are unknown to
+            this model.
 
         Returns
         -------
@@ -419,24 +452,88 @@ class LDAResults(object):
 
         Notes
         -----
-        P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)
-                              = P(topic) P(tok1 | topic) P(tok2 | topic)
+        Treats this as a new document and figures out topic weights for it
+        using the existing token-topic weights.  Does NOT update previous
+        results/weights.
         """
-        # P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)
-        # = P(topic) P(tok1 | topic) P(tok2 | topic)
+        # Follows Hoffman et al "Online learning for latent Dirichlet..."
+        # Code is adapted from gensim.LDAModel.__getitem__
+        assert self.alpha is not None, (
+            "Must set self.alpha to use predict.  "
+            "Do this during initialization")
 
-        # Multiply out P(tok1 | topic) P(tok2 | topic) 
-        na_val = 1. / self.num_topics
-        fun = lambda tok: (
-            self.prob_token_topic(token=tok, topic=self.topics).fillna(na_val)
-            .values.ravel())
-        probs = reduce(
-            lambda x, y: x * y, (fun(tok) for tok in tokenized_text))
+        counts = Counter(tokenized_text)
+        counts = pd.Series(
+            {k: counts[k] for k in counts if k in set(self.tokens)}
+            ).astype(float)
 
-        # Multiply by P(topic)
-        probs = self.pr_topic * probs
+        if len(counts) == 0 and raise_on_unknown:
+            raise TokenError(
+                "No tokens in tokenized_text have been seen before by this "
+                "LDAResults")
 
-        return probs / probs.sum()
+        # Do an "E step"
+        # Initialize the variational distribution q(theta|gamma) for the chunk
+        gamma = pd.Series(
+            np.random.gamma(100., 1. / 100., self.num_topics),
+            index=self.topics)
+        Elogtheta = pd.Series(
+            self._dirichlet_expectation(gamma), index=self.topics)
+        expElogtheta = np.exp(Elogtheta)
+        expElogbeta = self._expElogbeta.loc[counts.keys()]
+
+        # The optimal phi_{dwk} (as a function of k) is proportional to
+        # expElogtheta_k * expElogbeta_w.
+        # phinorm is the normalizer.
+        phinorm = expElogbeta.dot(expElogtheta) + EPS
+
+        loop_count = 0
+        mean_change = atol + 1
+        while (loop_count < maxiter) and (mean_change > atol):
+            lastgamma = gamma
+
+            # We represent phi implicitly here.
+            # Substituting the value of the optimal phi back into
+            # the update for gamma gives this update. Cf. Lee&Seung 2001.
+            gamma = (
+                self.alpha
+                + expElogtheta
+                * (counts / phinorm).dot(expElogbeta))
+            Elogtheta = self._dirichlet_expectation(gamma)
+            expElogtheta = np.exp(Elogtheta)
+            phinorm = expElogbeta.dot(expElogtheta) + EPS
+            # If gamma hasn't changed much, we're done.
+            mean_change = (np.fabs(gamma - lastgamma)).mean()
+
+            loop_count += 1
+
+        self._print(
+            "Prediction done:  Converged = %s.  loop_count = %d, mean_change"
+            "= %f" % (mean_change <= atol, loop_count, mean_change))
+
+        return gamma / gamma.sum()
+
+    def _print(self, msg, outfile=sys.stderr):
+        if self.verbose:
+            outfile.write(msg)
+
+    @property
+    def _expElogbeta(self):
+        """
+        Return exp{E[log(beta)]} for beta ~ Dir(lambda), and lambda the
+        topic-word weights.
+        """
+        # Get lambda, the dirichlet parameter originally returned by VW.
+        lam = self._lambda_word_sums * self.pr_token_topic
+
+        return np.exp(self._dirichlet_expectation(lam + EPS))
+
+    def _dirichlet_expectation(self, alpha):
+        """
+        For a vector `theta~Dir(alpha)`, compute `E[log(theta)]`, equal to a
+        digamma function.
+        """
+        return psi(alpha) - psi(alpha.sum())
 
     def print_topics(
         self, num_words=5, outfile=sys.stdout, show_doc_fraction=True):
@@ -457,7 +554,7 @@ class LDAResults(object):
 
         for topic_name in self.pr_topic.index:
             outstr += (
-                '\n' + "-" * 30 + '\nTopic name: %s.  P[%s] = %.4f' % 
+                '\n' + "-" * 30 + '\nTopic name: %s.  P[%s] = %.4f' %
                 (topic_name, topic_name, self.pr_topic[topic_name]))
             sorted_topic = self.pr_token_g_topic[topic_name].order(
                 ascending=False).head(num_words)
