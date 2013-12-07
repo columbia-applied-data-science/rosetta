@@ -2,7 +2,8 @@ import unittest
 from StringIO import StringIO
 from numpy.testing import assert_allclose
 
-from rosetta.cmd import concat_csv, join_csv, subsample, cut, row_filter
+from rosetta.cmd import concat_csv, join_csv, subsample, cut, row_filter, \
+    groupby_reduce
 
 
 """
@@ -293,3 +294,47 @@ class TestJoinCSV(unittest.TestCase):
 
     def tearDown(self):
         self.outfile.close()
+
+
+class TestGroupbyReduce(unittest.TestCase):
+    """
+    Tests groupby_reduce.
+    """
+    def setUp(self):
+        self.outfile = StringIO()
+        self.ns_1 = groupby_reduce.NestedStore(['count', 'sum', 'mean'], None, 1)
+        self.ns_2 = groupby_reduce.NestedStore(['count', 'sum'], None, 1)
+        self.ns_3 = groupby_reduce.NestedStore(['count', 'sum', 'mean'], None, 2)
+
+    def test_ns_add_11(self):
+        self.ns_1.add(['a'], 0.1)
+        self.assertEqual(self.ns_1.sums, {'a': 0.1})
+        self.assertEqual(self.ns_1.counts, {'a': 1})
+        results = self.ns_1.results()
+
+    def test_ns_12(self):
+        self.ns_1.add(['a'], 0.1)
+        self.ns_1.add(['a'], 0.1)
+        self.assertEqual(self.ns_1.sums, {'a': 0.2})
+        self.assertEqual(self.ns_1.counts, {'a': 2})
+
+    def test_ns_13(self):
+        self.ns_1.add(['a'], 0.1)
+        self.ns_1.add(['b'], 0.5)
+        self.ns_1.add(['a'], 0.1)
+        self.assertEqual(self.ns_1.sums, {'a': 0.2, 'b': 0.5})
+        self.assertEqual(self.ns_1.counts, {'a': 2, 'b': 1})
+
+    def test_ns_23(self):
+        self.ns_2.add(['a'], 0.1)
+        self.ns_2.add(['b'], 0.5)
+        self.ns_2.add(['a'], 0.1)
+        self.assertEqual(self.ns_2.sums, {'a': 0.2, 'b': 0.5})
+        self.assertEqual(self.ns_2.counts, {'a': 2, 'b': 1})
+
+    def test_ns_31(self):
+        self.ns_3.add(['a', 'a'], 0.1)
+        self.ns_3.add(['a', 'a'], 0.1)
+        self.ns_3.add(['a', 'b'], 0.5)
+        self.assertEqual(self.ns_3.sums, {'a': {'a': 0.2, 'b': 0.5}})
+        self.assertEqual(self.ns_3.counts, {'a': {'a': 2, 'b': 1}})

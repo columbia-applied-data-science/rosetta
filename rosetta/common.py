@@ -206,7 +206,6 @@ class DocIDError(Exception):
 # Functions for printing objects
 ###############################################################################
 
-
 def printdict(d, max_print_len=None):
     s = ''
     for key, value in d.iteritems():
@@ -215,16 +214,6 @@ def printdict(d, max_print_len=None):
         print s[:max_print_len]
     else:
         print s
-
-
-def print_dicts(dicts, prepend_str=''):
-    for key, value in dicts.iteritems():
-        if isinstance(value, dict):
-            print prepend_str + key
-            next_prepend_str = prepend_str + '  '
-            print_dicts(value, next_prepend_str)
-        else:
-            print "%s%s = %.5f" % (prepend_str, key, value)
 
 
 ###############################################################################
@@ -354,7 +343,7 @@ def nested_defaultdict(default_factory, levels=1):
     Examples
     --------
     >>> mydict = nested_defaultdict(int, levels=2)
-    >>> mydict['michigan']['ann-arbor'] = 150000
+    >>> mydict['columbia']['undergrads'] += 1
     """
     if not isinstance(levels, int) or (levels < 1):
         raise ValueError("levels =%s, should be a postitive integer" % levels)
@@ -367,6 +356,28 @@ def nested_defaultdict(default_factory, levels=1):
         return defaultdict(default_factory)
     else:
         return defaultdict(nestone)
+
+
+def nested_keysearch(ndict, key_list):
+    """
+    Returns True if ndict[key_list[0]][key_list[1]]...[key_list[-1]] exists.
+
+    Parameters
+    ----------
+    ndict : Nested dictionary
+        E.g. {'a': {'b': 2}}
+    key_list : List of strings
+    """
+    if isinstance(key_list, basestring):
+        key_list = [key_list]
+
+    first_key = key_list[0]
+
+    if len(key_list) == 1:
+        return first_key in ndict
+    else:
+        if first_key in ndict:
+            return nested_keysearch(ndict[first_key], key_list[1: ])
 
 
 ###############################################################################

@@ -93,7 +93,7 @@ class TestCommon(unittest.TestCase):
         self.outfile.close()
 
 
-class TestNestedDefaultdict(unittest.TestCase):
+class TestNestedDicts(unittest.TestCase):
     def test_levels1(self):
         ddict = common.nested_defaultdict(int, levels=1)
         self.assertTrue(isinstance(ddict, defaultdict))
@@ -114,6 +114,17 @@ class TestNestedDefaultdict(unittest.TestCase):
         benchmark = {'a1': {'a2': {'a3': 1}}}
         benchmark['a1']['b2'] = 2
         self.assertEqual(ddict, benchmark)
+
+    def test_nested_keysearch_1(self):
+        adict = {'a': 1}
+        self.assertTrue(common.nested_keysearch(adict, ['a']))
+        self.assertFalse(common.nested_keysearch(adict, ['A']))
+
+    def test_nested_keysearch_2(self):
+        adict = {'a': {'b': 1}}
+        self.assertTrue(common.nested_keysearch(adict, ['a', 'b']))
+        self.assertFalse(common.nested_keysearch(adict, ['a', 'B']))
+        self.assertFalse(common.nested_keysearch(adict, ['A', 'B']))
 
 def cmd_exists(cmd):
     return subprocess.call("type " + cmd, shell=True,
