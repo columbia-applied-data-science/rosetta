@@ -35,13 +35,13 @@ def main():
 
     EXAMPLES
     --------
-    $ python split.py data.csv
+    $ split.py data.csv
     will produce the files data_split-0-50.csv and data_split-1-50.csv
 
-    $ python split.py -r 60/20/20 data.csv
+    $ split.py -r 60/20/20 data.csv
     will produce a 60/20/20 split
 
-    $ python split.py --ratio=60/40 -k -s name dataset.csv
+    $ split.py --ratio=60/40 -k -s name dataset.csv
     will produce a 60/40 split and keep only one record from each group, with
     the "name" column determining the groups.
     """

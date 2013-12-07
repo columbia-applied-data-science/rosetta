@@ -20,13 +20,13 @@ def main():
     EXAMPLES
     ---------
     Subsample a comma delimited dataset and redirect output to a new file
-    $ python subsample.py data.csv > subsampled_data.csv
+    $ subsample.py data.csv > subsampled_data.csv
 
     Subsample, keeping only 10% of rows
-    $ python subsample.py -r 0.1 data.csv
+    $ subsample.py -r 0.1 data.csv
 
     Subsample, keeping 10% of different values in the 'height' column
-    $ python subsample.py -r 0.1 -k height data.csv
+    $ subsample.py -r 0.1 -k height data.csv
     """
     parser = argparse.ArgumentParser(
         description=globals()['__doc__'], epilog=epilog,

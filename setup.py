@@ -13,7 +13,7 @@ SCRIPTS = [
     'rosetta/cmd/' + name for name in 
     ['concat_csv.py', 'cut.py', 'join_csv.py',
     'row_filter.py', 'split.py', 'subsample.py',
-    'files_to_vw.py', 'filter_sfile.py']]
+    'files_to_vw.py', 'filter_sfile.py', 'groupby_reduce.py']]
 
 PACKAGES =  ['rosetta'] + [
     'rosetta.' + name for name in 

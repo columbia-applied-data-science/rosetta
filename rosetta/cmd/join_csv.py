@@ -20,12 +20,12 @@ def _cli():
 
     Join three files, use 'doc_id' as index, use 'inner' then 'outer' joins.
     Write to stdout
-    $ python join_csv.py --index doc_id --how inner outer
+    $ join_csv.py --index doc_id --how inner outer
         --files file1 file2 file3
 
     Fill missing values in the 'score' column with 0, and the 'age' column
     with 22.
-    $ python join_csv.py --index doc_id --how inner --null_fill score,0 age,22
+    $ join_csv.py --index doc_id --how inner --null_fill score,0 age,22
         --files file1 file2 file3
     """
     parser = argparse.ArgumentParser(

@@ -323,6 +323,29 @@ def _docx_to_txt(file_path, dst_dir):
     return 0
 
 
+###############################################################################
+# Custom data structures
+###############################################################################
+
+def nested_defaultdict(default_factory, levels=1):
+    """
+    Creates nested defaultdicts with the lowest level having default factory.
+
+    Parameters
+    ----------
+    default_factory : Callable
+        Called without arguments to produce a new value when a key is not
+        present.
+    levels : Positive Integer
+        The number of nesting levels to use.  If levels == 1, this is just
+        an ordinary defaultdict.
+
+    Examples
+    --------
+    >>> mydict = nested_defaultdict(int, levels=2)
+    >>> mydict['michigan']['ann-arbor'] = 150000
+    """
+
 
 ###############################################################################
 # String type operations

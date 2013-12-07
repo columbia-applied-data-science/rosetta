@@ -18,13 +18,13 @@ def _cli():
     EXAMPLES
 
     Concat two files, each with a header and index, redirect output to newfile
-    $ python concat_csv.py --index --header file1 file2 > newfile
+    $ concat_csv.py --index --header file1 file2 > newfile
 
     Concat two files, write result to newfile
-    $ python concat_csv.py --index --header -o newfile file1 file2
+    $ concat_csv.py --index --header -o newfile file1 file2
 
     Concat all files in mydir/, write result to stdout.
-    $ python concat_csv.py  mydir/*
+    $ concat_csv.py  mydir/*
     """
     parser = argparse.ArgumentParser(
         description=globals()['__doc__'], epilog=epilog,

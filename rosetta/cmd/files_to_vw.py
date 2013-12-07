@@ -20,13 +20,13 @@ def _cli():
     EXAMPLES
 
     Convert file1 and file2 to vw format, redirect to my_vw_file
-    $ python files_to_vw.py file1 file2 > my_vw_file
+    $ files_to_vw.py file1 file2 > my_vw_file
 
     Convert all files in mydir/ to vw format
-    $ python files_to_vw.py  --base_path=mydir
+    $ files_to_vw.py  --base_path=mydir
 
     Convert the first 10 files in mydir/ to vw format
-    $ find mydir/ -type f | head | python files_to_vw.py
+    $ find mydir/ -type f | head | files_to_vw.py
 
     The supported Vowpal Wabbit format is
     [target] [Importance [Tag]]| feature1[:value1] feature2[:value2] ...
