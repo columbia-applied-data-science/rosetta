@@ -173,7 +173,7 @@ class TextFileStreamer(BaseStreamer):
         text_base_path : string or None
             Base path to dir containing files.
         file_type : String
-            String to filter files with.  E.g. '*.txt'.  
+            String to filter files with.  E.g. '*.txt'.
             Note that the filenames will be converted to lowercase before
             this comparison.
         name_strip : raw string
@@ -273,7 +273,7 @@ class TextFileStreamer(BaseStreamer):
             paths = [self._doc_id_to_path[str(doc)] for doc in doc_id]
         elif paths is None:
             paths = self.paths
-    
+
         for index, onepath in enumerate(paths):
             if index == limit:
                 raise StopIteration
@@ -313,7 +313,7 @@ class TextFileStreamer(BaseStreamer):
             a valid VW "Tag".  I.e. contains :, |, ', or whitespace.
             If False, print warning.
         """
-        # Note:  This is similar to declass/cmd/files_to_vw.py
+        # Note:  This is similar to rosetta/cmd/files_to_vw.py
         # This implementation is more complicated, due to the fact that a
         # streamer specifies the method to extract doc_id from a stream.
         # To be faithful to the streamer, we must therefore use the streamer

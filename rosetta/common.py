@@ -4,7 +4,7 @@ Common functions/classes for dataprep.
 import numpy as np
 import cPickle
 import itertools
-import os 
+import os
 import re
 import sys
 import shutil
@@ -182,6 +182,14 @@ class BadDataError(Exception):
     pass
 
 
+class TokenError(Exception):
+    """
+    Raise when tokens are passed to a method/function and you don't know how
+    to deal with them.
+    """
+    pass
+
+
 class ConfigurationSyntaxError(Exception):
     """
     Dummy class that is exactly like the Exception class.
@@ -220,13 +228,13 @@ def print_dicts(dicts, prepend_str=''):
 
 
 ###############################################################################
-# Functions for converting various format files to .txt 
+# Functions for converting various format files to .txt
 ###############################################################################
 def file_to_txt(file_path, dst_dir):
     """
-    Takes a file path and writes the file in txt format to dst_dir. 
+    Takes a file path and writes the file in txt format to dst_dir.
     If file is alread .txt, then simply copies the file.
-    
+
     Notes
     -----
     Currently only support pdf, txt, doc and docx.
@@ -240,17 +248,17 @@ def file_to_txt(file_path, dst_dir):
     name, ext = os.path.splitext(file_name)
     ext = re.sub(r'\.', '', ext)
     try:
-        out = eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt() 
+        out = eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt()
         if out: sys.stdout.write('unable to process file %s'%file_path)
     except NameError:
-        sys.stdout.write('file type %s not supported, skipping %s \n'%(ext, 
+        sys.stdout.write('file type %s not supported, skipping %s \n'%(ext,
             file_name))
         pass
 
 def _filepath_clean_copy(file_path):
     """
     creates a copy of the file with chars which need to be escapes
-    replaced with a '_'; 
+    replaced with a '_';
 
     Returns
     -------
@@ -271,7 +279,7 @@ def _filepath_clean_copy(file_path):
 
 def _txt_to_txt(file_path, dst_dir):
     """
-    Simply copies the file to the target dir.    
+    Simply copies the file to the target dir.
     """
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, file_name)
@@ -286,13 +294,13 @@ def _pdf_to_txt(file_path, dst_dir):
     Notes
     -----
     Download and install Xpdf from http://www.foolabs.com/xpdf/download.html
-    Follow the instruciton in INSTALL - should work on most *nix systems. 
+    Follow the instruciton in INSTALL - should work on most *nix systems.
     """
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'\.pdf$', '.txt', file_name))
     with open(file_dst, 'w') as f:
         return subprocess.call(["pdftotext",  "-layout", file_path], stdout=f)
-    
+
 
 def _doc_to_txt(file_path, dst_dir):
     """
@@ -301,7 +309,7 @@ def _doc_to_txt(file_path, dst_dir):
 
     Notes
     -----
-    To install catdoc: 
+    To install catdoc:
         apt-get catdoc on unix/linux
         brew install on mac
     """
@@ -313,7 +321,7 @@ def _doc_to_txt(file_path, dst_dir):
 
 def _docx_to_txt(file_path, dst_dir):
     """
-    Uses the docx python module to extract text from a docx file and save 
+    Uses the docx python module to extract text from a docx file and save
     to .txt in dst_dir.
     """
     file_name = os.path.split(file_path)[1]
