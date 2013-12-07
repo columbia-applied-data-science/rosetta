@@ -422,44 +422,7 @@ class LDAResults(object):
 
         return df
 
-    def predict_old(self, tokenized_text):
-        """
-        Returns a probability distribution over topics given that a (tokenized)
-        document is equal to tokenized_text.
-
-        This is NOT equivalent to prob_token_topic(c_token=tokenized_text),
-        since that is an OR statement about the tokens, and this is an AND.
-
-        Parameters
-        ----------
-        tokenized_text : List of strings
-            Represents the tokens that are in some document text.
-
-        Returns
-        -------
-        prob_topics : Series
-            self.pr_topic_g_doc is an example of a (large) frame of this type.
-
-        Notes
-        -----
-        P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)
-                              = P(topic) P(tok1 | topic) P(tok2 | topic)
-        """
-        # P(topic | tok1, tok2) \propto P(topic) P(tok1, tok2 | topic)
-        # = P(topic) P(tok1 | topic) P(tok2 | topic)
-
-        # Multiply out P(tok1 | topic) P(tok2 | topic)
-        na_val = 1. / self.num_topics
-        fun = lambda tok: (
-            self.prob_token_topic(token=tok, topic=self.topics).fillna(na_val)
-            .values.ravel())
-        probs = reduce(
-            lambda x, y: x * y, (fun(tok) for tok in tokenized_text))
-
-        # Multiply by P(topic)
-        probs = self.pr_topic * probs
-
-        return probs / probs.sum()
+ 
 
     def predict(
         self, tokenized_text, maxiter=50, atol=1e-3, raise_on_unknown=False):
