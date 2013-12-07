@@ -9,6 +9,9 @@ import re
 import sys
 import shutil
 import subprocess
+import functools
+
+from collections import defaultdict
 
 from docx import opendocx, getdocumenttext
 from unidecode import unidecode
@@ -345,6 +348,17 @@ def nested_defaultdict(default_factory, levels=1):
     >>> mydict = nested_defaultdict(int, levels=2)
     >>> mydict['michigan']['ann-arbor'] = 150000
     """
+    if not isinstance(levels, int) or (levels < 1):
+        raise ValueError("levels =%s, should be a postitive integer" % levels)
+
+    def nestone():
+        """Used in place of a lambda to allow pickling"""
+        return nested_defaultdict(default_factory, levels - 1)
+
+    if levels == 1:
+        return defaultdict(default_factory)
+    else:
+        return defaultdict(nestone)
 
 
 ###############################################################################
@@ -353,7 +367,7 @@ def nested_defaultdict(default_factory, levels=1):
 
 
 ###############################################################################
-# Misc.
+# Functional
 ###############################################################################
 
 def grouper(iterable, chunksize, fillvalue=None):
@@ -373,3 +387,11 @@ def grouper(iterable, chunksize, fillvalue=None):
     args = [iter(iterable)] * chunksize
 
     return itertools.izip_longest(fillvalue=fillvalue, *args)
+
+
+def compose(*functions):
+    def compose2(f, g):
+        def f_g(x):
+            return f(g(x))
+        return f_g
+    return functools.reduce(compose2, functions)
