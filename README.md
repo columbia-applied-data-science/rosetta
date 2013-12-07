@@ -91,6 +91,7 @@ Releases
 * Github: Rosetta releases are hosted [here](https://github.com/columbia-applied-data-science/rosetta/releases) and you can create new releases via "draft new release."
 * PiPy: Rosetta releases are hosted [here](https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=rosetta). As a registered owner you can create a release by:
 
+
     python setup.py register
     python setup.py sdist upload
 
