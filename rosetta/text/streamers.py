@@ -313,7 +313,7 @@ class TextFileStreamer(BaseStreamer):
             a valid VW "Tag".  I.e. contains :, |, ', or whitespace.
             If False, print warning.
         """
-        # Note:  This is similar to declass/cmd/files_to_vw.py
+        # Note:  This is similar to rosetta/cmd/files_to_vw.py
         # This implementation is more complicated, due to the fact that a
         # streamer specifies the method to extract doc_id from a stream.
         # To be faithful to the streamer, we must therefore use the streamer

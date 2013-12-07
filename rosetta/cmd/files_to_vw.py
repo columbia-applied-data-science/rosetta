@@ -8,8 +8,8 @@ from functools import partial
 import sys
 from random import shuffle
 
-from declass.utils import filefilter, text_processors
-from declass.utils.common import SaveLoad
+from rosetta.text import filefilter, text_processors
+from common_abc import SaveLoad
 
 from rosetta.parallel.parallel_easy import imap_easy
 

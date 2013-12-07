@@ -5,8 +5,7 @@ Filters an sfile, reading from a file or stdin, writing to a file or stdout.
 import argparse
 import sys
 
-from declass.utils.text_processors import SFileFilter
-
+from rosetta.text.text_processors import SFileFilter
 
 def _cli():
     # Text to display after help
