@@ -9,7 +9,7 @@ import sys
 from random import shuffle
 
 from rosetta.text import filefilter, text_processors
-from common_abc import SaveLoad
+from rosetta.common_abc import SaveLoad
 
 from rosetta.parallel.parallel_easy import imap_easy
 
