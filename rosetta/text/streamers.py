@@ -173,7 +173,7 @@ class TextFileStreamer(BaseStreamer):
         text_base_path : string or None
             Base path to dir containing files.
         file_type : String
-            String to filter files with.  E.g. '*.txt'.  
+            String to filter files with.  E.g. '*.txt'.
             Note that the filenames will be converted to lowercase before
             this comparison.
         name_strip : raw string
@@ -273,7 +273,7 @@ class TextFileStreamer(BaseStreamer):
             paths = [self._doc_id_to_path[str(doc)] for doc in doc_id]
         elif paths is None:
             paths = self.paths
-    
+
         for index, onepath in enumerate(paths):
             if index == limit:
                 raise StopIteration

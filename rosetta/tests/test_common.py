@@ -53,7 +53,7 @@ class TestCommon(unittest.TestCase):
             os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
         else:
             sys.stdout.write('Please install unix utility pdftotext')
-        
+
         if cmd_exists('catdoc'):
             common.file_to_txt(self.testdoc_path, self.testtemp_path)
             tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
@@ -62,7 +62,7 @@ class TestCommon(unittest.TestCase):
             os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
         else:
             sys.stdout.write('Please install unix utility catdoc')
-        
+
         common.file_to_txt(self.testpdf_path, self.testtemp_path)
         tempdocx_path = os.path.join(self.testtemp_path, 'test.txt')
         with open(tempdocx_path) as f:
@@ -79,8 +79,8 @@ class TestCommon(unittest.TestCase):
 
     def tearDown(self):
         self.outfile.close()
-        
+
 
 def cmd_exists(cmd):
-    return subprocess.call("type " + cmd, shell=True, 
+    return subprocess.call("type " + cmd, shell=True,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0

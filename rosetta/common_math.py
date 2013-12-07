@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from numpy.random import choice
 
+from scipy.sparse import isspmatrix
 
 def pandas_to_ndarray_wrap(X, copy=True):
     """
@@ -33,7 +34,7 @@ def pandas_to_ndarray_wrap(X, copy=True):
     elif isinstance(X, pd.DataFrame):
         return X.values, lambda Z: pd.DataFrame(
             Z, index=X.index, columns=X.columns)
-    elif isinstance(X, np.ndarray):
+    elif isinstance(X, np.ndarray) or isspmatrix(X):
         return X, lambda Z: Z
     else:
         raise ValueError("Unhandled type: %s" % type(X))
