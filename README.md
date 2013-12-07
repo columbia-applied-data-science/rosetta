@@ -95,6 +95,7 @@ Releases
     python setup.py register
     python setup.py sdist upload
 
+
 Note: update the release version in setup.py and make sure to upload a new documentation version (see Documenation).:
 
 History
