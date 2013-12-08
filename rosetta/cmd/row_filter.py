@@ -16,16 +16,16 @@ def _cli():
     Examples
     ---------
     Keep rows in curriculum.csv where subject contains 'algebra'
-    $ python row_filter.py -n subject -C algebra curriculum.csv
+    $ row_filter.py -n subject -C algebra curriculum.csv
 
     Keep rows in curriculum.csv where subject doesn't contain 'algebra'
-    $ python row_filter.py -n subject -c algebra curriculum.csv
+    $ row_filter.py -n subject -c algebra curriculum.csv
 
     Keep rows in curriculum.csv where subject equals 'algebra'
-    $ python row_filter.py -n subject -E algebra curriculum.csv
+    $ row_filter.py -n subject -E algebra curriculum.csv
 
     Keep rows in curriculum.csv where subject doesn't equal 'algebra'
-    $ python row_filter.py -n subject -e algebra curriculum.csv
+    $ row_filter.py -n subject -e algebra curriculum.csv
     """
     parser = argparse.ArgumentParser(
         description=globals()['__doc__'], epilog=epilog,

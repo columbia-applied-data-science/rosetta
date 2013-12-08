@@ -13,7 +13,7 @@ def _cli():
     EXAMPLES
 
     Read from stdin, write to stdout and pipe to vw
-    head myfile.vw | python filter_sfile.py -s saved_sfile_filter.pkl \
+    head myfile.vw | filter_sfile.py -s saved_sfile_filter.pkl \
         | vw --lda 5
     """
     parser = argparse.ArgumentParser(

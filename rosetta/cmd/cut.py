@@ -18,10 +18,10 @@ def main():
     Examples
     ---------
     Read a comma delimited csv file, data.csv, keep the 'name' column
-    $ python cut.py -k name test/commafile.csv
+    $ cut.py -k name test/commafile.csv
 
     Read a comma delimited csv file, data.csv, remove 'name', 'age' columns
-    $ python cut.py -r name,age test/commafile.csv
+    $ cut.py -r name,age test/commafile.csv
     """
     parser = argparse.ArgumentParser(
         description=globals()['__doc__'], epilog=epilog,
