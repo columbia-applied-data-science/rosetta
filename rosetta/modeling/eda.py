@@ -1,6 +1,79 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import pylab as pl
+
+import statsmodels.api as sm
+from scipy.cluster.hierarchy import linkage, dendrogram
+from scipy.spatial.distance import squareform
+
+
+def plot_corr_grid(
+    corr, cluster=True, cluster_method='weighted', **fig_kwargs):
+    """
+    Plot a correlation matrix as a grid.
+
+    Parameters
+    ----------
+    corr : numpy ndarray or pandas DataFrame
+    cluster : Boolean
+        If True, reorder the matrix putting correlated entries nearby.
+    cluster_method : String
+        Method to use to amalgomate clusters.
+        Either 'single', 'complete', 'average', or 'weighted'.
+        See scipy.cluster.hierarchy.linkage for details.
+    """
+    fig_kwargs.setdefault('figsize', (8, 8))
+
+    # Convert to a DataFrame in all cases.
+    if not isinstance(corr, pd.DataFrame):
+        names = range(len(corr))
+        corr = pd.DataFrame(corr, index=names, columns=names)
+    else:
+        names = corr.index.tolist()
+
+    # If you're clustering, reorder the matrix.
+    if cluster:
+        corr = corr.copy()
+        dist = (1 - corr) / 2.
+        Z = linkage(squareform(dist.values), method=cluster_method)
+        idx_order = dendrogram(Z, no_plot=True)['ivl']
+        names = [names[int(i)] for i in idx_order]
+        corr = corr.reindex(index=names, columns=names)
+
+    fig = sm.graphics.plot_corr(corr, xnames=names, ynames=names)
+    fig.set_size_inches(fig_kwargs['figsize'])
+
+
+def plot_corr_dendrogram(
+    corr, cluster_method='weighted', dendrogram_kwags={}, **fig_kwargs):
+    """
+    Plot a correlation matrix as a dendrogram.
+
+    Parameters
+    ----------
+    corr : numpy ndarray or pandas DataFrame
+    cluster_method : String
+        Method to use to amalgomate clusters.
+        Either 'single', 'complete', 'average', or 'weighted'.
+        See scipy.cluster.hierarchy.linkage for details.
+    dendrogram_kwags : Dict of kwargs
+        Pass to the call of scipy.cluster.hierarchy.dendrogram()
+    fig_kwargs : Additional kwargs
+        Passed to plt.figure() before plotting of dendrogram.
+    """
+    # Convert to a DataFrame in all cases.
+    if not isinstance(corr, pd.DataFrame):
+        names = range(len(corr))
+    else:
+        names = corr.index.tolist()
+        corr = corr.values
+
+    dist = (1 - corr) / 2.
+    Z = linkage(squareform(dist), method=cluster_method)
+
+    plt.figure(**fig_kwargs)
+    dendrogram(Z, labels=names, **dendrogram_kwags)
 
 
 def plot_scatterXY(x, y, stride=1, plot_XequalsY=False, **plt_kwargs):
@@ -14,7 +87,7 @@ def plot_scatterXY(x, y, stride=1, plot_XequalsY=False, **plt_kwargs):
         If stride == n, then plot only every nth point
     plot_XequalsY : Boolean
         If True, plot the line X = Y in red.
-    plt_kwargs : Additional kwargs to pass to plt
+    plt_kwargs : Additional kwargs to pass to plt.scatter
     """
     if isinstance(x, pd.Series) or isinstance(x, pd.DataFrame):
         xname = x.name if x.name else 'X'
@@ -26,16 +99,15 @@ def plot_scatterXY(x, y, stride=1, plot_XequalsY=False, **plt_kwargs):
     else:
         yname = 'Y'
 
-    x_vals = x[::stride]
-    y_vals = y[::stride]
+    x = x[::stride]
+    y = y[::stride]
+    if 'c' in plt_kwargs:
+        plt_kwargs['c'] = plt_kwargs['c'][::stride]
 
     if plot_XequalsY:
-        plt.plot(x_vals, x_vals, 'r-')
+        plt.plot(x, x, 'r-')
 
-    plt_kwargs['linestyle'] = ' '
-    plt_kwargs['marker'] = '.'
-
-    plt.plot(x_vals, y_vals, **plt_kwargs)
+    plt.scatter(x, y, **plt_kwargs)
     plt.xlabel(xname)
     plt.ylabel(yname)
 
@@ -181,33 +253,6 @@ def get_labels(series, bins=10, quantiles=False):
             labels[i] = mid
 
     return labels
-
-
-def get_decent_cols(df, col_list_to_choose_from=None, null_frac=0.9):
-    """
-    Returns a list of columns such that the fraction of nulls is less than
-    null_frac.
-
-    Parameters
-    ----------
-    df : Pandas.DataFrame
-    col_list_to_choose_from : list or None
-        Only consider these columns.  If None, consider all columns in df
-    null_frac : Numeric, between 0 and 1
-        Maximum allowed fraction of nulls in a "decent" column
-    """
-    assert (null_frac <= 1) and (null_frac >= 0)
-
-    if col_list_to_choose_from is None:
-        col_list_to_choose_from = df.columns
-
-    decent_cols = []
-    for col_name in col_list_to_choose_from:
-        col = df[col_name]
-        if col.isnull().sum() < null_frac * len(col):
-            decent_cols.append(col_name)
-
-    return decent_cols
 
 
 def hist_cols(
