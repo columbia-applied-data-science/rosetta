@@ -187,7 +187,7 @@ class SmartStore(object):
                 row['mean'] = self.sums[k] / float(self.counts[k])
 
             yield row
-        
+
 
 if __name__ == '__main__':
     main()

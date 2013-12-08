@@ -350,7 +350,7 @@ class TestGroupbyReduce(unittest.TestCase):
     def test_gr_1(self):
         groupby_reduce.groupby_reduce(
             self.infile_1, self.outfile, ',', ['name'],
-            'age', ['count', 'mean', 'sum']) 
+            'age', ['count', 'mean', 'sum'])
         results = self.outfile.getvalue()
         self.assertEqual(
             results,
@@ -360,7 +360,7 @@ class TestGroupbyReduce(unittest.TestCase):
     def test_gr_2(self):
         groupby_reduce.groupby_reduce(
             self.infile_1, self.outfile, ',', ['name', 'cit'],
-            'age', ['count', 'mean', 'sum']) 
+            'age', ['count', 'mean', 'sum'])
         results = self.outfile.getvalue()
         self.assertEqual(
             results,
@@ -371,21 +371,21 @@ class TestGroupbyReduce(unittest.TestCase):
     def test_gr_3(self):
         groupby_reduce.groupby_reduce(
             self.infile_1, self.outfile, ',', ['name'],
-            'name', []) 
+            'name', [])
         results = self.outfile.getvalue()
         self.assertEqual(results, 'name\r\ndan\r\nian\r\n')
 
     def test_gr_4(self):
         groupby_reduce.groupby_reduce(
             self.infile_1, self.outfile, ',', ['name'],
-            None, []) 
+            None, [])
         results = self.outfile.getvalue()
         self.assertEqual(results, 'name\r\ndan\r\nian\r\n')
 
     def test_gr_4(self):
         groupby_reduce.groupby_reduce(
             self.infile_1, self.outfile, ',', ['name', 'other'],
-            'age', ['sum']) 
+            'age', ['sum'])
         results = self.outfile.getvalue()
         self.assertEqual(
             results, 'name,other|sum\r\nian,2|112.0\r\ndan,7|2.0\r\n')
@@ -393,7 +393,7 @@ class TestGroupbyReduce(unittest.TestCase):
     def test_gr_5(self):
         groupby_reduce.groupby_reduce(
             self.infile_1, self.outfile, ',', ['name', 'cit'],
-            'other', ['sum']) 
+            'other', ['sum'])
         results = self.outfile.getvalue()
         self.assertEqual(
             results, 'name,cit|sum\r\ndan,fr|7.0\r\nian,us|4.0\r\n')
@@ -401,8 +401,9 @@ class TestGroupbyReduce(unittest.TestCase):
     def test_gr_6(self):
         groupby_reduce.groupby_reduce(
             self.infile_1, self.outfile, ',', ['name', 'cit'],
-            'age', ['mean']) 
+            'age', ['mean'])
         results = self.outfile.getvalue()
         self.assertEqual(
             results,
-            'name,cit|mean\r\ndan,uk|22.0\r\nian,uk|11.0\r\nian,us|56.0\r\ndan,fr|2.0\r\n')
+            'name,cit|mean\r\ndan,uk|22.0\r\nian,uk|11.0\r\nian,us|56.0\r\ndan'
+            ',fr|2.0\r\n')

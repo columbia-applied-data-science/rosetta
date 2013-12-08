@@ -422,7 +422,7 @@ class LDAResults(object):
 
         return df
 
- 
+
 
     def predict(
         self, tokenized_text, maxiter=50, atol=1e-3, raise_on_unknown=False):
