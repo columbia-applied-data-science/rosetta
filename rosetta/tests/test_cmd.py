@@ -302,39 +302,98 @@ class TestGroupbyReduce(unittest.TestCase):
     """
     def setUp(self):
         self.outfile = StringIO()
-        self.ns_1 = groupby_reduce.NestedStore(['count', 'sum', 'mean'], None, 1)
-        self.ns_2 = groupby_reduce.NestedStore(['count', 'sum'], None, 1)
-        self.ns_3 = groupby_reduce.NestedStore(['count', 'sum', 'mean'], None, 2)
+        self.ss_1 = groupby_reduce.SmartStore(['count', 'sum', 'mean'])
+        self.ss_2 = groupby_reduce.SmartStore(['count', 'sum'])
+        self.ss_3 = groupby_reduce.SmartStore(['count'])
+        self.ss_4 = groupby_reduce.SmartStore([])
 
-    def test_ns_add_11(self):
-        self.ns_1.add(['a'], 0.1)
-        self.assertEqual(self.ns_1.sums, {'a': 0.1})
-        self.assertEqual(self.ns_1.counts, {'a': 1})
-        results = self.ns_1.results()
+        self.infile_1 = StringIO(
+            "name,cit,age,other\n"
+            "ian,us,1,2\n"
+            "ian,us,111,2\n"
+            "ian,uk,11,\n"
+            "dan,fr,2,7\n"
+            "dan,uk,22,")
 
-    def test_ns_12(self):
-        self.ns_1.add(['a'], 0.1)
-        self.ns_1.add(['a'], 0.1)
-        self.assertEqual(self.ns_1.sums, {'a': 0.2})
-        self.assertEqual(self.ns_1.counts, {'a': 2})
+    def test_ss_add_11(self):
+        self.ss_1.add('a', 0.1)
+        self.assertEqual(self.ss_1.sums, {'a': 0.1})
+        self.assertEqual(self.ss_1.counts, {'a': 1})
 
-    def test_ns_13(self):
-        self.ns_1.add(['a'], 0.1)
-        self.ns_1.add(['b'], 0.5)
-        self.ns_1.add(['a'], 0.1)
-        self.assertEqual(self.ns_1.sums, {'a': 0.2, 'b': 0.5})
-        self.assertEqual(self.ns_1.counts, {'a': 2, 'b': 1})
+    def test_ss_12(self):
+        self.ss_1.add('a', 0.1)
+        self.ss_1.add('a', 0.1)
+        self.assertEqual(self.ss_1.sums, {'a': 0.2})
+        self.assertEqual(self.ss_1.counts, {'a': 2})
 
-    def test_ns_23(self):
-        self.ns_2.add(['a'], 0.1)
-        self.ns_2.add(['b'], 0.5)
-        self.ns_2.add(['a'], 0.1)
-        self.assertEqual(self.ns_2.sums, {'a': 0.2, 'b': 0.5})
-        self.assertEqual(self.ns_2.counts, {'a': 2, 'b': 1})
+    def test_ss_13(self):
+        self.ss_1.add('a', 0.1)
+        self.ss_1.add('b', 0.5)
+        self.ss_1.add('a', 0.1)
+        self.assertEqual(self.ss_1.sums, {'a': 0.2, 'b': 0.5})
+        self.assertEqual(self.ss_1.counts, {'a': 2, 'b': 1})
 
-    def test_ns_31(self):
-        self.ns_3.add(['a', 'a'], 0.1)
-        self.ns_3.add(['a', 'a'], 0.1)
-        self.ns_3.add(['a', 'b'], 0.5)
-        self.assertEqual(self.ns_3.sums, {'a': {'a': 0.2, 'b': 0.5}})
-        self.assertEqual(self.ns_3.counts, {'a': {'a': 2, 'b': 1}})
+    def test_ss_23(self):
+        self.ss_2.add('a', 0.1)
+        self.ss_2.add('b', 0.5)
+        self.ss_2.add('a', 0.1)
+        self.assertEqual(self.ss_2.sums, {'a': 0.2, 'b': 0.5})
+        self.assertEqual(self.ss_2.counts, {'a': 2, 'b': 1})
+
+    def test_ss_31(self):
+        self.ss_3.add('a', 0.1)
+        self.ss_3.add('a', 0.1)
+        self.ss_3.add('b', 0.2)
+        self.assertEqual(self.ss_3.counts, {'a': 2, 'b': 1})
+        self.assertEqual(self.ss_3.sums, {})
+
+    def test_gr_1(self):
+        groupby_reduce.groupby_reduce(
+            self.infile_1, self.outfile, ',', ['name'],
+            'age', ['count', 'mean', 'sum']) 
+        results = self.outfile.getvalue()
+        self.assertEqual(
+            results,
+            'name|count|mean|sum\r\ndan|2|12.0|24.0\r\nian|3|41.0|'
+            '123.0\r\n')
+
+    def test_gr_2(self):
+        groupby_reduce.groupby_reduce(
+            self.infile_1, self.outfile, ',', ['name', 'cit'],
+            'age', ['count', 'mean', 'sum']) 
+        results = self.outfile.getvalue()
+        self.assertEqual(
+            results,
+            'name,cit|count|mean|sum\r\ndan,uk|1|22.0|22.0\r\nian,uk|1'
+            '|11.0|11.0\r\nian,us|2|56.0|112.0\r\ndan,fr|1|2.0|2.0\r\n'
+            )
+
+    def test_gr_3(self):
+        groupby_reduce.groupby_reduce(
+            self.infile_1, self.outfile, ',', ['name'],
+            'name', []) 
+        results = self.outfile.getvalue()
+        self.assertEqual(results, 'name\r\ndan\r\nian\r\n')
+
+    def test_gr_4(self):
+        groupby_reduce.groupby_reduce(
+            self.infile_1, self.outfile, ',', ['name'],
+            None, []) 
+        results = self.outfile.getvalue()
+        self.assertEqual(results, 'name\r\ndan\r\nian\r\n')
+
+    def test_gr_4(self):
+        groupby_reduce.groupby_reduce(
+            self.infile_1, self.outfile, ',', ['name', 'other'],
+            'age', ['sum']) 
+        results = self.outfile.getvalue()
+        self.assertEqual(
+            results, 'name,other|sum\r\nian,2|112.0\r\ndan,7|2.0\r\n')
+
+    def test_gr_5(self):
+        groupby_reduce.groupby_reduce(
+            self.infile_1, self.outfile, ',', ['name', 'cit'],
+            'other', ['sum']) 
+        results = self.outfile.getvalue()
+        self.assertEqual(
+            results, 'name,cit|sum\r\ndan,fr|7.0\r\nian,us|4.0\r\n')

@@ -1,17 +1,16 @@
 #!/usr/bin/env python
 """
-Streaming version of groupby then reduce.  Prints a tab delimited report with
+Streaming version of groupby then reduce.  Prints a pipe delimited report with
 header e.g.
 
-name    count   sum     mean
-smith   1000    239     0.239
-jones   100     532     5.32
+key|count|sum|mean
+smith|1000|239|0.239
+jones|100|532|5.32
 
 
 Note
 ----
-Requires storing keys and reduced values in memory.  Use --lastkey_limit to
-protect memory.
+Requires storing keys and reduced values in memory.
 """
 import argparse
 import csv
@@ -60,7 +59,8 @@ def main():
         )
     parser.add_argument(
         "-r", "--reduce_column", default=None,
-        help="Column to use for reductions")
+        help="Column to use for reductions.  If you're only counting then this"
+        " defaults to key_columns[0]")
     parser.add_argument(
         "-c", "--count", action='store_true', default=False,
         help="Count the number of non-missing entries in reduce_column for "
@@ -73,13 +73,6 @@ def main():
         "-m", "--mean", action='store_true', default=False,
         help="Get mean value of non-missing entries in reduce_column for each"
         " group")
-    parser.add_argument(
-        "-l", "--lastkey_limit", type=int,
-        help="If you have one key, e.g. --key_columns=k1, only store "
-        "LASTKEY_LIMIT unique values for it.  In the case of two "
-        "key_columns, say --key_columns=k1,k2 , only store the "
-        "LASTKEY_LIMIT number of unique values of k2 for every unique k1 (so "
-        "all unique values of k1 are stored).") 
     # Parse args
     args = parser.parse_args()
 
@@ -102,101 +95,96 @@ def main():
     ## Call the function that does the real work
     groupby_reduce(
         args.infile, args.outfile, args.delimiter, key_columns,
-        args.reduce_column, args.lastkey_limit, reductions)
+        args.reduce_column, reductions)
 
 
 def groupby_reduce(
-    infile, outfile, delimiter, key_columns, reduce_column, reductions,
-    lastkey_limit):
+    infile, outfile, delimiter, key_columns, reduce_column, reductions):
     """
-    Write later, if module interface is needed.
+    Write later, if module interface is needed.  For now see main for docs.
     """
+    if reductions == ['count'] and reduce_column is None:
+        reduce_column = key_columns[0]
+    elif reductions:
+        assert reduce_column, "If reducing, must supply reduce_column"
+
     reader = csv.DictReader(infile, delimiter=delimiter)
+    keyname = ','.join(key_columns)
+    writer = csv.DictWriter(
+        outfile, delimiter='|', fieldnames=[keyname] + reductions)
+    writer.writeheader()
 
-    row_store = NestedStore(reductions, lastkey_limit, len(self.key_columns))
+    store = SmartStore(reductions)
 
+    # Populate store
     for row in reader:
         # Only add keys that are not ''
-        keys = [row[k] for k in self.key_columns if k]
-        val = row[reduce_column]
+        keys = [row[k] for k in key_columns if row[k]]
+        val = row[reduce_column] if reduce_column else 'NA'
         # Only add rows with entries in key_columns and reduce_column.
-        if val and (len(keys) == len(self.key_columns)):
-            row_store.add(keys, val)
+        if val and (len(keys) == len(key_columns)):
+            store.add(','.join(keys), val)
+
+    # Write results
+    for row in store.iterresults():
+        row[keyname] = row.pop('key')
+        writer.writerow(row)
 
 
-class NestedStore(object):
+class SmartStore(object):
     """
-    To store info from every row.
+    To store needed info from every row, and nothing more.
     """
-    def __init__(self, reductions, lastkey_limit, num_keys):
+    def __init__(self, reductions):
         """
         Parameters
         ----------
-        See the CLI documentation.
+        reductions : String or list of strings
+            Reductions to use.  Determines data stored to some extent.
         """
+        if isinstance(reductions, basestring):
+            reductions = [reductions]
+
         self.reductions = reductions
-        self.lastkey_limit = lastkey_limit
-        self.num_keys = num_keys
 
         # To hold the values of final key (floats) and count of occurences.
         # E.g. self.counts = {'key1': {'key2': 55}}
-        self.sums = common.nested_defaultdict(float, levels=num_keys)
-        self.counts = common.nested_defaultdict(int, levels=num_keys)
+        self.sums = defaultdict(float)
+        self.counts = defaultdict(int)
 
-    def add(self, keys, val):
-        # This recurses through self.counts and finds the lowest level dict.
-        # We will do things such as subdict[keys[-1]] += 1
-        c_subdict = reduce(lambda d, k: d[k], keys[: -1], self.counts)
+    def add(self, key, val):
+        """
+        Add a new key,val pair to appropriate dictionaries.
 
-        # If the c_subdict already has too many keys, and this is a new key,
-        # return.
-        if self.lastkey_limit and (len(c_subdict) > self.lastkey_limit):
-            if not common.nested_keysearch(self.counts, keys):
-                return
-
+        Parameters
+        ----------
+        key : Hashable
+        val : Anything
+        """
         # Always count the unique values...we don't have to print this.
-        # Since c_subdict is a defaultdict, this may add a new key.
-        c_subdict[keys[-1]] += 1
+        self.counts[key] += 1
 
         # Update sum
         if ('mean' in self.reductions) or ('sum' in self.reductions):
             val = float(val)
-            s_subdict = reduce(lambda d, k: d[k], keys[: -1], self.sums)
-            s_subdict[keys[-1]] += val
+            self.sums[key] += val
 
-    def results(self):
+    def iterresults(self):
         """
-        Returns dictionary of results.
+        Returns iterator over results.
         """
-        keys = self.counts.keys()
-        results = {'count': {}}
-        self._add_items(self.counts, results['count'])
+        for k in self.counts.iterkeys():
+            row = {'key': k}
 
-        if 'sum' in self.reductions or 'mean' in self.reductions:
-            results['sum'] = {}
-            self._add_items(self.sums, results['sum'])
+            if 'count' in self.reductions:
+                row['count'] = self.counts[k]
+            if 'sum' in self.reductions:
+                row['sum'] = self.sums[k]
+            if 'mean' in self.reductions:
+                row['mean'] = row['sum'] / float(row['count'])
 
-        if 'mean' in self.reductions:
-            results['mean'] = {}
-            for k in results['count']:
-                count = results['count'][k]
-                sum_ = results['sum'][k]
-                results['mean'][k] = float(sum_) / count
-
-        return results
-
-    def _add_items(self, ndict, items):
-        for k in ndict:
-            v = ndict[k]
-            if isinstance(v, dict) or isinstance(v, defaultdict):
-                self._add_items(v, items)
-            else:
-                items[k] = v
-
-    @property
-    def mean(self, key):
-        pass
-
+            yield row
+        
 
 if __name__ == '__main__':
     main()
