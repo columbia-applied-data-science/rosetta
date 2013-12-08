@@ -1,16 +1,18 @@
 #!/usr/bin/env python
 """
-Streaming version of groupby then reduce.  Prints a pipe delimited report with
-header e.g.
+Streaming implementation of groupby then reduce.  Prints a delimited report
+with header e.g.
 
-key|count|sum|mean
+name|count|sum|mean
 smith|1000|239|0.239
 jones|100|532|5.32
 
-
 Note
 ----
-Requires storing keys and reduced values in memory.
+Works in O(N) time but stores unique keys and reduced values in memory.  If you
+have K unique keys, O(K) storage is required.
+Assumes the first row is a header.  Skips rows with missing entries in either
+key_columns or reduce_column.
 """
 import argparse
 import csv
@@ -22,9 +24,6 @@ from rosetta import common
 
 def main():
     epilog = r"""
-    Assumes the first row is a header.
-    Skips rows with missing entries in either key_columns or reduce_column.
-    By default reads from stdin, writes to stdout.
 
     EXAMPLES
     ---------
@@ -41,38 +40,42 @@ def main():
         description=globals()['__doc__'], epilog=epilog,
         formatter_class=argparse.RawDescriptionHelpFormatter)
 
-    parser.add_argument(
+    iogroup = parser.add_argument_group('I/O Options')
+    iogroup.add_argument(
         'infile', nargs='?', type=argparse.FileType('r'), default=sys.stdin,
         help='Convert this file.  If not specified, read from stdin.')
-    parser.add_argument(
+    iogroup.add_argument(
         '-o', '--outfile', default=sys.stdout, type=argparse.FileType('w'),
         help='Write to OUT_FILE rather than sys.stdout.')
-
-    parser.add_argument(
+    iogroup.add_argument(
         "-d", "--delimiter", default=',',
         help="Use DELIMITER as the column delimiter.  "
         " For tabs use one of -d t  -d tab -d \\t -d '\\t'"
         "[default: %(default)s]")
-    parser.add_argument(
+
+    columnspecs = parser.add_argument_group('Column choices')
+    columnspecs.add_argument(
         "-k", "--key_columns", required=True,
         help="Group according to key_columns.  String or comma-delimited list."
         )
-    parser.add_argument(
+    columnspecs.add_argument(
         "-r", "--reduce_column", default=None,
         help="Column to use for reductions.  If you're only counting then this"
-        " defaults to key_columns[0]")
-    parser.add_argument(
+        " defaults to key_columns[0].")
+
+    red = parser.add_argument_group('Reducers')
+    red.add_argument(
         "-c", "--count", action='store_true', default=False,
         help="Count the number of non-missing entries in reduce_column for "
-        "each group")
-    parser.add_argument(
+        "each group.")
+    red.add_argument(
         "-s", "--sum", action='store_true', default=False,
         help="Sum the values in non-missing entries in reduce_column for each"
-        " group")
-    parser.add_argument(
+        " group.")
+    red.add_argument(
         "-m", "--mean", action='store_true', default=False,
         help="Get mean value of non-missing entries in reduce_column for each"
-        " group")
+        " group.")
     # Parse args
     args = parser.parse_args()
 
@@ -181,7 +184,7 @@ class SmartStore(object):
             if 'sum' in self.reductions:
                 row['sum'] = self.sums[k]
             if 'mean' in self.reductions:
-                row['mean'] = row['sum'] / float(row['count'])
+                row['mean'] = self.sums[k] / float(self.counts[k])
 
             yield row
         
