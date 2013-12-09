@@ -51,38 +51,36 @@ following rules before submitting a pull request:
    the [numpy standard](https://github.com/numpy/numpy/blob/master/doc/HOWTO_DOCUMENT.rst.txt#docstring-standard).
 
 -  When adding additional functionality, provide at least one
-   example script in the ``examples/`` folder. Have a look at other
+   example script in the `examples/` folder. Have a look at other
    examples for reference. Examples should demonstrate why the new
    functionality is useful in practice and, if possible, compare it
    to other methods available in rosetta.
 
 -  At least one paragraph of narrative documentation with links to
-````   references in the literature (with PDF links when possible) and
+   references in the literature (with PDF links when possible) and
    the example.
 
-You can also check for common programming errors with the following
-tools:
+You can also check for common programming errors with
 
--  Code with good unittest coverage (at least 80%), check with:
+    make code-analysis
 
-          $ pip install nose coverage
-          $ nosetests --with-coverage path/to/tests_for_package
+Documentation
+-------------
 
--  No pyflakes warnings, check with:
+Documentation is hosted at [here](http://pythonhosted.org/rosetta).  This does NOT auto-update.  To make new docs:
 
-           $ pip install pyflakes
-           $ pyflakes path/to/module.py
+    cd docs/
+    make html
 
--  No PEP8 warnings, check with:
+Note: you need to upload this documentation manually on pypi.   You can create the proper zipfile with `make zip-docs`.
 
-           $ pip install pep8
-           $ pep8 path/to/module.py
+Releases
+--------
+* Github: Rosetta releases are hosted [here](https://github.com/columbia-applied-data-science/rosetta/releases) and you can create new releases via "draft new release."
+* PiPy: Rosetta releases are hosted [here](https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=rosetta). As a registered owner you can create a release by:
 
--  AutoPEP8 can help you fix some of the easy redundant errors:
-
-           $ pip install autopep8
-           $ autopep8 path/to/pep8.py
-
-Bonus points for contributions that include a performance analysis with
-a benchmark script and profiling output (please report on the mailing
-list or on the GitHub issue).
+1. Run all tests with `make test`
+2. Make new documentation (see the *Documenation* section).
+3. Update the release version in setup.py.  We will use [semantic versioning](http://semver.org/).
+4. Do `make release` to upload the installers to *PyPi*.
+5. Manually upload the new doc zip-file to *PyPi*.
