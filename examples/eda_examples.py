@@ -52,6 +52,8 @@ all_vars = pd.concat(
     [age, income, is_manager, has_porsche, has_hotwheels], axis=1)
 corr = all_vars.corr()
 
-
+fig = pl.figure(3); pl.clf()
 eda.plot_corr_grid(corr)
+
+fig = pl.figure(4); pl.clf()
 eda.plot_corr_dendrogram(corr)

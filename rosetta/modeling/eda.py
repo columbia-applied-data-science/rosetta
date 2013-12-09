@@ -9,7 +9,7 @@ from scipy.spatial.distance import squareform
 
 
 def plot_corr_grid(
-    corr, cluster=True, cluster_method='weighted', distance_fun=None,
+    corr, cluster=True, cluster_method='weighted', distance_fun=None, ax=None,
     **fig_kwargs):
     """
     Plot a correlation matrix as a grid.  Uses scipy.cluster.hierarchy.linkage
@@ -23,6 +23,8 @@ def plot_corr_grid(
     distance_fun : Function
         inter-variable distance = distance_fun(corr).
         If None, use (1 - corr) / 2.
+    ax : matplotlib AxesSubplot instance
+        If None, use pl.gca()
     cluster_method : String
         Method to use to amalgomate clusters.
         Either 'single', 'complete', 'average', or 'weighted'.
@@ -34,6 +36,9 @@ def plot_corr_grid(
     """
     fig_kwargs.setdefault('figsize', (8, 8))
 
+    if distance_fun is None:
+        distance_fun = lambda c: (1 - c) / 2.
+
     # Convert to a DataFrame in all cases.
     if not isinstance(corr, pd.DataFrame):
         names = range(len(corr))
@@ -44,13 +49,15 @@ def plot_corr_grid(
     # If you're clustering, reorder the matrix.
     if cluster:
         corr = corr.copy()
-        dist = (1 - corr) / 2.
+        dist = distance_fun(corr)
         Z = linkage(squareform(dist.values), method=cluster_method)
         idx_order = dendrogram(Z, no_plot=True)['ivl']
         names = [names[int(i)] for i in idx_order]
         corr = corr.reindex(index=names, columns=names)
 
-    fig = sm.graphics.plot_corr(corr, xnames=names, ynames=names)
+    if ax is None:
+        ax = pl.gca()
+    fig = sm.graphics.plot_corr(corr, xnames=names, ynames=names, ax=ax)
     fig.set_size_inches(fig_kwargs['figsize'])
 
     return fig
@@ -58,7 +65,7 @@ def plot_corr_grid(
 
 def plot_corr_dendrogram(corr, cluster_method='weighted', dendrogram_kwags={}):
     """
-    Plot a correlation matrix as a dendrogram (on the current figure).
+    Plot a correlation matrix as a dendrogram (on the current axes).
 
     Parameters
     ----------
@@ -83,7 +90,7 @@ def plot_corr_dendrogram(corr, cluster_method='weighted', dendrogram_kwags={}):
     dendrogram(Z, labels=names, **dendrogram_kwags)
 
 
-def plot_scatterXY(x, y, stride=1, plot_XequalsY=False, **plt_kwargs):
+def plot_scatterXY(x, y, stride=1, plot_XequalsY=False, ax=None, **plt_kwargs):
     """
     Plot a XY scatter plot of two Series.
 
