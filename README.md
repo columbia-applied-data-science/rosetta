@@ -83,20 +83,18 @@ Documentation is hosted at [here](http://pythonhosted.org/rosetta).  This does N
     cd docs/
     make html
 
-Note: you need to upload this documentation manually on pypi. 
-
+Note: you need to upload this documentation manually on pypi.   You can create the proper zipfile with `make zip-docs`.
 
 Releases
 --------
 * Github: Rosetta releases are hosted [here](https://github.com/columbia-applied-data-science/rosetta/releases) and you can create new releases via "draft new release."
 * PiPy: Rosetta releases are hosted [here](https://pypi.python.org/pypi?%3Aaction=pkg_edit&name=rosetta). As a registered owner you can create a release by:
 
-
-    python setup.py register
-    python setup.py sdist upload
-
-
-Note: update the release version in setup.py and make sure to upload a new documentation version (see Documenation).:
+1. Run all tests with `make test`
+2. Make new documentation (see the *Documenation* section).
+3. Update the release version in setup.py.  We will use [semantic versioning](http://semver.org/).
+4. Do `make release` to upload the installers to *PyPi*.
+5. Manually upload the new doc zip-file to *PyPi*.
 
 History
 -------
