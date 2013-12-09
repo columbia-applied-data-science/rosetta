@@ -9,19 +9,28 @@ from scipy.spatial.distance import squareform
 
 
 def plot_corr_grid(
-    corr, cluster=True, cluster_method='weighted', **fig_kwargs):
+    corr, cluster=True, cluster_method='weighted', distance_fun=None,
+    **fig_kwargs):
     """
-    Plot a correlation matrix as a grid.
+    Plot a correlation matrix as a grid.  Uses scipy.cluster.hierarchy.linkage
+    to compute clusters based on distance between variables. 
 
     Parameters
     ----------
     corr : numpy ndarray or pandas DataFrame
     cluster : Boolean
         If True, reorder the matrix putting correlated entries nearby.
+    distance_fun : Function
+        inter-variable distance = distance_fun(corr).
+        If None, use (1 - corr) / 2.
     cluster_method : String
         Method to use to amalgomate clusters.
         Either 'single', 'complete', 'average', or 'weighted'.
         See scipy.cluster.hierarchy.linkage for details.
+
+    Returns
+    -------
+    fig : matplotlib figure instance
     """
     fig_kwargs.setdefault('figsize', (8, 8))
 
@@ -44,11 +53,12 @@ def plot_corr_grid(
     fig = sm.graphics.plot_corr(corr, xnames=names, ynames=names)
     fig.set_size_inches(fig_kwargs['figsize'])
 
+    return fig
 
-def plot_corr_dendrogram(
-    corr, cluster_method='weighted', dendrogram_kwags={}, **fig_kwargs):
+
+def plot_corr_dendrogram(corr, cluster_method='weighted', dendrogram_kwags={}):
     """
-    Plot a correlation matrix as a dendrogram.
+    Plot a correlation matrix as a dendrogram (on the current figure).
 
     Parameters
     ----------
@@ -59,8 +69,6 @@ def plot_corr_dendrogram(
         See scipy.cluster.hierarchy.linkage for details.
     dendrogram_kwags : Dict of kwargs
         Pass to the call of scipy.cluster.hierarchy.dendrogram()
-    fig_kwargs : Additional kwargs
-        Passed to plt.figure() before plotting of dendrogram.
     """
     # Convert to a DataFrame in all cases.
     if not isinstance(corr, pd.DataFrame):
@@ -72,7 +80,6 @@ def plot_corr_dendrogram(
     dist = (1 - corr) / 2.
     Z = linkage(squareform(dist), method=cluster_method)
 
-    plt.figure(**fig_kwargs)
     dendrogram(Z, labels=names, **dendrogram_kwags)
 
 
