@@ -100,6 +100,12 @@ class TestRowFilter(unittest.TestCase):
         benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
         self.assertEqual(self.outfile.getvalue(), benchmark)
 
+    def test_regex(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'regex', '^alg.[a-z]ra$', '|')
+        benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
     def tearDown(self):
         self.outfile.close()
 

@@ -6,6 +6,7 @@ certain criteria.
 import argparse
 import sys
 import csv
+import re
 # Set the limit to 1 billion columns
 #csv.field_size_limit(10000000)
 
@@ -26,6 +27,9 @@ def _cli():
 
     Keep rows in curriculum.csv where subject doesn't equal 'algebra'
     $ row_filter.py -n subject -e algebra curriculum.csv
+
+    Keep rows in curriculum.csv where subject matches regex 'myregex'
+    $ row_filter.py -n subject -r myregex curriculum.csv
     """
     parser = argparse.ArgumentParser(
         description=globals()['__doc__'], epilog=epilog,
@@ -64,6 +68,10 @@ def _cli():
         "-e", "--not_equals",
         help="Column with name = NAME must not equal NOTEQUALS else we kill "
         "that row. ")
+    spec.add_argument(
+        "-r", "--regex",
+        help="Column with name = NAME must match regex else we kill "
+        "that row. ")
 
     args = parser.parse_args()
 
@@ -71,7 +79,7 @@ def _cli():
     if args.delimiter in ['t', '\\t', '\t', 'tab']:
         args.delimiter = '\t'
 
-    for mode in ['contains', 'equals', 'not_contains', 'not_equals']:
+    for mode in ['contains', 'equals', 'not_contains', 'not_equals', 'regex']:
         if args.__dict__[mode]:
             match_str = args.__dict__[mode]
             break
@@ -93,7 +101,8 @@ def filter_file(infile, outfile, name, mode, match_str, delimiter):
 
     mode_fun = {
         'contains': _check_contains, 'not_contains': _check_not_contains,
-        'equals': _check_equals, 'not_equals': _check_not_equals}
+        'equals': _check_equals, 'not_equals': _check_not_equals,
+        'regex': _check_regex}
 
     ## Iterate through the file, printing out lines
     for row in reader:
@@ -115,6 +124,10 @@ def _check_equals(item, match_str):
 
 def _check_not_equals(item, match_str):
     return not _check_equals(item, match_str)
+
+
+def _check_regex(item, match_str):
+    return re.match(match_str, item)
 
 
 if __name__ == '__main__':
