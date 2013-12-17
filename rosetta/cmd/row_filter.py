@@ -17,16 +17,19 @@ def _cli():
     Examples
     ---------
     Keep rows in curriculum.csv where subject contains 'algebra'
-    $ row_filter.py -n subject -C algebra curriculum.csv
-
-    Keep rows in curriculum.csv where subject doesn't contain 'algebra'
     $ row_filter.py -n subject -c algebra curriculum.csv
 
+    Keep rows in curriculum.csv where subject contains 'algebra' ignoring case
+    $ row_filter.py -n subject -c algebra -i curriculum.csv
+
+    Keep rows in curriculum.csv where subject doesn't contain 'algebra'
+    $ row_filter.py -n subject -c algebra -v curriculum.csv
+
     Keep rows in curriculum.csv where subject equals 'algebra'
-    $ row_filter.py -n subject -E algebra curriculum.csv
+    $ row_filter.py -n subject -e algebra curriculum.csv
 
     Keep rows in curriculum.csv where subject doesn't equal 'algebra'
-    $ row_filter.py -n subject -e algebra curriculum.csv
+    $ row_filter.py -n subject -e algebra -v curriculum.csv
 
     Keep rows in curriculum.csv where subject matches regex 'myregex'
     $ row_filter.py -n subject -r myregex curriculum.csv
@@ -53,25 +56,26 @@ def _cli():
 
     spec = parser.add_mutually_exclusive_group(required=True)
     spec.add_argument(
-        "-C", "--contains",
+        "-c", "--contains",
         help="Column with name = NAME must contain CONTAINS else we kill that "
         "row. ")
     spec.add_argument(
-        "-E", "--equals",
+        "-e", "--equals",
         help="Column with name = NAME must equal EQUALS else we kill that "
         "row. ")
-    spec.add_argument(
-        "-c", "--not_contains",
-        help="Column with name = NAME must not contain NOTCONTAINS else we "
-        "kill that row.")
-    spec.add_argument(
-        "-e", "--not_equals",
-        help="Column with name = NAME must not equal NOTEQUALS else we kill "
-        "that row. ")
     spec.add_argument(
         "-r", "--regex",
         help="Column with name = NAME must match regex else we kill "
         "that row. ")
+
+    parser.add_argument(
+        "-v", "--invert", action='store_true', default=False,
+        help="Invert the sense of searching, to get lines that do not meet "
+        "criteria.")
+
+    parser.add_argument(
+        "-i", "--ignorecase", action='store_true', default=False,
+        help="Ignore the case of searched elements")
 
     args = parser.parse_args()
 
@@ -79,16 +83,18 @@ def _cli():
     if args.delimiter in ['t', '\\t', '\t', 'tab']:
         args.delimiter = '\t'
 
-    for mode in ['contains', 'equals', 'not_contains', 'not_equals', 'regex']:
+    for mode in ['contains', 'equals', 'regex']:
         if args.__dict__[mode]:
             match_str = args.__dict__[mode]
             break
 
     filter_file(
-        args.infile, args.outfile, args.name, mode, match_str, args.delimiter)
+        args.infile, args.outfile, args.name, mode, match_str, args.delimiter,
+        args.invert, args.ignorecase)
 
 
-def filter_file(infile, outfile, name, mode, match_str, delimiter):
+def filter_file(infile, outfile, name, mode, match_str, delimiter, invert,
+                ignorecase):
     """
     Module interface.  See _cli for doc.  Add doc later if needed.
     """
@@ -100,34 +106,32 @@ def filter_file(infile, outfile, name, mode, match_str, delimiter):
     writer.writeheader()
 
     mode_fun = {
-        'contains': _check_contains, 'not_contains': _check_not_contains,
-        'equals': _check_equals, 'not_equals': _check_not_equals,
+        'contains': _check_contains, 'equals': _check_equals,
         'regex': _check_regex}
 
     ## Iterate through the file, printing out lines
     for row in reader:
-        if mode_fun[mode](row[name], match_str):
+        if mode_fun[mode](row[name], match_str, ignorecase) != invert:
             writer.writerow(row)
 
 
-def _check_contains(item, match_str):
-    return match_str in item
+def _check_contains(item, match_str, ignorecase):
+    if ignorecase:
+        return match_str.lower() in item.lower()
+    else:
+        return match_str in item
 
 
-def _check_not_contains(item, match_str):
-    return not _check_contains(item, match_str)
+def _check_equals(item, match_str, ignorecase):
+    if ignorecase:
+        return match_str.lower() == item.lower()
+    else:
+        return match_str == item
 
 
-def _check_equals(item, match_str):
-    return match_str == item
-
-
-def _check_not_equals(item, match_str):
-    return not _check_equals(item, match_str)
-
-
-def _check_regex(item, match_str):
-    return re.match(match_str, item)
+def _check_regex(item, match_str, ignorecase):
+    flags = re.IGNORECASE if ignorecase else 0
+    return bool(re.search(match_str, item, flags=flags))
 
 
 if __name__ == '__main__':

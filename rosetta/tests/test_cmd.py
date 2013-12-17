@@ -72,37 +72,64 @@ class TestRowFilter(unittest.TestCase):
 
     def test_contains_1(self):
         row_filter.filter_file(
-            self.infile, self.outfile, 'course', 'contains', 'a', '|')
+            self.infile, self.outfile, 'course', 'contains', 'a', '|', False, 
+            False)
         benchmark = 'course|enrollment\r\n' "algebra|1\r\n" "analysis|2\r\n"
         self.assertEqual(self.outfile.getvalue(), benchmark)
 
     def test_contains_2(self):
         row_filter.filter_file(
-            self.infile, self.outfile, 'course', 'contains', 'alg', '|')
+            self.infile, self.outfile, 'course', 'contains', 'alg', '|', False,
+            False)
+        benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
+    def test_contains_ignore_case(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'contains', 'ALG', '|', False,
+            True)
         benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
         self.assertEqual(self.outfile.getvalue(), benchmark)
 
     def test_not_contains(self):
         row_filter.filter_file(
-            self.infile, self.outfile, 'course', 'not_contains', 'alg', '|')
+            self.infile, self.outfile, 'course', 'contains', 'alg', '|', True,
+            False)
         benchmark = 'course|enrollment\r\n' "analysis|2\r\n"
         self.assertEqual(self.outfile.getvalue(), benchmark)
 
-    def test_equals_1(self):
+    def test_equals(self):
         row_filter.filter_file(
-            self.infile, self.outfile, 'course', 'contains', 'algebra', '|')
+            self.infile, self.outfile, 'course', 'contains', 'algebra', '|',
+            False, False)
         benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
         self.assertEqual(self.outfile.getvalue(), benchmark)
 
-    def test_not_equals_1(self):
+    def test_not_equals(self):
         row_filter.filter_file(
-            self.infile, self.outfile, 'course', 'not_equals', 'analysis', '|')
+            self.infile, self.outfile, 'course', 'equals', 'analysis', '|',
+            True, False)
         benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
         self.assertEqual(self.outfile.getvalue(), benchmark)
 
     def test_regex(self):
         row_filter.filter_file(
-            self.infile, self.outfile, 'course', 'regex', '^alg.[a-z]ra$', '|')
+            self.infile, self.outfile, 'course', 'regex', '^alg.[a-z]ra$', '|',
+            False, False)
+        benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
+    def test_regex_does_not_match(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'regex', '^alg.[a-z]ra$', '|',
+            True, False)
+        benchmark = 'course|enrollment\r\n' "analysis|2\r\n"
+        self.assertEqual(self.outfile.getvalue(), benchmark)
+
+    def test_regex_ignore_case(self):
+        row_filter.filter_file(
+            self.infile, self.outfile, 'course', 'regex', '^Alg.[a-z]Ra$', '|',
+            False, True)
         benchmark = 'course|enrollment\r\n' "algebra|1\r\n"
         self.assertEqual(self.outfile.getvalue(), benchmark)
 
