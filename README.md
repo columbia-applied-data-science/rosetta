@@ -17,7 +17,8 @@ Packages
 --------
 
 ### `cmd` 
-* Unix-like command line utilities.  Filters (read from stdin/write to stdout) for files
+* Unix-like command line utilities.  Filters (read from stdin/write to stdout) for files.
+* Focus on stream processing and csv files.
 
 ### `parallel` 
 * Wrappers for Python multiprocessing that add ease of use
@@ -42,6 +43,13 @@ Check out the master branch from the [rosettarepo][rosettarepo].  Then, (so long
     cd rosetta
     make
     make test
+    
+If you update the source, you can do
+
+    make reinstall
+    make test
+
+The above `make` targets use `pip`, so you can of course do `pip uninstall` at any time.
 
 Getting the source (above) is the preferred method since the code changes often, but if you don't use Git you can download a tagged release (tarball) [here](https://github.com/columbia-applied-data-science/rosetta/releases).  Then
 
@@ -52,7 +60,7 @@ Development
 
 ### Code
 
-You can check the latest sources with
+You can get the latest sources with
 
     git clone git://github.com/columbia-applied-data-science/rosetta
 
@@ -60,14 +68,16 @@ You can check the latest sources with
 
 Feel free to contribute a bug report or a request by opening an [issue](https://github.com/columbia-applied-data-science/rosetta/issues)
 
-The preferred method to contribute is to fork and send a pull request.  Before doing this, read `CONTRIBUTING.md`
+The preferred method to contribute is to fork and send a pull request.  Before doing this, read [CONTRIBUTING.md](CONTRIBUTING.md)
 
 Dependencies
 ------------
 
-* Major dependencies on Pandas and numpy.
-* Minor dependencies on Gensim and statsmodels.
-* Some examples need scikit-learn.
+* Major dependencies on *Pandas* and *numpy*.
+* Minor dependencies on *Gensim* and *statsmodels*.
+* Some examples need *scikit-learn*.
+* Minor dependencies on *docx*
+* Minor dependencies on the unix utilities *pdftotext* and *catdoc*
 
 Testing
 -------
