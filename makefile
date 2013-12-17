@@ -61,3 +61,7 @@ code-analysis:
 	flake8 rosetta | grep -v __init__ | grep -v external
 	pylint -E -i y rosetta/ -d E1103,E0611,E1101
 
+# Use "python setup.py register" before doing this.
+release:
+	python setup.py register
+	python setup.py sdist bdist_wininst upload

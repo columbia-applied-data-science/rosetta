@@ -27,7 +27,7 @@ PACKAGES =  ['rosetta'] + [
 
 setup(
     name=DISTNAME,
-    version='0.1.2',
+    version='0.2.2',
 #    py_modules=PY_MODULES,
     packages=PACKAGES,
     scripts=SCRIPTS,
