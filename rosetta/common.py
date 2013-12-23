@@ -247,9 +247,7 @@ def file_to_txt(file_path, dst_dir, ret_fname=False):
     ext = re.sub(r'\.', '', ext)
     try:
         out = eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt()
-        if out: 
-            sys.stdout.write('unable to process file %s'%file_path)
-            pass
+        if out: sys.stdout.write('unable to process file %s'%file_path)
         if ret_fname: return file_name
     except NameError:
         sys.stdout.write('file type %s not supported, skipping %s \n'%(ext,
