@@ -219,10 +219,19 @@ def printdict(d, max_print_len=None):
 ###############################################################################
 # Functions for converting various format files to .txt
 ###############################################################################
-def file_to_txt(file_path, dst_dir):
+def file_to_txt(file_path, dst_dir, ret_fname=False):
     """
     Takes a file path and writes the file in txt format to dst_dir.
-    If file is alread .txt, then simply copies the file.
+    If file is already .txt, then simply copies the file.
+
+    Parameters
+    ----------
+    file_path : string
+        file for processing
+    dst_dir : string
+        destination directory
+    ret_fname : bool
+        if True will return file_name for successfully processed files.
 
     Notes
     -----
@@ -238,7 +247,10 @@ def file_to_txt(file_path, dst_dir):
     ext = re.sub(r'\.', '', ext)
     try:
         out = eval('_%s_to_txt'%ext)(file_path, dst_dir) #calls one of the _to_txt()
-        if out: sys.stdout.write('unable to process file %s'%file_path)
+        if out: 
+            sys.stdout.write('unable to process file %s'%file_path)
+            pass
+        if ret_fname: return file_name
     except NameError:
         sys.stdout.write('file type %s not supported, skipping %s \n'%(ext,
             file_name))
@@ -246,7 +258,7 @@ def file_to_txt(file_path, dst_dir):
 
 def _filepath_clean_copy(file_path):
     """
-    creates a copy of the file with chars which need to be escapes
+    creates a copy of the file with chars which need to be escaped
     replaced with a '_';
 
     Returns
