@@ -14,6 +14,8 @@ import functools
 from collections import defaultdict
 
 from docx import opendocx, getdocumenttext
+from pyth.plugins.rtf15.reader import Rtf15Reader
+from pyth.plugins.plaintext.writer import PlaintextWriter
 from unidecode import unidecode
 
 ###############################################################################
@@ -235,7 +237,7 @@ def file_to_txt(file_path, dst_dir, ret_fname=False):
 
     Notes
     -----
-    Currently only support pdf, txt, doc and docx.
+    Currently only support pdf, txt, rtf, doc and docx.
 
     """
     try:
@@ -331,6 +333,21 @@ def _docx_to_txt(file_path, dst_dir):
     with open(file_dst, 'w') as f:
         f.write(txt)
     return 0
+
+def _rtf_to_txt(file_path, dst_dir):
+    """
+    Uses the pyth python module to extract text from a rtf file and save
+    to .txt in dst_dir.
+    """
+    file_name = os.path.split(file_path)[1]
+    file_dst = os.path.join(dst_dir, re.sub(r'\.rtf$', '.txt', file_name))
+    doc = Rtf15Reader.read(open(file_path))
+    txt = PlaintextWriter.write(doc).getvalue()
+    txt = unidecode(txt)
+    with open(file_dst, 'w') as f:
+        f.write(txt)
+    return 0
+
 
 
 ###############################################################################

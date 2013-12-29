@@ -26,6 +26,8 @@ class TestCommon(unittest.TestCase):
         self.testdoc_path = os.path.join(self.testdata_path, 'test.doc')
         self.testdocx_path = os.path.join(self.testdata_path, 'test.docx')
         self.testtxt_path = os.path.join(self.testdata_path, 'test.txt')
+        self.testrtf_path = os.path.join(self.testdata_path, 'test.rtf')
+
 
     def test_get_list_from_filerows(self):
         infile = StringIO("1\n2\n#3\n\n5")
@@ -76,6 +78,13 @@ class TestCommon(unittest.TestCase):
         with open(temptxt_path) as f:
             self.assertTrue(isinstance(f, file))
         os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        
+        common.file_to_txt(self.testrtf_path, self.testtemp_path)
+        temprtf_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(temprtf_path) as f:
+            self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
 
     def test_compose_1(self):
         def fun(x):
