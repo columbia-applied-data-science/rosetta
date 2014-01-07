@@ -41,7 +41,7 @@ def get_MSerr(Y, Y_hat):
     return err.dot(err) / len(Y)
 
 
-def standardize(df, dont_standardize=[]):
+def standardize(df, dont_standardize=None):
     """
     Parameters
     ----------
@@ -56,6 +56,8 @@ def standardize(df, dont_standardize=[]):
         standardized_df is the standardized version of df
         stats_df contains the mean and std of the variables
     """
+    dont_standardize = [] if dont_standardize is None else dont_standardize
+
     ## Get the mean and std and then the standardized dataframe
     mu = df.mean()
     sigma = df.std()

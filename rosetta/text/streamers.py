@@ -19,7 +19,7 @@ class BaseStreamer(object):
     """
     Base class...don't use this directly.
     """
-    def single_stream(self, item, cache_list=[], **kwargs):
+    def single_stream(self, item, cache_list=None, **kwargs):
         """
         Stream a single item from source.
 
@@ -32,6 +32,8 @@ class BaseStreamer(object):
         kwargs : Keyword args
             Passed on to self.info_stream
         """
+        cache_list = [] if cache_list is None else cache_list
+
         # Initialize the cached items as attributes
         for cache_item in cache_list:
             self.__dict__[cache_item + '_cache'] = []
@@ -46,14 +48,15 @@ class BaseStreamer(object):
 
             yield info[item]
 
-    def token_stream(self, cache_list=[], **kwargs):
+    def token_stream(self, cache_list=None, **kwargs):
         """
         Returns an iterator over tokens with possible caching of other info.
 
         Parameters
         ----------
-        cache_list : Cache these items as they appear
-            Call self.token_stream('doc_id', 'tokens') to cache
+        cache_list : List of strings.
+            Cache these items as they appear
+            E.g. self.token_stream('doc_id', 'tokens') caches
             info['doc_id'] and info['tokens'] (assuming both are available).
         kwargs : Keyword args
             Passed on to self.info_stream
