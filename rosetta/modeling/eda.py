@@ -63,7 +63,8 @@ def plot_corr_grid(
     return fig
 
 
-def plot_corr_dendrogram(corr, cluster_method='weighted', dendrogram_kwags={}):
+def plot_corr_dendrogram(
+    corr, cluster_method='weighted', **dendrogram_kwargs):
     """
     Plot a correlation matrix as a dendrogram (on the current axes).
 
@@ -74,7 +75,7 @@ def plot_corr_dendrogram(corr, cluster_method='weighted', dendrogram_kwags={}):
         Method to use to amalgomate clusters.
         Either 'single', 'complete', 'average', or 'weighted'.
         See scipy.cluster.hierarchy.linkage for details.
-    dendrogram_kwags : Dict of kwargs
+    dendrogram_kwargs : Additional kwargs
         Pass to the call of scipy.cluster.hierarchy.dendrogram()
     """
     # Convert to a DataFrame in all cases.
@@ -87,7 +88,7 @@ def plot_corr_dendrogram(corr, cluster_method='weighted', dendrogram_kwags={}):
     dist = (1 - corr) / 2.
     Z = linkage(squareform(dist), method=cluster_method)
 
-    dendrogram(Z, labels=names, **dendrogram_kwags)
+    dendrogram(Z, labels=names, **dendrogram_kwargs)
 
 
 def plot_scatterXY(x, y, stride=1, plot_XequalsY=False, ax=None, **plt_kwargs):
