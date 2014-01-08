@@ -221,7 +221,7 @@ def printdict(d, max_print_len=None):
 ###############################################################################
 # Functions for converting various format files to .txt
 ###############################################################################
-def file_to_txt(file_path, dst_dir, ret_fname=False):
+def file_to_txt(file_path, dst_dir, ret_fname=False, clean_fname=False):
     """
     Takes a file path and writes the file in txt format to dst_dir.
     If file is already .txt, then simply copies the file.
@@ -240,10 +240,11 @@ def file_to_txt(file_path, dst_dir, ret_fname=False):
     Currently only support pdf, txt, rtf, doc and docx.
 
     """
-    try:
-        file_path = _filepath_clean_copy(file_path)
-    except IOError:
-        sys.stdout.write('unable to clean file_name %s \n'%file_path)
+    if clean_fname:
+        try:
+            file_path = _filepath_clean_copy(file_path)
+        except IOError:
+            sys.stdout.write('unable to clean file_name %s \n'%file_path)
     file_name = os.path.split(file_path)[1]
     name, ext = os.path.splitext(file_name)
     ext = re.sub(r'\.', '', ext)
@@ -299,8 +300,7 @@ def _pdf_to_txt(file_path, dst_dir):
     """
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'\.pdf$', '.txt', file_name))
-    with open(file_dst, 'w') as f:
-        return subprocess.call(["pdftotext",  "-layout", file_path], stdout=f)
+    return subprocess.call(["pdftotext",  "-layout", file_path, file_dst])
 
 
 def _doc_to_txt(file_path, dst_dir):
@@ -317,7 +317,7 @@ def _doc_to_txt(file_path, dst_dir):
     file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'\.doc$', '.txt', file_name))
     with open(file_dst, 'w') as f:
-        return subprocess.call(["catdoc",  "-w", file_path], stdout=f)
+        return subprocess.call(["catdoc",  "-w", file_path, file_dst], stdout=f)
 
 
 def _docx_to_txt(file_path, dst_dir):
