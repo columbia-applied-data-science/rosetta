@@ -51,15 +51,9 @@ def file_to_txt(file_path, dst_dir, new_file_name=None, ret_fname=False,
         out = eval('_%s_to_txt'%ext)(file_path, dst_dir, file_name) 
         if out: sys.stdout.write('unable to process file %s'%file_path)
         if ret_fname: return file_name
-    # TODO
-    # NameError thrown if ANY name downstream of above block is not found,
-    # e.g. the _to_txt function or any dependencies, e.g. subprocess or any
-    # variable.  So error message below is misleading.
-    # If code is bug-free, then the message is correct.
     except NameError:
         sys.stdout.write('file type %s not supported, skipping %s \n'%(ext,
             file_name))
-        pass
 
 
 def _filepath_clean(file_path):
