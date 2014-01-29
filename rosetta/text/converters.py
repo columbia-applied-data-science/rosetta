@@ -46,12 +46,13 @@ def file_to_txt(file_path, dst_dir, new_file_name=None, ret_fname=False,
     ext = re.sub(r'\.', '', ext)
     if new_file_name:
         file_name = new_file_name
-    try:
+    converter_func_name = '_%s_to_txt'%ext
+    if converter_func_name in globals().keys():
         #calls one of the _to_txt()
-        out = eval('_%s_to_txt'%ext)(file_path, dst_dir, file_name) 
+        out = eval(converter_func_name)(file_path, dst_dir, file_name) 
         if out: sys.stdout.write('unable to process file %s'%file_path)
         if ret_fname: return file_name
-    except NameError:
+    else:
         sys.stdout.write('file type %s not supported, skipping %s \n'%(ext,
             file_name))
 
