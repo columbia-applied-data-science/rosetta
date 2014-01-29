@@ -1,13 +1,15 @@
 import unittest
 from StringIO import StringIO
 from collections import Counter, OrderedDict
+import os
+import subprocess
 
 import numpy as np
 from numpy.testing import assert_allclose
 import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
-from rosetta.text import text_processors, vw_helpers, nlp
+from rosetta.text import text_processors, vw_helpers, nlp, converters
 from rosetta.common import DocIDError, TokenError
 
 
@@ -517,3 +519,62 @@ class TestSFileFilter(unittest.TestCase):
 
     def tearDown(self):
         self.outfile.close()
+
+
+class TestConverters(unittest.TestCase):
+    """
+    Tests the converters
+    """
+    def setUp(self):
+        self.test_path = os.path.abspath('./rosetta/tests')
+        self.testdata_path = os.path.join(self.test_path, 'data')
+        self.testtemp_path = os.path.join(self.test_path, 'temp')
+        self.testpdf_path = os.path.join(self.testdata_path, 'test.pdf')
+        self.testdoc_path = os.path.join(self.testdata_path, 'test.doc')
+        self.testdocx_path = os.path.join(self.testdata_path, 'test.docx')
+        self.testtxt_path = os.path.join(self.testdata_path, 'test.txt')
+        self.testrtf_path = os.path.join(self.testdata_path, 'test.rtf')
+
+    def test_file_to_txt(self):
+
+        if cmd_exists('pdftotext'):
+            converters.file_to_txt(self.testpdf_path, self.testtemp_path)
+            temppdf_path = os.path.join(self.testtemp_path, 'test.txt')
+            with open(temppdf_path) as f:
+                self.assertTrue(isinstance(f, file))
+            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        else:
+            sys.stdout.write('Please install unix utility pdftotext')
+
+        if cmd_exists('catdoc'):
+            converters.file_to_txt(self.testdoc_path, self.testtemp_path)
+            tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
+            with open(tempdoc_path) as f:
+                self.assertTrue(isinstance(f, file))
+            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        else:
+            sys.stdout.write('Please install unix utility catdoc')
+
+        converters.file_to_txt(self.testpdf_path, self.testtemp_path)
+        tempdocx_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(tempdocx_path) as f:
+            self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
+
+        converters.file_to_txt(self.testtxt_path, self.testtemp_path)
+        temptxt_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(temptxt_path) as f:
+            self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        
+        converters.file_to_txt(self.testrtf_path, self.testtemp_path)
+        temprtf_path = os.path.join(self.testtemp_path, 'test.txt')
+        with open(temprtf_path) as f:
+            self.assertTrue(isinstance(f, file))
+        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+
+
+def cmd_exists(cmd):
+    return subprocess.call("type " + cmd, shell=True,
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
