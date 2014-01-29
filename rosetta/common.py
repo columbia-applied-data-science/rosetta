@@ -6,8 +6,6 @@ import cPickle
 import itertools
 import os
 import sys
-import shutil
-import subprocess
 import functools
 
 from collections import defaultdict
