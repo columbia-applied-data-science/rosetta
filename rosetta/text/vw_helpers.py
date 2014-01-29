@@ -202,7 +202,7 @@ class LDAResults(object):
     https://github.com/columbia-applied-data-science/rosetta/blob/master/examples/vw_helpers.md
     """
     def __init__(
-        self, topics_file, predictions_file, num_topics, sfile_filter,
+        self, topics_file, predictions_file, sfile_filter, num_topics=None,
         alpha=None, verbose=False):
         """
         Parameters
@@ -211,8 +211,9 @@ class LDAResults(object):
             The --readable_model output of a VW lda run
         predictions_file : filepath or buffer
             The -p output of a VW lda run
-        num_topics : Integer
-            The number of topics in every valid row
+        num_topics : Integer or None
+            The number of topics in every valid row; if None will infer num 
+            topics from predictions_file
         sfile_filter : filepath, buffer, or loaded text_processors.SFileFilter
             Contains the token2id and id2token mappings
         alpha : Float
@@ -220,6 +221,9 @@ class LDAResults(object):
             Needed if you want to do self.predict().
         verbose : Boolean
         """
+        if num_topics is None:
+            with open(predictions_file) as f:
+                num_topics = len(f.readline().split())-1
         self.num_topics = num_topics
         self.alpha = alpha
         self.verbose = verbose

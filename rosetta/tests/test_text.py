@@ -178,11 +178,11 @@ class TestLDAResults(unittest.TestCase):
         if name == 'lda':
             return vw_helpers.LDAResults(
                 self.topics_file_1, self.predictions_file_1,
-                self.num_topics_1, self.sff)
+                self.sff, self.num_topics_1)
         elif name == 'lda_2':
             return vw_helpers.LDAResults(
-                self.topics_file_2, self.predictions_file_1, self.num_topics_1,
-                self.sff, alpha=1e-5)
+                self.topics_file_2, self.predictions_file_1, self.sff,  
+                self.num_topics_1, alpha=1e-5)
 
     def test_print_topics_1(self):
         self.choose_lda().print_topics(num_words=2, outfile=self.outfile)
