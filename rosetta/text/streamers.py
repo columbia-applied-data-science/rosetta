@@ -349,8 +349,9 @@ class TextStreamer(BaseStreamer):
         """
         Parameters
         ----------
-        info_stream : iterator or iterable
-            Return a dict. Must contain key:value "text": text_string.
+        streamer : iterator or iterable of dictionaries 
+            Each dict must contain key:value "text": text_string, but can contain
+            other metadata key:values for cacheing (ex/ see self.token_stream).
         tokenizer : Subclass of BaseTokenizer
             Should have a text_to_token_list method.  Try using MakeTokenizer
             to convert a function to a valid tokenizer.
@@ -374,7 +375,7 @@ class TextStreamer(BaseStreamer):
             info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
             yield info
     
-    def to_vw(self, outfile, n_jobs=-1, chunksize=1000):
+    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True):
         """
         Write our filestream to a VW (Vowpal Wabbit) formatted file.
 
@@ -391,10 +392,9 @@ class TextStreamer(BaseStreamer):
             evenly.
           """
         formatter = text_processors.VWFormatter()
-
-        # Process one group at a time...set imap_easy chunksize arg to 1
-        # since each group contains many paths.
-        results_iterator = imap_easy(formatter, self.text_streamer, n_jobs, chunksize)
+        func = partial(_to_sstr, formatter=formatter, 
+                raise_on_bad_id=raise_on_bad_id)
+        results_iterator = imap_easy(func, self.info_stream(), n_jobs, chunksize)
 
         with smart_open(outfile, 'w') as open_outfile:
             for result in results_iterator:
@@ -430,3 +430,28 @@ def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
         group_results.append(tok_sstr)
 
     return group_results
+
+
+def _to_sstr(info_dict, formatter, raise_on_bad_id):
+    """
+    Yield a list of sstr's (sparse string representations) coming from 'tokens'
+    in streamer.info_stream().
+    """
+    doc_id = info_dict['doc_id']
+    tokens = info_dict['tokens']
+    feature_values = Counter(tokens)
+    try:
+        tok_sstr = formatter.get_sstr(
+            feature_values, importance=1, doc_id=doc_id)
+    except DocIDError as e:
+        msg = e.message + "\doc_id = %s\n" % info_dict['doc_id']
+        if raise_on_bad_id:
+            raise DocIDError(msg)
+        else:
+            msg = "WARNING: " + msg
+            sys.stderr.write(msg)
+    return tok_sstr
+
+
+
+
