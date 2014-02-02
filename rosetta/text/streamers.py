@@ -41,8 +41,6 @@ class BaseStreamer(object):
         # Iterate through self.info_stream and pull off required information.
         stream = self.info_stream(**kwargs)
         for i, info in enumerate(stream):
-            if i == self.limit:
-                raise StopIteration
             for cache_item in cache_list:
                 self.__dict__[cache_item + '_cache'].append(info[cache_item])
 
@@ -337,6 +335,62 @@ class TextFileStreamer(BaseStreamer):
             for group_results in results_iterator:
                 for sstr in group_results:
                     open_outfile.write(sstr + '\n')
+
+
+class TextStreamer(BaseStreamer):
+    """
+    For streaming text.
+    """
+    def __init__(
+        self, info_stream, tokenizer=None, tokenizer_func=None):
+        """
+        Parameters
+        ----------
+        text_streamer : iterator or iterable
+            Returns text.
+        tokenizer : Subclass of BaseTokenizer
+            Should have a text_to_token_list method.  Try using MakeTokenizer
+            to convert a function to a valid tokenizer.
+        tokenizer_func : Function
+            Transforms a string (representing one file) to a list of strings
+            (the 'tokens').
+        """
+        self.info_stream = info_stream
+        self.tokenizer = tokenizer
+        self.tokenizer_func = tokenizer_func
+
+        assert (tokenizer is None) or (tokenizer_func is None)
+        if tokenizer_func:
+            self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
+    
+    def info_stream():
+        return self.info_stream
+    
+    def to_vw(self, outfile, n_jobs=-1, chunksize=1000):
+        """
+        Write our filestream to a VW (Vowpal Wabbit) formatted file.
+
+        Parameters
+        ----------
+        outfile : filepath or buffer
+        n_jobs : Integer
+            Use n_jobs different jobs to do the processing.  Set = 4 for 4
+            jobs.  Set = -1 to use all available, -2 for all except 1,...
+        chunksize : Integer
+            Workers process this many jobs at once before pickling and sending
+            results to master.  If this is too low, communication overhead
+            will dominate.  If this is too high, jobs will not be distributed
+            evenly.
+          """
+        formatter = text_processors.VWFormatter()
+
+        # Process one group at a time...set imap_easy chunksize arg to 1
+        # since each group contains many paths.
+        results_iterator = imap_easy(formatter, self.text_streamer, n_jobs, chunksize)
+
+        with smart_open(outfile, 'w') as open_outfile:
+            for result in results_iterator:
+                open_outfile.write(result + '\n')
 
 
 def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
