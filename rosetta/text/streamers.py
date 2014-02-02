@@ -340,16 +340,16 @@ class TextFileStreamer(BaseStreamer):
                     open_outfile.write(sstr + '\n')
 
 
-class TextStreamer(BaseStreamer):
+class TextIterStreamer(BaseStreamer):
     """
     For streaming text.
     """
     def __init__(
-        self, streamer, tokenizer=None, tokenizer_func=None):
+        self, text_iter, tokenizer=None, tokenizer_func=None):
         """
         Parameters
         ----------
-        streamer : iterator or iterable of dictionaries 
+        text_iter : iterator or iterable of dictionaries 
             Each dict must contain key:value "text": text_string, but can contain
             other metadata key:values for cacheing (ex/ see self.token_stream).
         tokenizer : Subclass of BaseTokenizer
@@ -359,7 +359,7 @@ class TextStreamer(BaseStreamer):
             Transforms a string (representing one file) to a list of strings
             (the 'tokens').
         """
-        self.streamer = streamer
+        self.text_iter = text_iter
         self.tokenizer = tokenizer
         self.tokenizer_func = tokenizer_func
 
@@ -371,7 +371,7 @@ class TextStreamer(BaseStreamer):
         """
         Yields a dict from self.streamer as well as "tokens".
         """
-        for info in self.streamer:
+        for info in self.text_iter:
             info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
             yield info
     
