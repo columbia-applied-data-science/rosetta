@@ -39,7 +39,10 @@ class BaseStreamer(object):
             self.__dict__[cache_item + '_cache'] = []
 
         # Iterate through self.info_stream and pull off required information.
-        stream = self.info_stream(**kwargs)
+        if kwargs:
+            stream = self.info_stream(**kwargs)
+        else:
+            stream = self.info_stream()
         for i, info in enumerate(stream):
             for cache_item in cache_list:
                 self.__dict__[cache_item + '_cache'].append(info[cache_item])
@@ -342,12 +345,12 @@ class TextStreamer(BaseStreamer):
     For streaming text.
     """
     def __init__(
-        self, info_stream, tokenizer=None, tokenizer_func=None):
+        self, streamer, tokenizer=None, tokenizer_func=None):
         """
         Parameters
         ----------
-        text_streamer : iterator or iterable
-            Returns text.
+        info_stream : iterator or iterable
+            Return a dict. Must contain key:value "text": text_string.
         tokenizer : Subclass of BaseTokenizer
             Should have a text_to_token_list method.  Try using MakeTokenizer
             to convert a function to a valid tokenizer.
@@ -355,7 +358,7 @@ class TextStreamer(BaseStreamer):
             Transforms a string (representing one file) to a list of strings
             (the 'tokens').
         """
-        self.info_stream = info_stream
+        self.streamer = streamer
         self.tokenizer = tokenizer
         self.tokenizer_func = tokenizer_func
 
@@ -363,8 +366,13 @@ class TextStreamer(BaseStreamer):
         if tokenizer_func:
             self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
     
-    def info_stream():
-        return self.info_stream
+    def info_stream(self):
+        """
+        Yields a dict from self.streamer as well as "tokens".
+        """
+        for info in self.streamer:
+            info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
+            yield info
     
     def to_vw(self, outfile, n_jobs=-1, chunksize=1000):
         """
