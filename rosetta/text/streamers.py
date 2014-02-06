@@ -375,7 +375,8 @@ class TextIterStreamer(BaseStreamer):
             info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
             yield info
     
-    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True):
+    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True, 
+            cache_list=None, cache_list_file=None):
         """
         Write our filestream to a VW (Vowpal Wabbit) formatted file.
 
@@ -390,15 +391,25 @@ class TextIterStreamer(BaseStreamer):
             results to master.  If this is too low, communication overhead
             will dominate.  If this is too high, jobs will not be distributed
             evenly.
+        cache_list : List of strings
+            Write these info_stream items to file on every iteration.
+        cache_list_file : filepath or buffer
           """
         formatter = text_processors.VWFormatter()
         func = partial(_to_sstr, formatter=formatter, 
-                raise_on_bad_id=raise_on_bad_id)
+                raise_on_bad_id=raise_on_bad_id, cache_list=cache_list)
         results_iterator = imap_easy(func, self.info_stream(), n_jobs, chunksize)
-
-        with smart_open(outfile, 'w') as open_outfile:
-            for result in results_iterator:
-                open_outfile.write(result + '\n')
+        if cache_list_file:
+            with smart_open(outfile, 'w') as open_outfile, \
+                    smart_open(cache_list_file, 'w') as open_cache_file:
+                for result, cache_list in results_iterator:
+                    open_outfile.write(result + '\n')
+                    open_cache_file.write(str(cache_list) + '\n')
+        else:
+            with smart_open(outfile, 'w') as open_outfile:
+                for result, cache_list in results_iterator:
+                    open_outfile.write(result + '\n')
+                
 
 
 def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
@@ -432,14 +443,19 @@ def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
     return group_results
 
 
-def _to_sstr(info_dict, formatter, raise_on_bad_id):
+def _to_sstr(info_dict, formatter, raise_on_bad_id, cache_list):
     """
     Yield a list of sstr's (sparse string representations) coming from 'tokens'
     in streamer.info_stream().
+    If cache_list is passed, yeilds a tuple tok_sstr, cache_dict where the latter 
+    is a subdict of info_dict.
     """
     doc_id = info_dict['doc_id']
     tokens = info_dict['tokens']
     feature_values = Counter(tokens)
+    cache_dict=None
+    if cache_list:
+        cache_dict = dict(zip(cache_list,[info_dict[key] for key in cache_list]))
     try:
         tok_sstr = formatter.get_sstr(
             feature_values, importance=1, doc_id=doc_id)
@@ -450,7 +466,7 @@ def _to_sstr(info_dict, formatter, raise_on_bad_id):
         else:
             msg = "WARNING: " + msg
             sys.stderr.write(msg)
-    return tok_sstr
+    return tok_sstr, cache_dict
 
 
 
