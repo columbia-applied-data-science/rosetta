@@ -39,10 +39,11 @@ class BaseStreamer(object):
             self.__dict__[cache_item + '_cache'] = []
 
         # Iterate through self.info_stream and pull off required information.
-        stream = self.info_stream(**kwargs)
+        if kwargs:
+            stream = self.info_stream(**kwargs)
+        else:
+            stream = self.info_stream()
         for i, info in enumerate(stream):
-            if i == self.limit:
-                raise StopIteration
             for cache_item in cache_list:
                 self.__dict__[cache_item + '_cache'].append(info[cache_item])
 
@@ -339,6 +340,78 @@ class TextFileStreamer(BaseStreamer):
                     open_outfile.write(sstr + '\n')
 
 
+class TextIterStreamer(BaseStreamer):
+    """
+    For streaming text.
+    """
+    def __init__(
+        self, text_iter, tokenizer=None, tokenizer_func=None):
+        """
+        Parameters
+        ----------
+        text_iter : iterator or iterable of dictionaries 
+            Each dict must contain key:value "text": text_string, but can contain
+            other metadata key:values for cacheing (ex/ see self.token_stream).
+        tokenizer : Subclass of BaseTokenizer
+            Should have a text_to_token_list method.  Try using MakeTokenizer
+            to convert a function to a valid tokenizer.
+        tokenizer_func : Function
+            Transforms a string (representing one file) to a list of strings
+            (the 'tokens').
+        """
+        self.text_iter = text_iter
+        self.tokenizer = tokenizer
+        self.tokenizer_func = tokenizer_func
+
+        assert (tokenizer is None) or (tokenizer_func is None)
+        if tokenizer_func:
+            self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
+    
+    def info_stream(self):
+        """
+        Yields a dict from self.streamer as well as "tokens".
+        """
+        for info in self.text_iter:
+            info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
+            yield info
+    
+    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True, 
+            cache_list=None, cache_list_file=None):
+        """
+        Write our filestream to a VW (Vowpal Wabbit) formatted file.
+
+        Parameters
+        ----------
+        outfile : filepath or buffer
+        n_jobs : Integer
+            Use n_jobs different jobs to do the processing.  Set = 4 for 4
+            jobs.  Set = -1 to use all available, -2 for all except 1,...
+        chunksize : Integer
+            Workers process this many jobs at once before pickling and sending
+            results to master.  If this is too low, communication overhead
+            will dominate.  If this is too high, jobs will not be distributed
+            evenly.
+        cache_list : List of strings
+            Write these info_stream items to file on every iteration.
+        cache_list_file : filepath or buffer
+          """
+        formatter = text_processors.VWFormatter()
+        func = partial(_to_sstr, formatter=formatter, 
+                raise_on_bad_id=raise_on_bad_id, cache_list=cache_list)
+        results_iterator = imap_easy(func, self.info_stream(), n_jobs, chunksize)
+        if cache_list_file:
+            with smart_open(outfile, 'w') as open_outfile, \
+                    smart_open(cache_list_file, 'w') as open_cache_file:
+                for result, cache_list in results_iterator:
+                    open_outfile.write(result + '\n')
+                    open_cache_file.write(str(cache_list) + '\n')
+        else:
+            with smart_open(outfile, 'w') as open_outfile:
+                for result, cache_list in results_iterator:
+                    open_outfile.write(result + '\n')
+                
+
+
 def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
     """
     Return a list of sstr's (sparse string representations).  One for every
@@ -368,3 +441,33 @@ def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
         group_results.append(tok_sstr)
 
     return group_results
+
+
+def _to_sstr(info_dict, formatter, raise_on_bad_id, cache_list):
+    """
+    Yield a list of sstr's (sparse string representations) coming from 'tokens'
+    in streamer.info_stream().
+    If cache_list is passed, yeilds a tuple tok_sstr, cache_dict where the latter 
+    is a subdict of info_dict.
+    """
+    doc_id = info_dict['doc_id']
+    tokens = info_dict['tokens']
+    feature_values = Counter(tokens)
+    cache_dict=None
+    if cache_list:
+        cache_dict = dict(zip(cache_list,[info_dict[key] for key in cache_list]))
+    try:
+        tok_sstr = formatter.get_sstr(
+            feature_values, importance=1, doc_id=doc_id)
+    except DocIDError as e:
+        msg = e.message + "\doc_id = %s\n" % info_dict['doc_id']
+        if raise_on_bad_id:
+            raise DocIDError(msg)
+        else:
+            msg = "WARNING: " + msg
+            sys.stderr.write(msg)
+    return tok_sstr, cache_dict
+
+
+
+
