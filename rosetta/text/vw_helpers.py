@@ -182,7 +182,7 @@ def parse_lda_predictions(
             lines.append(topic_weights)
             doc_id_stored.append(split_line[-1])
 
-    fmt = 'topic_%0' + str(num_topics // 10 + 1) + 'd'
+    fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
     topic_names = [fmt % i for i in range(num_topics)]
     predictions = pd.DataFrame(
         lines, index=doc_id_stored, columns=topic_names).astype(float)
