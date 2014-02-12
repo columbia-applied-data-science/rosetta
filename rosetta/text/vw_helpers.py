@@ -80,7 +80,7 @@ def parse_lda_topics(topics_file, num_topics, normalize=True):
     The trick is dealing with lack of a marker for the information printed
     on top, and the inconsistant delimiter choice.
     """
-    fmt = 'topic_%0' + str(num_topics // 10 + 1) + 'd'
+    fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
     topics = {fmt % i: [] for i in range(num_topics)}
     topics['hash_val'] = []
     # The topics file contains a bunch of informational printout stuff at
