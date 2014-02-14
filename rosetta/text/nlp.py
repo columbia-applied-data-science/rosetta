@@ -33,10 +33,10 @@ def word_tokenize(text, L=1, numeric=True):
     if numeric:
         word_list = re.findall(
             r'(?:\s|^)([A-Za-z\'&]{%s,}|[0-9]{%s,})(?:\s|$)' % (
-                str(L), str(L)), text)
+                L, L), text)
     else:
         word_list = re.findall(
-            r'(?:\s|^)([A-Za-z\'&]{%s,})(?:\s|$)' % str(L), text)
+            r'(?:\s|^)([A-Za-z\'&]{%s,})(?:\s|$)' % L, text)
 
     return word_list
 
