@@ -169,13 +169,16 @@ class TextFileStreamer(BaseStreamer):
     For streaming from text files.
     """
     def __init__(
-        self, text_base_path=None, file_type='*', name_strip=r'\..*',
-        tokenizer=None, tokenizer_func=None, limit=None, shuffle=True):
+        self, text_base_path=None, path_list=None, file_type='*', 
+        name_strip=r'\..*', tokenizer=None, tokenizer_func=None, limit=None, 
+        shuffle=True):
         """
         Parameters
         ----------
         text_base_path : string or None
             Base path to dir containing files.
+        path_list : list or None
+            explicit list of paths to be used
         file_type : String
             String to filter files with.  E.g. '*.txt'.
             Note that the filenames will be converted to lowercase before
@@ -194,6 +197,7 @@ class TextFileStreamer(BaseStreamer):
             If True, shuffle paths once (and only once) before streaming
         """
         self.text_base_path = text_base_path
+        self.path_list = path_list
         self.file_type = file_type
         self.name_strip = name_strip
         self.limit = limit
@@ -218,7 +222,7 @@ class TextFileStreamer(BaseStreamer):
             if self.limit:
                 paths = paths[: self.limit]
         else:
-            paths = None
+            paths = self.paths_list
 
         return paths
 
