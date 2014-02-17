@@ -204,7 +204,7 @@ class TextFileStreamer(BaseStreamer):
         self.tokenizer = tokenizer
         self.tokenizer_func = tokenizer_func
         self.shuffle = shuffle
-
+        assert (text_base_path is None) or (path_list is None)
         assert (tokenizer is None) or (tokenizer_func is None)
         if tokenizer_func:
             self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
