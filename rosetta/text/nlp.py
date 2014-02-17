@@ -29,14 +29,16 @@ def word_tokenize(text, L=1, numeric=True):
     numeric : bool, True if you want to include numerics
     """
     text = re.sub(
-        r'(?:\s|\[|\]|\(|\)|\{|\}|\.|;|,|:|\n|\r|\?|\!)', r'  ', text)
+        r'(?:\s|\[|\]|\(|\)|\{|\}|;|,|\.(\s|$)|:|\n|\r|\?|\!|\"|\-)', r'  ', 
+        text)
     if numeric:
         word_list = re.findall(
-            r'(?:\s|^)([A-Za-z\'&]{%s,}|[0-9]{%s,})(?:\s|$)' % (
-                L, L), text)
+            r'(?:\s|^)([A-Za-z\.\'&]{%s,}|[0-9]{%s,}|\
+            (?:(?<=.|\s)[A-Z]\.)+)(?:\s|$)' % (L, L), text)
     else:
         word_list = re.findall(
-            r'(?:\s|^)([A-Za-z\'&]{%s,})(?:\s|$)' % L, text)
+            r'(?:\s|^)([A-Za-z\.\'&]{%s,}|(?:(?<=.|\s)[A-Z]\.)+)(?:\s|$)' % L, 
+            text)
 
     return word_list
 

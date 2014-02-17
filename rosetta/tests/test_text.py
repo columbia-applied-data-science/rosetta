@@ -17,14 +17,14 @@ class TestWordTokenizers(unittest.TestCase):
     """
     """
     def setUp(self):
-        self.text = 'Is this really going to work? not sure, but maybe. ok'
+        self.text = 'Is this really going to work? not-sure, but-maybe. O.K.'
         self.word_tokenize = nlp.word_tokenize
         self.bigram_tokenize = nlp.bigram_tokenize
 
     def test_word_tokenize(self):
         benchmark = [
             'Is', 'this', 'really', 'going', 'to', 'work', 'not', 'sure',
-            'but', 'maybe', 'ok']
+            'but', 'maybe', 'O.K']
         result = self.word_tokenize(self.text)
         self.assertEqual(result, benchmark)
 
