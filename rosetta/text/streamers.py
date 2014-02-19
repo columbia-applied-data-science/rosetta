@@ -69,7 +69,7 @@ class BaseStreamer(object):
         """
         Returns a scipy sparse matrix representing the collection of documents
         as a bag of words, one (sparse) row per document.
-        Translation from column to token are stored in TODO
+        Translation from column to token are stored into the cache
 
         Parameters
         ----------
@@ -80,21 +80,25 @@ class BaseStreamer(object):
         kwargs : Keyword args
             Passed on to self.info_stream
         """
-        token_set = dict()
+        token_col = dict()
         n_col = -1
         row_ind = list()
         col_ind = list()
         data = list()
+
+        # iterate through each document's tokens list and build up the
+        # sparse matrix row by row.
         for row, tokens in enumerate(self.token_stream(cache_list, **kwargs)):
             doc_counts = Counter(tokens)
             for token, count in doc_counts.items():
-                if token not in token_set:
+                if token not in token_col:
                     n_col += 1
-                    token_set[token] = n_col
+                    token_col[token] = n_col
                 row_ind.append(row)
-                col_ind.append(token_set[token])
+                col_ind.append(token_col[token])
                 data.append(count)
 
+        self.__dict__['token_col_map'] = token_col
         return sparse.csr_matrix((data, (row_ind, col_ind)),
                                  shape=(row + 1, n_col + 1))
 
