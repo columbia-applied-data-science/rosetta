@@ -222,7 +222,7 @@ class TextFileStreamer(BaseStreamer):
             if self.limit:
                 paths = paths[: self.limit]
         else:
-            paths = self.paths_list
+            paths = self.path_list
 
         return paths
 
