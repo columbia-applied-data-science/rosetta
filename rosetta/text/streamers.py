@@ -7,6 +7,7 @@ import re
 from functools import partial
 import sys
 import os
+from scipy import sparse
 
 from rosetta.parallel.parallel_easy import imap_easy
 
@@ -63,6 +64,43 @@ class BaseStreamer(object):
             Passed on to self.info_stream
         """
         return self.single_stream('tokens', cache_list=cache_list, **kwargs)
+
+    def to_scipysparse(self, cache_list=None, **kwargs):
+        """
+        Returns a scipy sparse matrix representing the collection of documents
+        as a bag of words, one (sparse) row per document.
+        Translation from column to token are stored into the cache
+
+        Parameters
+        ----------
+        cache_list : List of strings.
+            Cache these items as they appear
+            E.g. self.token_stream('doc_id', 'tokens') caches
+            info['doc_id'] and info['tokens'] (assuming both are available).
+        kwargs : Keyword args
+            Passed on to self.info_stream
+        """
+        token_col = dict()
+        n_col = -1
+        row_ind = list()
+        col_ind = list()
+        data = list()
+
+        # iterate through each document's tokens list and build up the
+        # sparse matrix row by row.
+        for row, tokens in enumerate(self.token_stream(cache_list, **kwargs)):
+            doc_counts = Counter(tokens)
+            for token, count in doc_counts.items():
+                if token not in token_col:
+                    n_col += 1
+                    token_col[token] = n_col
+                row_ind.append(row)
+                col_ind.append(token_col[token])
+                data.append(count)
+
+        self.__dict__['token_col_map'] = token_col
+        return sparse.csr_matrix((data, (row_ind, col_ind)),
+                                 shape=(row + 1, n_col + 1))
 
 
 class VWStreamer(BaseStreamer):
@@ -353,7 +391,7 @@ class TextIterStreamer(BaseStreamer):
         """
         Parameters
         ----------
-        text_iter : iterator or iterable of dictionaries 
+        text_iter : iterator or iterable of dictionaries
             Each dict must contain key:value "text": text_string, but can contain
             other metadata key:values for cacheing (ex/ see self.token_stream).
         tokenizer : Subclass of BaseTokenizer
@@ -370,7 +408,7 @@ class TextIterStreamer(BaseStreamer):
         assert (tokenizer is None) or (tokenizer_func is None)
         if tokenizer_func:
             self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
-    
+
     def info_stream(self):
         """
         Yields a dict from self.streamer as well as "tokens".
@@ -378,8 +416,8 @@ class TextIterStreamer(BaseStreamer):
         for info in self.text_iter:
             info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
             yield info
-    
-    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True, 
+
+    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True,
             cache_list=None, cache_list_file=None):
         """
         Write our filestream to a VW (Vowpal Wabbit) formatted file.
@@ -400,7 +438,7 @@ class TextIterStreamer(BaseStreamer):
         cache_list_file : filepath or buffer
           """
         formatter = text_processors.VWFormatter()
-        func = partial(_to_sstr, formatter=formatter, 
+        func = partial(_to_sstr, formatter=formatter,
                 raise_on_bad_id=raise_on_bad_id, cache_list=cache_list)
         results_iterator = imap_easy(func, self.info_stream(), n_jobs, chunksize)
         if cache_list_file:
@@ -413,7 +451,7 @@ class TextIterStreamer(BaseStreamer):
             with smart_open(outfile, 'w') as open_outfile:
                 for result, cache_list in results_iterator:
                     open_outfile.write(result + '\n')
-                
+
 
 
 def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
@@ -451,7 +489,7 @@ def _to_sstr(info_dict, formatter, raise_on_bad_id, cache_list):
     """
     Yield a list of sstr's (sparse string representations) coming from 'tokens'
     in streamer.info_stream().
-    If cache_list is passed, yeilds a tuple tok_sstr, cache_dict where the latter 
+    If cache_list is passed, yeilds a tuple tok_sstr, cache_dict where the latter
     is a subdict of info_dict.
     """
     doc_id = info_dict['doc_id']
