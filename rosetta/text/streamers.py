@@ -5,9 +5,12 @@ from collections import Counter
 from random import shuffle
 import re
 from functools import partial
+import abc
 import sys
 import os
 from scipy import sparse
+import MySQLdb
+import MySQLdb.cursors
 
 from rosetta.parallel.parallel_easy import imap_easy
 
@@ -20,6 +23,17 @@ class BaseStreamer(object):
     """
     Base class...don't use this directly.
     """
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def info_stream(self, **kwargs):
+        """
+        Abstract method.  All derived classes will implement to
+        return an interator over the text documents with processing
+        as appropriate.
+        """
+        return
+
     def single_stream(self, item, cache_list=None, **kwargs):
         """
         Stream a single item from source.
@@ -207,8 +221,8 @@ class TextFileStreamer(BaseStreamer):
     For streaming from text files.
     """
     def __init__(
-        self, text_base_path=None, path_list=None, file_type='*', 
-        name_strip=r'\..*', tokenizer=None, tokenizer_func=None, limit=None, 
+        self, text_base_path=None, path_list=None, file_type='*',
+        name_strip=r'\..*', tokenizer=None, tokenizer_func=None, limit=None,
         shuffle=True):
         """
         Parameters
@@ -453,6 +467,87 @@ class TextIterStreamer(BaseStreamer):
                     open_outfile.write(result + '\n')
 
 
+class DBStreamer(BaseStreamer):
+    """
+    Database streamer base class
+    """
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(
+            self, db_setup, tokenizer=None, tokenizer_func=None):
+        """
+        Parameters
+        ----------
+        db_setup:
+        tokenizer : Subclass of BaseTokenizer
+            Should have a text_to_token_list method.  Try using MakeTokenizer
+            to convert a function to a valid tokenizer.
+        tokenizer_func : Function
+            Transforms a string (representing one file) to a list of strings
+            (the 'tokens').
+        """
+        self.db_setup = db_setup
+        self.tokenizer = tokenizer
+        self.tokenizer_func = tokenizer_func
+
+        assert (tokenizer is None) or (tokenizer_func is None)
+        if tokenizer_func:
+            self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
+
+    @abc.abstractmethod
+    def connect(self):
+        """
+        Open connection to database.
+        Returns a cursor object.
+        """
+        return
+
+    @abc.abstractmethod
+    def iterate_over_query(self):
+        """
+        Return an iterator over query result.
+        We suggest that the entire query result not be returned and that
+        iteration is controlled on server side, but this method does not
+        guarantee that.
+        """
+        return
+
+    def info_stream(self, **kwargs):
+        """
+        Yields a dict from self.executing the query as well as "tokens".
+        """
+        for info in self.iterate_over_query():
+            info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
+            yield info
+
+
+class MySQLStreamer(DBStreamer):
+    def connect(self):
+        try:
+            _host = self.db_setup['host']
+            _user = self.db_setup['user']
+            _password = self.db_setup['password']
+            _db = self.db_setup['database']
+        except:
+            raise common.BadDataError("MySQLStreamer expects db_setup to have \
+                        host, user, password, and database fields")
+        connection = MySQLdb.connect(
+            host=_host, user=_user,
+            passwd=_password, db=_db,
+            cursorclass=MySQLdb.cursors.SSCursor)
+        return connection.cursor()
+
+    def iterate_over_query(self):
+        cursor = self.connect()
+        try:
+            _query = self.db_setup['query']
+            _textfield = self.db_setup['textfield']
+        except:
+            raise common.BadDataError("MySQLStreamer expects db_setup to have \
+                        query field, textfield")
+        cursor.execute(_query)
+        for result in cursor:
+            yield {'text': result[_textfield]}
 
 def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
     """
