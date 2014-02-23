@@ -11,6 +11,7 @@ import os
 from scipy import sparse
 import MySQLdb
 import MySQLdb.cursors
+import pymongo
 
 from rosetta.parallel.parallel_easy import imap_easy
 
@@ -489,6 +490,7 @@ class DBStreamer(BaseStreamer):
         self.db_setup = db_setup
         self.tokenizer = tokenizer
         self.tokenizer_func = tokenizer_func
+        self.cursor = None
 
         assert (tokenizer is None) or (tokenizer_func is None)
         if tokenizer_func:
@@ -498,7 +500,14 @@ class DBStreamer(BaseStreamer):
     def connect(self):
         """
         Open connection to database.
-        Returns a cursor object.
+        sets the classes cursor object.
+        """
+        return
+
+    @abc.abstractmethod
+    def disconnect(self):
+        """
+        Close connection to database
         """
         return
 
@@ -534,20 +543,72 @@ class MySQLStreamer(DBStreamer):
         connection = MySQLdb.connect(
             host=_host, user=_user,
             passwd=_password, db=_db,
-            cursorclass=MySQLdb.cursors.SSCursor)
-        return connection.cursor()
+            cursorclass=MySQLdb.cursors.SSDictCursor)
+        self.cursor = connection.cursor()
+
+    def disconnect(self):
+        if self.cursor:
+            self.cursor.close()
+        self.cursor = None
 
     def iterate_over_query(self):
-        cursor = self.connect()
+        if not self.cursor:
+            self.connect()
         try:
             _query = self.db_setup['query']
             _textfield = self.db_setup['textfield']
         except:
             raise common.BadDataError("MySQLStreamer expects db_setup to have \
                         query field, textfield")
-        cursor.execute(_query)
-        for result in cursor:
+        self.cursor.execute(_query)
+        for result in self.cursor:
             yield {'text': result[_textfield]}
+
+
+class MongoStreamer(DBStreamer):
+    def connect(self):
+        try:
+            _host = self.db_setup['host']
+            _db = self.db_setup['database']
+            _col = self.db_setup['collection']
+            if 'port' in self.db_setup:
+                _port = self.db_setup['port']
+            else:
+                _port = None
+        except:
+            raise common.BadDataError("MongoStreamer expects db_setup to have \
+                        host and database fields")
+
+        client = pymongo.MongoClient(_host, _port)
+        db = client[_db]
+        col = db[_col]
+        self.cursor = col
+
+    def disconnect(self):
+        self.cursor = None
+
+    def iterate_over_query(self):
+        if not self.cursor:
+            self.connect()
+        try:
+            _query = self.db_setup['query']
+            _textfield = self.db_setup['textfield']
+            if 'limit' in self.db_setup:
+                _limit = self.db_setup['limit']
+            else:
+                _limit = None
+        except:
+            raise common.BadDataError("MongoStreamer expects db_setup to have \
+                        query field, textfield")
+
+        results = self.cursor.find(_query)
+
+        if _limit:
+            results = results.limit(_limit)
+
+        for result in results:
+            yield {'text': result[_textfield]}
+
 
 def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
     """
