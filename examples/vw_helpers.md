@@ -93,7 +93,7 @@ There are some issues with using the raw `prediction.dat` and `topics.dat` files
 ### Step 1:  Make an `SFileFilter`
 
 ```python
-from declass import SFileFilter, VWFormatter
+from rosetta.text.text_processors import SFileFilter, VWFormatter
 sff = SFileFilter(VWFormatter())
 sff.load_sfile('doc_tokens.vw')
 
@@ -120,6 +120,7 @@ sff.filter_sfile('doc_tokens.vw', 'doc_tokens_filtered.vw')
 Our filtered output, `doc_tokens_filtered.vw` has replaced tokens with the id values that the `sff` chose.  This forces VW to use the values we chose (VW's hasher maps integers to integers, modulo `2^bit_precision`).  We can also filter based on `doc_id` as follows
 
 ```python
+import pandas as pd
 meta = pd.read_csv('path_to_metadata.csv').set_index('doc_id')
 doc_id_to_keep = meta[meta['administration'] == 'Nixon'].index
 sff.filter_sfile(
@@ -152,7 +153,8 @@ You can view the topics and predictions with this:
 ```python
 from rosetta.text.vw_helpers import LDAResults
 num_topics = 5
-lda = LDAResults('topics.dat', 'prediction.dat', num_topics, 'sff_file.pkl')
+lda = LDAResults('topics.dat', 'prediction.dat', 'sff_file.pkl',
+                 num_topics=num_topics)
 lda.print_topics()
 ```
 
