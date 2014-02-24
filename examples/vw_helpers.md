@@ -93,7 +93,7 @@ There are some issues with using the raw `prediction.dat` and `topics.dat` files
 ### Step 1:  Make an `SFileFilter`
 
 ```python
-from declass.utils.text_processors import SFileFilter, VWFormatter
+from rosetta.text.text_processors import SFileFilter, VWFormatter
 sff = SFileFilter(VWFormatter())
 sff.load_sfile('doc_tokens.vw')
 
