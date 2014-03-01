@@ -5,5 +5,5 @@ gensim
 docx
 pyth
 pymongo
-MySQLdb
+MySQL-python
 scipy
