@@ -109,7 +109,7 @@ class BaseStreamer(object):
                        raise_on_bad_id=raise_on_bad_id,
                        cache_list=cache_list)
         results_iterator = imap_easy(func,
-                                     self.info_stream(cache_list=cache_list),
+                                     self.info_stream(),
                                      n_jobs, chunksize)
         if cache_list_file:
             with smart_open(outfile, 'w') as open_outfile, \
