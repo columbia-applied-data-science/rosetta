@@ -77,7 +77,7 @@ class TestMySQLStreamer(unittest.TestCase):
                 for item in self.my_iter:
                     yield item
 
-            def execute(self):
+            def execute(self, query):
                 return None
         self.mock_cursor = MockCursor(self.query_result)
         self.db_setup = {}
@@ -87,5 +87,25 @@ class TestMySQLStreamer(unittest.TestCase):
         self.db_setup['database'] = 'database'
         self.db_setup['query'] = 'select something'
         self.tokenizer = TokenizerBasic()
+
+
+
+    def test_info_stream(self):
+        stream = MySQLStreamer(self.db_setup,
+                                  tokenizer=self.tokenizer)
+        stream.cursor = self.mock_cursor
+        token_benchmark = [['doomed', 'failure'],
+                           ['set', 'success']]
+        text_benchmark = ['doomed to failure', 'set for success']
+        token_result = []
+        text_result = []
+        for each in stream.info_stream():
+            token_result.append(each['tokens'])
+            text_result.append(each['text'])
+
+        self.assertEqual(token_benchmark, token_result)
+        self.assertEqual(text_benchmark, text_result)
+
+
 
         
