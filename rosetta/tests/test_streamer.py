@@ -60,3 +60,32 @@ class TestTextIterStreamer(unittest.TestCase):
 
         compare = result.toarray() == benchmark.toarray()
         self.assertTrue(compare.all())
+
+
+from rosetta.text.streamers import MySQLStreamer
+
+
+class TestMySQLStreamer(unittest.TestCase):
+    def setUp(self):
+        self.query_result = [{'text': 'doomed to failure', 'doc_id': 'a'},
+                {'text': 'set for success', 'doc_id': '1'}]
+        class MockCursor(object):
+            def __init__(self, my_iter):
+                self.my_iter = my_iter
+    
+            def __iter__(self):
+                for item in self.my_iter:
+                    yield item
+
+            def execute(self):
+                return None
+        self.mock_cursor = MockCursor(self.query_result)
+        self.db_setup = {}
+        self.db_setup['host'] = 'hostname'
+        self.db_setup['user'] = 'username'
+        self.db_setup['password'] = 'password'
+        self.db_setup['database'] = 'database'
+        self.db_setup['query'] = 'select something'
+        self.tokenizer = TokenizerBasic()
+
+        
