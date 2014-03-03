@@ -665,6 +665,8 @@ class MongoStreamer(DBStreamer):
                 _limit = None
             if 'translations' in self.db_setup:
                 _translate = self.db_setup['translations']
+            else:
+                _translate = None
         except:
             raise common.BadDataError("MySQLStreamer expects db_setup \
                                       to have a query and text_key field")
