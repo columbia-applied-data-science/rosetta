@@ -100,10 +100,6 @@ class BaseStreamer(object):
             Write these info_stream items to file on every iteration.
         cache_list_file : filepath or buffer
           """
-        if not cache_list or 'doc_id' not in cache_list:
-            raise common.DocIDError("vw format needs a doc_id saved\
-                                    to the cache to proceed")
-
         formatter = text_processors.VWFormatter()
         func = partial(_to_sstr, formatter=formatter,
                        raise_on_bad_id=raise_on_bad_id,
