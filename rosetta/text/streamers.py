@@ -5,9 +5,13 @@ from collections import Counter
 from random import shuffle
 import re
 from functools import partial
+import abc
 import sys
 import os
 from scipy import sparse
+import MySQLdb
+import MySQLdb.cursors
+import pymongo
 
 from rosetta.parallel.parallel_easy import imap_easy
 
@@ -20,6 +24,17 @@ class BaseStreamer(object):
     """
     Base class...don't use this directly.
     """
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def info_stream(self, **kwargs):
+        """
+        Abstract method.  All derived classes will implement to
+        return an interator over the text documents with processing
+        as appropriate.
+        """
+        return
+
     def single_stream(self, item, cache_list=None, **kwargs):
         """
         Stream a single item from source.
@@ -65,6 +80,44 @@ class BaseStreamer(object):
         """
         return self.single_stream('tokens', cache_list=cache_list, **kwargs)
 
+    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True,
+              cache_list=None, cache_list_file=None):
+        """
+        Write our filestream to a VW (Vowpal Wabbit) formatted file.
+
+        Parameters
+        ----------
+        outfile : filepath or buffer
+        n_jobs : Integer
+            Use n_jobs different jobs to do the processing.  Set = 4 for 4
+            jobs.  Set = -1 to use all available, -2 for all except 1,...
+        chunksize : Integer
+            Workers process this many jobs at once before pickling and sending
+            results to master.  If this is too low, communication overhead
+            will dominate.  If this is too high, jobs will not be distributed
+            evenly.
+        cache_list : List of strings
+            Write these info_stream items to file on every iteration.
+        cache_list_file : filepath or buffer
+          """
+        formatter = text_processors.VWFormatter()
+        func = partial(_to_sstr, formatter=formatter,
+                       raise_on_bad_id=raise_on_bad_id,
+                       cache_list=cache_list)
+        results_iterator = imap_easy(func,
+                                     self.info_stream(),
+                                     n_jobs, chunksize)
+        if cache_list_file:
+            with smart_open(outfile, 'w') as open_outfile, \
+                    smart_open(cache_list_file, 'w') as open_cache_file:
+                for result, cache_list in results_iterator:
+                    open_outfile.write(result + '\n')
+                    open_cache_file.write(str(cache_list) + '\n')
+        else:
+            with smart_open(outfile, 'w') as open_outfile:
+                for result, cache_list in results_iterator:
+                    open_outfile.write(result + '\n')
+
     def to_scipysparse(self, cache_list=None, **kwargs):
         """
         Returns a scipy sparse matrix representing the collection of documents
@@ -108,8 +161,8 @@ class VWStreamer(BaseStreamer):
     For streaming from a single VW file.  Since the VW file format does not
     preserve token order, all tokens are unordered.
     """
-    def __init__(
-        self, sfile=None, cache_sfile=False, limit=None, shuffle=False):
+    def __init__(self, sfile=None, cache_sfile=False,
+                 limit=None, shuffle=False):
         """
         Parameters
         ----------
@@ -207,8 +260,8 @@ class TextFileStreamer(BaseStreamer):
     For streaming from text files.
     """
     def __init__(
-        self, text_base_path=None, path_list=None, file_type='*', 
-        name_strip=r'\..*', tokenizer=None, tokenizer_func=None, limit=None, 
+        self, text_base_path=None, path_list=None, file_type='*',
+        name_strip=r'\..*', tokenizer=None, tokenizer_func=None, limit=None,
         shuffle=True):
         """
         Parameters
@@ -386,8 +439,7 @@ class TextIterStreamer(BaseStreamer):
     """
     For streaming text.
     """
-    def __init__(
-        self, text_iter, tokenizer=None, tokenizer_func=None):
+    def __init__(self, text_iter, tokenizer=None, tokenizer_func=None):
         """
         Parameters
         ----------
@@ -417,41 +469,222 @@ class TextIterStreamer(BaseStreamer):
             info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
             yield info
 
-    def to_vw(self, outfile, n_jobs=-1, chunksize=1000, raise_on_bad_id=True,
-            cache_list=None, cache_list_file=None):
-        """
-        Write our filestream to a VW (Vowpal Wabbit) formatted file.
 
+class DBStreamer(BaseStreamer):
+    """
+    Database streamer base class
+    """
+    __metaclass__ = abc.ABCMeta
+
+    def __init__(
+            self, db_setup, tokenizer=None, tokenizer_func=None):
+        """
         Parameters
         ----------
-        outfile : filepath or buffer
-        n_jobs : Integer
-            Use n_jobs different jobs to do the processing.  Set = 4 for 4
-            jobs.  Set = -1 to use all available, -2 for all except 1,...
-        chunksize : Integer
-            Workers process this many jobs at once before pickling and sending
-            results to master.  If this is too low, communication overhead
-            will dominate.  If this is too high, jobs will not be distributed
-            evenly.
-        cache_list : List of strings
-            Write these info_stream items to file on every iteration.
-        cache_list_file : filepath or buffer
-          """
-        formatter = text_processors.VWFormatter()
-        func = partial(_to_sstr, formatter=formatter,
-                raise_on_bad_id=raise_on_bad_id, cache_list=cache_list)
-        results_iterator = imap_easy(func, self.info_stream(), n_jobs, chunksize)
-        if cache_list_file:
-            with smart_open(outfile, 'w') as open_outfile, \
-                    smart_open(cache_list_file, 'w') as open_cache_file:
-                for result, cache_list in results_iterator:
-                    open_outfile.write(result + '\n')
-                    open_cache_file.write(str(cache_list) + '\n')
-        else:
-            with smart_open(outfile, 'w') as open_outfile:
-                for result, cache_list in results_iterator:
-                    open_outfile.write(result + '\n')
+        db_setup: A dictionary containing parameters needed to connect to, and
+            query the database.  The required parameters are documented in each
+            subclass, but at minimum you will need information about the host,
+            username/password, and the query that will be executed.  The query
+            must return a 'text' field in its dictionary.
+        tokenizer : Subclass of BaseTokenizer
+            Should have a text_to_token_list method.  Try using MakeTokenizer
+            to convert a function to a valid tokenizer.
+        tokenizer_func : Function
+            Transforms a string (representing one file) to a list of strings
+            (the 'tokens').
+        """
+        self.db_setup = db_setup
+        self.tokenizer = tokenizer
+        self.tokenizer_func = tokenizer_func
+        self.cursor = None
 
+        assert (tokenizer is None) or (tokenizer_func is None)
+        if tokenizer_func:
+            self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
+
+    @abc.abstractmethod
+    def connect(self):
+        """
+        Open connection to database.
+        sets the classes cursor object.
+        """
+        return
+
+    @abc.abstractmethod
+    def disconnect(self):
+        """
+        Close connection to database
+        """
+        return
+
+    @abc.abstractmethod
+    def iterate_over_query(self):
+        """
+        Return an iterator over query result.
+        We suggest that the entire query result not be returned and that
+        iteration is controlled on server side, but this method does not
+        guarantee that.  This method must return a dictionary, which at
+        least has the key 'text' in it, containing the next to be tokenized.
+        """
+        return
+
+    def info_stream(self, **kwargs):
+        """
+        Yields a dict from self.executing the query as well as "tokens".
+        """
+        for info in self.iterate_over_query():
+            info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
+            yield info
+
+
+class MySQLStreamer(DBStreamer):
+    """
+    Subclass of DBStreamer to connect to a MySQL database and iterate over
+    query results.  db_setup is expected to be a dictionary containing
+    host, user, password, database, and query.  The query itself must return
+    a column named text.
+
+    Example:
+        db_setup = {}
+        db_setup['host'] = 'hostname'
+        db_setup['user'] = 'username'
+        db_setup['password'] = 'password'
+        db_setup['database'] = 'database'
+        db_setup['query'] = 'select
+                                id as doc_id,
+                                body as text
+                             from tablename
+                             where length(body) > 100'
+
+        my_tokenizer = TokenizerBasic()
+        stream = MySQLStreamer(db_setup=db_setup, tokenizer=my_tokenizer)
+
+        for text in stream.info_stream(cache_list=['doc_id']):
+            print text['doc_id'], text['tokens']
+    """
+    def connect(self):
+        try:
+            _host = self.db_setup['host']
+            _user = self.db_setup['user']
+            _password = self.db_setup['password']
+            _db = self.db_setup['database']
+        except:
+            raise common.BadDataError("MySQLStreamer expects db_setup to have \
+                        host, user, password, and database fields")
+        connection = MySQLdb.connect(
+            host=_host, user=_user,
+            passwd=_password, db=_db,
+            cursorclass=MySQLdb.cursors.SSDictCursor)
+        self.cursor = connection.cursor()
+
+    def disconnect(self):
+        if self.cursor:
+            self.cursor.close()
+        self.cursor = None
+
+    def iterate_over_query(self):
+        if not self.cursor:
+            self.connect()
+        try:
+            _query = self.db_setup['query']
+        except:
+            raise common.BadDataError("MySQLStreamer expects db_setup \
+                                      to have a query field")
+        self.cursor.execute(_query)
+        for result in self.cursor:
+            if 'text' not in result:
+                raise common.BadDataError("The query must return a text field")
+            yield result
+
+
+class MongoStreamer(DBStreamer):
+    """
+    Subclass of DBStreamer to connect to a Mongo database and iterate over
+    query results.  db_setup is expected to be a dictionary containing
+    host, database, collection, query, and text_key.  Additionally an optional
+    limit parameter is allowed.
+    The query itself must return a column named text_key which is passed on
+    as 'text' to the iterator.
+    In addition, because it is difficult to rename mongo fields (similar
+    to the SQL 'AS' syntax), we allow a translation dictionary to be
+    passed in, which translates keys in the mongo dictionary result names
+    k to be passed into the result as v for key value pairs {k : v}.
+    Currently we don't deal with nested documents.
+
+    Example:
+
+        db_setup = {}
+        db_setup['host'] = 'localhost'
+        db_setup['database'] = 'places'
+        db_setup['collection'] = 'opentable'
+        db_setup['query'] = {}
+        db_setup['limit'] = 5
+        db_setup['text_key'] = 'desc'
+        db_setup['translations'] = {'_id' : 'doc_id'}
+
+        # In this example, we assume that the collection has a field named
+        # desc, holding the text to be analyzed, and a field named _id which
+        # will be translated to doc_id and stored in the cache.
+
+        my_tokenizer = TokenizerBasic()
+        stream = MongoStreamer(db_setup=db_setup, tokenizer=my_tokenizer)
+
+        for text in stream.info_stream(cache_list=['doc_id']):
+            print text['doc_id'], text['tokens']
+    """
+    def connect(self):
+        try:
+            _host = self.db_setup['host']
+            _db = self.db_setup['database']
+            _col = self.db_setup['collection']
+            if 'port' in self.db_setup:
+                _port = self.db_setup['port']
+            else:
+                _port = None
+        except:
+            raise common.BadDataError("MongoStreamer expects db_setup to have \
+                        host and database fields")
+
+        client = pymongo.MongoClient(_host, _port)
+        db = client[_db]
+        col = db[_col]
+        self.cursor = col
+
+    def disconnect(self):
+        self.cursor = None
+
+    def iterate_over_query(self):
+        if not self.cursor:
+            self.connect()
+        try:
+            _query = self.db_setup['query']
+            _text_key = self.db_setup['text_key']
+            if 'limit' in self.db_setup:
+                _limit = self.db_setup['limit']
+            else:
+                _limit = None
+            if 'translations' in self.db_setup:
+                _translate = self.db_setup['translations']
+            else:
+                _translate = None
+        except:
+            raise common.BadDataError("MySQLStreamer expects db_setup \
+                                      to have a query and text_key field")
+
+        results = self.cursor.find(_query)
+
+        if _limit:
+            results = results.limit(_limit)
+
+        for result in results:
+            if _text_key not in result:
+                raise common.BadDataError("The query must return the \
+                                           specified text field")
+            result['text'] = result[_text_key]
+            if _translate:
+                for k, v in _translate.items():
+                    result[v] = result[k]
+            yield result
 
 
 def _group_to_sstr(streamer, formatter, raise_on_bad_id, path_group):
@@ -492,7 +725,7 @@ def _to_sstr(info_dict, formatter, raise_on_bad_id, cache_list):
     If cache_list is passed, yeilds a tuple tok_sstr, cache_dict where the latter
     is a subdict of info_dict.
     """
-    doc_id = info_dict['doc_id']
+    doc_id = str(info_dict['doc_id'])
     tokens = info_dict['tokens']
     feature_values = Counter(tokens)
     cache_dict=None
@@ -509,7 +742,3 @@ def _to_sstr(info_dict, formatter, raise_on_bad_id, cache_list):
             msg = "WARNING: " + msg
             sys.stderr.write(msg)
     return tok_sstr, cache_dict
-
-
-
-

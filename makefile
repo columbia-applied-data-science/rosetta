@@ -40,6 +40,9 @@ test:
 test-text:
 	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*text*' -v
 
+test-streamer:
+	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*streamer*' -v
+
 test-parallel:
 	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*parallel*' -v
 

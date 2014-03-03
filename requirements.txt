@@ -4,3 +4,6 @@ statsmodels
 gensim
 docx
 pyth
+pymongo
+MySQL-python
+scipy
