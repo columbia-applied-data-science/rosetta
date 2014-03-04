@@ -35,6 +35,10 @@ class BaseStreamer(object):
         """
         return
 
+    @abc.abstractmethod
+    def record_stream(self, **kwargs):
+        return
+
     def single_stream(self, item, cache_list=None, **kwargs):
         """
         Stream a single item from source.
@@ -237,6 +241,20 @@ class VWStreamer(BaseStreamer):
                         continue
                 yield record_dict
 
+    def record_stream(self, doc_id=None):
+        """
+        Returns an iterator over record dicts.
+
+        Parameters
+        ----------
+        doc_id : Iterable over Strings
+            Return record dicts iff doc_id in doc_id
+        """
+        source = self.source(doc_id=doc_id)
+
+        for record_dict in source:
+            yield record_dict
+
     def info_stream(self, doc_id=None):
         """
         Returns an iterator over info dicts.
@@ -246,10 +264,9 @@ class VWStreamer(BaseStreamer):
         doc_id : Iterable over Strings
             Return info dicts iff doc_id in doc_id
         """
-        source = self.source(doc_id=doc_id)
 
         # Read record_dict and convert to info by adding tokens
-        for record_dict in source:
+        for record_dict in self.record_stream(doc_id):
             record_dict['tokens'] = self.formatter._dict_to_tokens(record_dict)
 
             yield record_dict
@@ -352,6 +369,9 @@ class TextFileStreamer(BaseStreamer):
         """
         return {'mtime': os.path.getmtime(path), 'atime': os.path.getatime(path),
                 'size': os.path.getsize(path)}
+
+    def record_stream(self, paths=None, doc_id=None, limit=None):
+        return self.info_stream(paths, doc_id, limit)
 
     def info_stream(self, paths=None, doc_id=None, limit=None):
         """
@@ -461,11 +481,18 @@ class TextIterStreamer(BaseStreamer):
         if tokenizer_func:
             self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
 
+    def record_stream(self):
+        """
+        Yields a dict from self.streamer
+        """
+        for info in self.text_iter:
+            yield info
+
     def info_stream(self):
         """
         Yields a dict from self.streamer as well as "tokens".
         """
-        for info in self.text_iter:
+        for info in self.record_stream():
             info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
             yield info
 
@@ -528,11 +555,15 @@ class DBStreamer(BaseStreamer):
         """
         return
 
-    def info_stream(self, **kwargs):
+    def record_stream(self):
+        for info in self.iterate_over_query():
+            yield info
+
+    def info_stream(self):
         """
         Yields a dict from self.executing the query as well as "tokens".
         """
-        for info in self.iterate_over_query():
+        for info in self.record_stream():
             info['tokens'] = self.tokenizer.text_to_token_list(info['text'])
             yield info
 
