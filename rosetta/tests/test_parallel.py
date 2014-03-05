@@ -8,7 +8,7 @@ import threading
 from StringIO import StringIO
 
 from rosetta.parallel import parallel_easy, pandas_easy
-from rosetta.parallel.threading_easy import LockIterateApply
+from rosetta.parallel.threading_easy import threading_easy, LockIterateApply
 
 
 # A couple functions for testing parallel easy
@@ -220,3 +220,20 @@ class TestLockIterateApply(unittest.TestCase):
         benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
         results = set(out.getvalue().split(','))
         self.assertEqual(results, benchmark)
+
+    def test_threading_easy(self):
+        out = StringIO()
+        threading_easy(self.myiter, self.func, self.num_threads, ',', out)
+
+        benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
+        results = set(out.getvalue().split(','))
+        self.assertEqual(results, benchmark)
+
+    def test_threading_easy_single(self):
+        out = StringIO()
+        threading_easy(self.myiter, self.func, 1, ',', out)
+
+        benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
+        results = set(out.getvalue().split(','))
+        self.assertEqual(results, benchmark)
+

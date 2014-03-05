@@ -35,4 +35,22 @@ class LockIterateApply(threading.Thread):
         return self.func(x)
 
     def output(self, y):
-        self.out_stream.write(str(y) + self.sep)
+        self.out_stream.write(y + self.sep)
+
+
+def threading_easy(it, func, n_threads, sep='\n', out_stream=sys.stdout):
+    if n_threads is None or n_threads <= 1:
+        for each in it:
+            out_stream.write(func(each) + sep)
+    else:
+        lock = threading.Lock()
+        threads = []
+        for i in range(n_threads):
+            t = LockIterateApply(func, it, lock, sep, out_stream)
+            threads.append(t)
+
+        for t in threads:
+            t.start()
+
+        for t in threads:
+            t.join()
