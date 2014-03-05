@@ -6,7 +6,22 @@ import threading
 
 
 class LockIterateApply(threading.Thread):
+    """
+    Wraps an iterable into a "locked" iterable for threading, applies 
+    function and write to out_stream. 
+    """
     def __init__(self, func, iterable, lock, sep='\n', out_stream=sys.stdout):
+        """
+        Parameters
+        ----------
+        func : function of one variable
+        iterable : iterable, yields func arg
+        lock : threading.Lock()
+        sep : str
+            for writing to out_stream
+        out_stream : open, buff, standard stream
+            must have a .write() method
+        """
         self.lock = lock
         self.func = func
         self.out_stream = out_stream
@@ -20,6 +35,9 @@ class LockIterateApply(threading.Thread):
             t = self.read_apply()
 
     def read_apply(self):
+        """
+        locks iterable.next() and applies self.transform
+        """
         try:
             self.lock.acquire()
             x = self.myiter.next()
@@ -35,6 +53,9 @@ class LockIterateApply(threading.Thread):
         return self.func(x)
 
     def output(self, y):
+        """
+        Writes to out_stream.
+        """
         self.out_stream.write(str(y) + self.sep)
 
 
