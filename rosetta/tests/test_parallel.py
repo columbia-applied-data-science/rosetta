@@ -223,7 +223,7 @@ class TestLockIterateApply(unittest.TestCase):
 
     def test_threading_easy(self):
         out = StringIO()
-        threading_easy(self.myiter, self.func, self.num_threads, ',', out)
+        threading_easy(self.func, self.myiter, self.num_threads, ',', out)
 
         benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
         results = set(out.getvalue().split(','))
@@ -231,7 +231,7 @@ class TestLockIterateApply(unittest.TestCase):
 
     def test_threading_easy_single(self):
         out = StringIO()
-        threading_easy(self.myiter, self.func, 1, ',', out)
+        threading_easy(self.func, self.myiter, 1, ',', out)
 
         benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
         results = set(out.getvalue().split(','))

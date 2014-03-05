@@ -6,11 +6,11 @@ import threading
 
 
 class LockIterateApply(threading.Thread):
-    def __init__(self, F, it, lock, sep='\n', out_stream=sys.stdout):
+    def __init__(self, func, iterable, lock, sep='\n', out_stream=sys.stdout):
         self.lock = lock
-        self.func = F
+        self.func = func
         self.out_stream = out_stream
-        self.myiter = it
+        self.myiter = iterable
         self.sep = sep
         threading.Thread.__init__(self)
 
@@ -35,18 +35,61 @@ class LockIterateApply(threading.Thread):
         return self.func(x)
 
     def output(self, y):
-        self.out_stream.write(y + self.sep)
+        self.out_stream.write(str(y) + self.sep)
 
 
-def threading_easy(it, func, n_threads, sep='\n', out_stream=sys.stdout):
+def threading_easy(func, iterable, n_threads, sep='\n', out_stream=sys.stdout):
+    """
+    Wraps the python threading library; takes an iterator, a function which
+    acts on each element the iterator yields and starts up the perscribed 
+    number of threads. The output of each thread process is pass to an 
+    out_stream. 
+
+    Parameters
+    ----------
+    func : function of one variable
+    iterable : iterable which yields function argument
+    n_threads : int
+    sep : string
+        for concatenating results to write 
+    out_stream : open file, buffer, standard stream
+        must have a .write() method
+
+    Returns
+    -------
+    writes to out_stream
+
+    Examples
+    --------
+    Function of one variable:
+    >>> from time import sleep
+    >>> import rosetta.parallel.threading_easy as te
+    >>> my_iter = (x for x in range(10))
+    >>> def double(n):
+            sleep(1)
+            return 2*x
+    >>> te.threading_easy(my_iter, double, n_threads=10)
+    
+    Function of more than one variable:
+    >>> from functools import partial
+    >>> def double2(n, t):
+            sleep(t)
+            return 2*n
+    >>> double = partial(double2, t=1)
+    >>> te.threading_easy(my_iter, double, n_threads=10)
+
+    Notes: in order to support the default sys.stdout out_stream, all results
+    are converted to string before writing.
+    
+    """
     if n_threads is None or n_threads <= 1:
-        for each in it:
-            out_stream.write(func(each) + sep)
+        for each in iterable:
+            out_stream.write(('%s'+sep)%func(each))
     else:
         lock = threading.Lock()
         threads = []
         for i in range(n_threads):
-            t = LockIterateApply(func, it, lock, sep, out_stream)
+            t = LockIterateApply(func, iterable, lock, sep, out_stream)
             threads.append(t)
 
         for t in threads:
