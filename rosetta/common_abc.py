@@ -9,8 +9,8 @@ from common import smart_open
 
 class SaveLoad(object):
     """
-    Objects which inherit from this class have load/ methods, which [un]pickle
-    them to disk.
+    Objects which inherit from this class have save/load methods, which
+    [un]pickle them to disk.
 
     Uses cPickle, so objects cannot have an attribute set to either a lambda
     function, or any function that is not defined until some class is
@@ -32,7 +32,7 @@ class SaveLoad(object):
     @classmethod
     def load(cls, loadfile):
         """
-        Pickle SFileFilter from disk.
+        Unpickle class from disk.
 
         Parameters
         ----------
