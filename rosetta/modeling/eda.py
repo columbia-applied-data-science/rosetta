@@ -13,11 +13,17 @@ def plot_corr_grid(
     **fig_kwargs):
     """
     Plot a correlation matrix as a grid.  Uses scipy.cluster.hierarchy.linkage
-    to compute clusters based on distance between variables. 
+    to compute clusters based on distance between samples.  
+    
+    Since correlation is passed in, this correlation must be converted to a
+    distance (using distance_fun).  The default distance_fun makes highly
+    correlated points have low distance, and vice versa.
 
     Parameters
     ----------
     corr : numpy ndarray or pandas DataFrame
+        corr[i, j] is the correlation (should be between -1 and 1) of samples
+        i and j.
     cluster : Boolean
         If True, reorder the matrix putting correlated entries nearby.
     distance_fun : Function
@@ -67,10 +73,18 @@ def plot_corr_dendrogram(
     corr, cluster_method='weighted', **dendrogram_kwargs):
     """
     Plot a correlation matrix as a dendrogram (on the current axes).
+    Uses scipy.cluster.hierarchy.linkage
+    to compute clusters based on distance between samples.  
+    
+    Since correlation is passed in, this correlation must be converted to a
+    distance (using distance_fun).  The default distance_fun makes highly
+    correlated points have low distance, and vice versa.
 
     Parameters
     ----------
     corr : numpy ndarray or pandas DataFrame
+        corr[i, j] is the correlation (should be between -1 and 1) of samples
+        i and j.
     cluster_method : String
         Method to use to amalgomate clusters.
         Either 'single', 'complete', 'average', or 'weighted'.
