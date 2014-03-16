@@ -106,6 +106,7 @@ class BaseStreamer(object):
         you might experience a slow down as the number of threads increase due 
         to the overhead of process delegation. 
         """
+        assert self.tokenizer, 'tokenizer must be defined to use .to_vw()'
         cache_list = [] if cache_list is None else cache_list
         # Initialize the cached items as attributes
         for cache_item in cache_list:
