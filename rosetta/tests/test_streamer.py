@@ -200,7 +200,7 @@ class TestMySQLStreamer(unittest.TestCase):
                                tokenizer=self.tokenizer)
         stream.cursor = self.mock_cursor
         result = StringIO()
-        stream.to_vw(result, cache_list=['doc_id'])
+        stream.to_vw(result)
 
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result.getvalue())
@@ -279,7 +279,7 @@ class TestMongoStreamer(unittest.TestCase):
                                tokenizer=self.tokenizer)
         stream.cursor = self.mock_cursor
         result = StringIO()
-        stream.to_vw(result, cache_list=['doc_id'])
+        stream.to_vw(result)
 
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result.getvalue())
