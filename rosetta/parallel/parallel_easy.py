@@ -44,6 +44,7 @@ def _write_to_output(out_q, stream, n_jobs):
         if not x:
             ends_seen += 1
             if ends_seen == n_jobs:
+                stream.flush()
                 return
             else:
                 continue
