@@ -85,7 +85,7 @@ class BaseStreamer(object):
         """
         return self.single_stream('tokens', cache_list=cache_list, **kwargs)
 
-    def to_vw(self, out_stream=sys.stdout, n_threads=1, raise_on_bad_id=True,
+    def to_vw(self, out_stream=sys.stdout, n_jobs=1, raise_on_bad_id=True,
             cache_list=None):
         """
         Write our filestream to a VW (Vowpal Wabbit) formatted file.
@@ -93,8 +93,8 @@ class BaseStreamer(object):
         Parameters
         ----------
         out_stream :  stream, buffer or open file object
-        n_threads : Integer
-            number of threads to use
+        n_jobs : Integer
+            number of CPU jobs 
         cache_list : List of strings.
             Cache these items as they appear
             E.g. self.token_stream('doc_id', 'tokens') caches
@@ -102,9 +102,7 @@ class BaseStreamer(object):
         Notes:
         -----
         self.info_stream must have a 'doc_id' field, as this is used to index
-        the lines in the vw file. In addition, if the tokenization is fast
-        you might experience a slow down as the number of threads increase due
-        to the overhead of process delegation.
+        the lines in the vw file. 
         """
         assert self.tokenizer, 'tokenizer must be defined to use .to_vw()'
         cache_list = [] if cache_list is None else cache_list
@@ -115,11 +113,8 @@ class BaseStreamer(object):
         func = partial(_to_sstr, tokenizer=self.tokenizer, formatter=formatter,
                        raise_on_bad_id=raise_on_bad_id, streamer=self,
                        cache_list=cache_list)
-        parallel_apply(func, self.record_stream(), n_threads,
+        parallel_apply(func, self.record_stream(), n_jobs,
                        sep='\n', out_stream=out_stream)
-        #threading_easy(func, self.record_stream(), n_threads,
-        #        out_stream=out_stream)
-
 
     def to_scipysparse(self, cache_list=None, **kwargs):
         """
