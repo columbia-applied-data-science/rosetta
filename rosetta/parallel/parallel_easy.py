@@ -25,7 +25,7 @@ GOOGLE = 1e100
 # Functions
 ###############################################################################
 
-def _do_work_off_queue(lock, in_q, func, out_q, sep, num):
+def _do_work_off_queue(lock, in_q, func, out_q, sep):
     while True:
         x = in_q.get()
 
@@ -62,14 +62,11 @@ def parallel_apply(func, iterable, n_jobs, sep='\n', out_stream=sys.stdout):
 
     # start pool workers
     pool = []
-    num = 0  # TODO: this is just for debugging
     for i in xrange(n_jobs):
         p = Process(target=_do_work_off_queue,
-                    args=(lock, in_q, func, out_q, sep, num))
+                    args=(lock, in_q, func, out_q, sep))
         p.start()
         pool.append(p)
-        num += 1
-
 
     # start output worker
     out_p = Process(target=_write_to_output,

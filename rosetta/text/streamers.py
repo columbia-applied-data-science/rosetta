@@ -94,7 +94,7 @@ class BaseStreamer(object):
         ----------
         out_stream :  stream, buffer or open file object
         n_jobs : Integer
-            number of CPU jobs 
+            number of CPU jobs
         cache_list : List of strings.
             Cache these items as they appear
             E.g. self.token_stream('doc_id', 'tokens') caches
@@ -102,7 +102,7 @@ class BaseStreamer(object):
         Notes:
         -----
         self.info_stream must have a 'doc_id' field, as this is used to index
-        the lines in the vw file. 
+        the lines in the vw file.
         """
         assert self.tokenizer, 'tokenizer must be defined to use .to_vw()'
         cache_list = [] if cache_list is None else cache_list

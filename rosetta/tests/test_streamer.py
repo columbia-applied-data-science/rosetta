@@ -140,7 +140,7 @@ class TestTextIterStreamer(unittest.TestCase):
 
         compare = result.toarray() == benchmark.toarray()
         self.assertTrue(compare.all())
-    
+
     def tearDown(self):
         os.remove(self.temp_vw_path) if (
                 os.path.exists(self.temp_vw_path)) else None
@@ -291,7 +291,7 @@ class TestMongoStreamer(unittest.TestCase):
         stream.cursor = self.mock_cursor
         stream.to_vw(open(self.temp_vw_path, 'w'))
         result  = open(self.temp_vw_path).read()
-        
+
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result)
 
