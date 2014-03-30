@@ -32,7 +32,7 @@ class TestTextFileStreamer(unittest.TestCase):
         token_benchmark = [['doomed', 'failure'],
                            ['set', 'success']]
         text_benchmark = ['doomed to failure\n', 'set for success\n']
-        
+
         token_result = []
         text_result = []
         for each in stream.info_stream():
@@ -54,7 +54,7 @@ class TestTextFileStreamer(unittest.TestCase):
 
         self.assertEqual(token_benchmark, token_result)
         self.assertEqual(id_benchmark, stream.__dict__['doc_id_cache'])
-    
+
     def test_to_vw(self):
         stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
                                   tokenizer=self.tokenizer)
@@ -63,7 +63,7 @@ class TestTextFileStreamer(unittest.TestCase):
 
         benchmark = " 1 doc1| failure:1 doomed:1\n 1 doc2| set:1 success:1\n"
         self.assertEqual(benchmark, result.getvalue())
-    
+
     def test_to_scipyspare(self):
         stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
                                   tokenizer=self.tokenizer)
@@ -73,7 +73,7 @@ class TestTextFileStreamer(unittest.TestCase):
 
         compare = result.toarray() == benchmark.toarray()
         self.assertTrue(compare.all())
-    
+
     def tearDown(self):
         os.remove(self.doc1)
         os.remove(self.doc2)
@@ -99,7 +99,7 @@ class TestTextIterStreamer(unittest.TestCase):
 
         self.assertEqual(token_benchmark, token_result)
         self.assertEqual(text_benchmark, text_result)
- 
+
     def test_token_stream(self):
         stream = TextIterStreamer(text_iter=self.text_iter,
                                   tokenizer=self.tokenizer)
@@ -117,10 +117,10 @@ class TestTextIterStreamer(unittest.TestCase):
     def test_to_scipyspare(self):
         stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
                                   tokenizer=self.tokenizer)
-        
+
         result = stream.to_scipysparse()
         benchmark = sparse.csr_matrix([[1, 1, 0, 0], [0, 0, 1, 1]])
-        
+
     def test_to_vw(self):
         stream = TextIterStreamer(text_iter=self.text_iter,
                                   tokenizer=self.tokenizer)
@@ -200,7 +200,7 @@ class TestMySQLStreamer(unittest.TestCase):
                                tokenizer=self.tokenizer)
         stream.cursor = self.mock_cursor
         result = StringIO()
-        stream.to_vw(result, cache_list=['doc_id'])
+        stream.to_vw(result)
 
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result.getvalue())
@@ -279,7 +279,7 @@ class TestMongoStreamer(unittest.TestCase):
                                tokenizer=self.tokenizer)
         stream.cursor = self.mock_cursor
         result = StringIO()
-        stream.to_vw(result, cache_list=['doc_id'])
+        stream.to_vw(result)
 
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result.getvalue())

@@ -8,7 +8,7 @@ Functions to assist in parallel processing with Python 2.7.
   and a more effective way of handling Ctrl-C exit (we add a timeout).
 """
 import itertools
-from multiprocessing import Pool, cpu_count
+from multiprocessing import cpu_count, Pool, Process, Manager, Lock
 from multiprocessing.pool import IMapUnorderedIterator, IMapIterator
 import cPickle
 import sys
@@ -24,6 +24,66 @@ GOOGLE = 1e100
 ###############################################################################
 # Functions
 ###############################################################################
+
+def _do_work_off_queue(lock, in_q, func, out_q, sep, num):
+    while True:
+        x = in_q.get()
+
+        if x is None:
+            out_q.put(x)
+            return
+
+        result = func(x)
+        out_q.put(str(result) + sep)
+
+
+def _write_to_output(out_q, stream, n_jobs):
+    ends_seen = 0
+    while True:
+        x = out_q.get()
+        if not x:
+            ends_seen += 1
+            if ends_seen == n_jobs:
+                return
+            else:
+                continue
+        stream.write(x)
+
+
+def parallel_apply(func, iterable, n_jobs, sep='\n', out_stream=sys.stdout):
+    """
+    Writes the result of applying func to iterable using n_jobs to out_stream
+    """
+    manager = Manager()
+    in_q = manager.Queue(maxsize=2 * n_jobs)
+    out_q = manager.Queue(maxsize=2 * n_jobs)
+    lock = Lock()
+
+    # start pool workers
+    pool = []
+    num = 0  # TODO: this is just for debugging
+    for i in xrange(n_jobs):
+        p = Process(target=_do_work_off_queue,
+                    args=(lock, in_q, func, out_q, sep, num))
+        p.start()
+        pool.append(p)
+        num += 1
+
+
+    # start output worker
+    out_p = Process(target=_write_to_output,
+                    args=(out_q, out_stream, n_jobs))
+    out_p.start()
+
+    # put data on input queue
+    iters = itertools.chain(iterable, (None,) * n_jobs)
+    for each in iters:
+        in_q.put(each)
+
+    # finish job
+    for p in pool:
+        p.join()
+    out_p.join()
 
 
 def imap_easy(func, iterable, n_jobs, chunksize, ordered=True):

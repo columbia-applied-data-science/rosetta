@@ -4,8 +4,11 @@ from functools import partial
 import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 import numpy as np
+import threading
+from StringIO import StringIO
 
 from rosetta.parallel import parallel_easy, pandas_easy
+from rosetta.parallel.threading_easy import threading_easy, LockIterateApply
 
 
 # A couple functions for testing parallel easy
@@ -179,3 +182,58 @@ class TestPandasEasy(unittest.TestCase):
         result = pandas_easy.groupby_to_series_to_frame(
             df, frame_to_series, 1, use_apply=False, by=labels)
         assert_frame_equal(result, benchmark)
+
+
+class TestLockIterateApply(unittest.TestCase):
+    """
+    Test the Locked Iterator Class
+    """
+    def setUp(self):
+        self.data = ['my', 'name', 'is', 'daniel']
+        self.num_threads = 4
+
+        def bytwo(x):
+            return 2 * x
+
+        self.func = bytwo
+
+        def it():
+            for i in self.data:
+                yield i
+
+        self.myiter = it()
+
+    def test_locked_iterator(self):
+        threads = []
+        lock = threading.Lock()
+        out = StringIO()
+        for i in range(self.num_threads):
+            t = LockIterateApply(self.func, self.myiter, lock, ',', out)
+            threads.append(t)
+
+        for t in threads:
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
+        results = set(out.getvalue().split(','))
+        self.assertEqual(results, benchmark)
+
+    def test_threading_easy(self):
+        out = StringIO()
+        threading_easy(self.func, self.myiter, self.num_threads, ',', out)
+
+        benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
+        results = set(out.getvalue().split(','))
+        self.assertEqual(results, benchmark)
+
+    def test_threading_easy_single(self):
+        out = StringIO()
+        threading_easy(self.func, self.myiter, 1, ',', out)
+
+        benchmark = set(['mymy', 'namename', 'danieldaniel', 'isis', ''])
+        results = set(out.getvalue().split(','))
+        self.assertEqual(results, benchmark)
+
