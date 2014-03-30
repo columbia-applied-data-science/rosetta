@@ -4,7 +4,11 @@ import sys
 import subprocess
 import shutil
 
-from docx import opendocx, getdocumenttext
+try:
+    from docx import opendocx, getdocumenttext
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
 from pyth.plugins.rtf15.reader import Rtf15Reader
 from pyth.plugins.plaintext.writer import PlaintextWriter
 from unidecode import unidecode
@@ -150,6 +154,10 @@ def _docx_to_txt(file_path, dst_dir, file_name):
     Uses the docx python module to extract text from a docx file and save
     to .txt in dst_dir.
     """
+    if not HAS_DOCX:
+        raise ImportError(
+            "docx was not importable, therefore _docx_to_txt cannot be used.")
+
     if file_name is None:
         file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'\.docx$', '.txt', file_name))
