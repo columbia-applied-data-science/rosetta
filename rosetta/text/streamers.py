@@ -14,7 +14,6 @@ import MySQLdb.cursors
 import pymongo
 
 from rosetta.parallel.parallel_easy import imap_easy, parallel_apply
-from rosetta.parallel.threading_easy import threading_easy
 
 from .. import common
 from ..common import lazyprop, smart_open, DocIDError
