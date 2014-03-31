@@ -55,6 +55,16 @@ def parallel_apply(func, iterable, n_jobs, sep='\n', out_stream=sys.stdout):
     """
     Writes the result of applying func to iterable using n_jobs to out_stream
     """
+    # if there is only one job, simply read from iterable, apply function
+    # and write to outpu
+    if n_jobs == 1:
+        for each in iterable:
+            out_stream.write(str(func(each)) + sep)
+        out_stream.flush()
+        return
+
+    # if there is more than one job, use a queue manager to communicate
+    # between processes.
     manager = Manager()
     in_q = manager.Queue(maxsize=2 * n_jobs)
     out_q = manager.Queue(maxsize=2 * n_jobs)
