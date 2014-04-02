@@ -9,8 +9,14 @@ import abc
 import sys
 import os
 from scipy import sparse
-import MySQLdb
-import MySQLdb.cursors
+
+try:
+    import MySQLdb
+    import MySQLdb.cursors
+    HAS_MYSQLDB = True
+except ImportError:
+    HAS_MYSQLDB = False
+
 import pymongo
 
 from rosetta.parallel.parallel_easy import imap_easy
@@ -562,6 +568,12 @@ class MySQLStreamer(DBStreamer):
         for text in stream.info_stream(cache_list=['doc_id']):
             print text['doc_id'], text['tokens']
     """
+    def __init__(self, *args, **kwargs):
+        if not HAS_MYSQLDB:
+            raise ImportError("MySQLdb was not importable, therefore\
+                MySQLStreamer cannot be used.")
+        super(MySQLStreamer, self).__init__(*args, **kwargs)
+
     def connect(self):
         try:
             _host = self.db_setup['host']
