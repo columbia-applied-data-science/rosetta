@@ -8,6 +8,13 @@ from rosetta import TokenizerBasic
 from rosetta.text.streamers import TextFileStreamer, TextIterStreamer
 from rosetta.text.streamers import MySQLStreamer, MongoStreamer
 
+try:
+    import MySQLdb
+    import MySQLdb.cursors
+    HAS_MYSQLDB = True
+except ImportError:
+    HAS_MYSQLDB = False
+
 
 from rosetta.common import DocIDError, TokenError
 
@@ -165,6 +172,7 @@ class TestMySQLStreamer(unittest.TestCase):
         self.db_setup['query'] = 'select something'
         self.tokenizer = TokenizerBasic()
 
+    @unittest.skipUnless(HAS_MYSQLDB, "requires MySQLdb")
     def test_info_stream(self):
         stream = MySQLStreamer(self.db_setup,
                                tokenizer=self.tokenizer)
@@ -181,6 +189,7 @@ class TestMySQLStreamer(unittest.TestCase):
         self.assertEqual(token_benchmark, token_result)
         self.assertEqual(text_benchmark, text_result)
 
+    @unittest.skipUnless(HAS_MYSQLDB, "requires MySQLdb")
     def test_token_stream(self):
         stream = MySQLStreamer(self.db_setup,
                                tokenizer=self.tokenizer)
@@ -195,6 +204,7 @@ class TestMySQLStreamer(unittest.TestCase):
         self.assertEqual(token_benchmark, token_result)
         self.assertEqual(id_benchmark, stream.__dict__['doc_id_cache'])
 
+    @unittest.skipUnless(HAS_MYSQLDB, "requires MySQLdb")
     def test_to_vw(self):
         stream = MySQLStreamer(self.db_setup,
                                tokenizer=self.tokenizer)
@@ -205,6 +215,7 @@ class TestMySQLStreamer(unittest.TestCase):
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result.getvalue())
 
+    @unittest.skipUnless(HAS_MYSQLDB, "requires MySQLdb")
     def test_to_scipyspare(self):
         stream = MySQLStreamer(self.db_setup,
                                tokenizer=self.tokenizer)
