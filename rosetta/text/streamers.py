@@ -456,7 +456,7 @@ class TextFileStreamer(BaseStreamer):
                     open_outfile.write(sstr + '\n')
 
 
-class SqliteDBStreamer(BaseStreamer):
+class SqliteStreamer(BaseStreamer):
     """
     For streaming from text files.
     """

@@ -8,7 +8,7 @@ from rosetta import TokenizerBasic
 from rosetta.text.streamers import TextFileStreamer, TextIterStreamer
 from rosetta.text.streamers import MySQLStreamer, MongoStreamer
 
-from rosetta.text.streamers import SqliteDBStreamer
+from rosetta.text.streamers import SqliteStreamer
 from rosetta.text.converters import records_to_sqliteDB
 
 try:
@@ -325,7 +325,7 @@ class TestMongoStreamer(unittest.TestCase):
                 os.path.exists(self.temp_vw_path)) else None
 
 
-class TestSqliteDBStreamer(unittest.TestCase):
+class TestSqliteStreamer(unittest.TestCase):
     def setUp(self):
         self.test_path = os.path.abspath('./rosetta/tests')
         self.testdata_path = os.path.join(self.test_path, 'temp')
@@ -338,7 +338,7 @@ class TestSqliteDBStreamer(unittest.TestCase):
 
 
     def test_info_stream(self):
-        stream = SqliteDBStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
                                   tokenizer=self.tokenizer)
         token_benchmark = [['doomed', 'failure'],
                            ['set', 'success']]
@@ -354,7 +354,7 @@ class TestSqliteDBStreamer(unittest.TestCase):
         self.assertEqual(text_benchmark, text_result)
 
     def test_token_stream(self):
-        stream = SqliteDBStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
                                   tokenizer=self.tokenizer)
         token_benchmark = [['doomed', 'failure'],
                            ['set', 'success']]
@@ -367,7 +367,7 @@ class TestSqliteDBStreamer(unittest.TestCase):
         self.assertEqual(id_benchmark, stream.__dict__['doc_id_cache'])
 
     def test_to_vw(self):
-        stream = SqliteDBStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
                                   tokenizer=self.tokenizer)
         result = StringIO()
         stream.to_vw(result)
@@ -377,7 +377,7 @@ class TestSqliteDBStreamer(unittest.TestCase):
         self.assertEqual(benchmark, result.getvalue())
 
     def test_to_scipyspare(self):
-        stream = SqliteDBStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
                                   tokenizer=self.tokenizer)
 
         result = stream.to_scipysparse()
