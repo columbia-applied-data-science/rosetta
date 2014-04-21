@@ -458,15 +458,15 @@ class TextFileStreamer(BaseStreamer):
 
 class SqliteStreamer(BaseStreamer):
     """
-    For streaming from text files.
+    For streaming from sqlite files containing text files.
     """
     def __init__(
-        self, sqliteDB_path=None, file_type='*', name_strip=r'\..*',
+        self, sqlite_filepath=None, file_type='*', name_strip=r'\..*',
         tokenizer=None, tokenizer_func=None, limit=None, shuffle=True):
         """
         Parameters
         ----------
-        sqliteDB_path : string or None
+        sqlite_filepath : string or None
             Base path to sqlite file.
         file_type : String
             String to filter files with.  E.g. '*.txt'.
@@ -485,7 +485,7 @@ class SqliteStreamer(BaseStreamer):
         shuffle : Boolean
             If True, shuffle paths once (and only once) before streaming
         """
-        self.sqliteDB_path = sqliteDB_path
+        self.sqlite_filepath = sqlite_filepath
         self.file_type = file_type
         self.name_strip = name_strip
         self.limit = limit
@@ -497,10 +497,11 @@ class SqliteStreamer(BaseStreamer):
             self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
 
     
-    def info_stream(self, filenames=None, doc_id=None, limit=None):
+    def info_stream(self, filenames=None, doc_id=None, limit=None,
+                    batch_size=10000):
         """
-        Returns an iterator over paths yielding dictionaries with information
-        about the file contained within.
+        Returns an iterator over textfiles withing sqlite file yielding
+        dictionaries with information about the file contained within.
 
         Parameters
         ----------
@@ -517,41 +518,51 @@ class SqliteStreamer(BaseStreamer):
         elif filenames is None:
             filenames = self.filenames
 
-        # Add appostrophies to make query work better.
+        # Add apostrophies for query below.
         filenames = ["'" + filename + "'" for filename in filenames]
+        num_filenames = len(filenames)
+        
+        regex = re.compile(self.name_strip)
 
-        with sqlite3.connect(self.sqliteDB_path) as conn:
+        with sqlite3.connect(self.sqlite_filepath) as conn:
             conn.text_factory = str
             c = conn.cursor()
-            query = "SELECT filename, contents FROM rosetta_file "
-            query += 'WHERE filename IN ({0})'.format(', '.join(filenames))
 
             index = 0
-            regex = re.compile(self.name_strip)
-            for filename, contents in c.execute(query):
-                if index == limit:
-                    raise StopIteration
-                index += 1
+            offset = 0
+            while offset < num_filenames:
+                query = "SELECT filename, contents FROM rosetta_file "
+                query += "WHERE filename IN ({0})".format(
+                    ', '.join(filenames[offset: offset + batch_size]))
 
-                doc_id = regex.sub('', filename)
-                info_dict = {'text': contents, 'doc_id': doc_id,
-                             'filename': filename}
-                if self.tokenizer:
-                    info_dict['tokens'] = (
-                        self.tokenizer.text_to_token_list(contents))
+                for filename, contents in c.execute(query):
+                    if index == limit:
+                        raise StopIteration
+                    index += 1
 
-                yield info_dict
+                    doc_id = regex.sub('', filename)
+                    info_dict = {'text': contents, 'doc_id': doc_id,
+                                 'filename': filename}
+                    if self.tokenizer:
+                        info_dict['tokens'] = (
+                            self.tokenizer.text_to_token_list(contents))
+
+                    yield info_dict
+
+                offset += batch_size
+            
+            raise StopIteration
 
 
-    def record_stream(self, doc_id=None, limit=None):
-        return self.info_stream(doc_id, limit)
+    def record_stream(self, filenames=None, doc_id=None, limit=None):
+        return self.info_stream(filenames, doc_id, limit)
 
     @lazyprop
     def filenames(self):
         """
         Get all filenames that we will use.
         """
-        with sqlite3.connect(self.sqliteDB_path) as conn:
+        with sqlite3.connect(self.sqlite_filepath) as conn:
             conn.text_factory = str
             c = conn.cursor()
             query = "select filename from rosetta_file;"

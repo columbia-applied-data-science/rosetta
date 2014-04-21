@@ -9,7 +9,7 @@ from rosetta.text.streamers import TextFileStreamer, TextIterStreamer
 from rosetta.text.streamers import MySQLStreamer, MongoStreamer
 
 from rosetta.text.streamers import SqliteStreamer
-from rosetta.text.converters import records_to_sqliteDB
+from rosetta.text.converters import records_to_sqlite
 
 try:
     import MySQLdb
@@ -330,15 +330,15 @@ class TestSqliteStreamer(unittest.TestCase):
         self.test_path = os.path.abspath('./rosetta/tests')
         self.testdata_path = os.path.join(self.test_path, 'temp')
         ###create some temp files to work with
-        self.sqliteDB_path = os.path.join(self.testdata_path, 'sqliteDB')
+        self.sqlite_filepath = os.path.join(self.testdata_path, 'sqliteDB')
         records = [('doc1.txt', 'doomed to failure\n'),
                    ('doc2.txt', 'set for success\n')]
-        records_to_sqliteDB(records, self.sqliteDB_path)
+        records_to_sqlite(records, self.sqlite_filepath)
         self.tokenizer = TokenizerBasic()
 
 
     def test_info_stream(self):
-        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
                                   tokenizer=self.tokenizer)
         token_benchmark = [['doomed', 'failure'],
                            ['set', 'success']]
@@ -354,7 +354,7 @@ class TestSqliteStreamer(unittest.TestCase):
         self.assertEqual(text_benchmark, text_result)
 
     def test_token_stream(self):
-        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
                                   tokenizer=self.tokenizer)
         token_benchmark = [['doomed', 'failure'],
                            ['set', 'success']]
@@ -367,7 +367,7 @@ class TestSqliteStreamer(unittest.TestCase):
         self.assertEqual(id_benchmark, stream.__dict__['doc_id_cache'])
 
     def test_to_vw(self):
-        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
                                   tokenizer=self.tokenizer)
         result = StringIO()
         stream.to_vw(result)
@@ -377,7 +377,7 @@ class TestSqliteStreamer(unittest.TestCase):
         self.assertEqual(benchmark, result.getvalue())
 
     def test_to_scipyspare(self):
-        stream = SqliteStreamer(sqliteDB_path=self.sqliteDB_path,
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
                                   tokenizer=self.tokenizer)
 
         result = stream.to_scipysparse()
@@ -387,4 +387,4 @@ class TestSqliteStreamer(unittest.TestCase):
         self.assertTrue(compare.all())
 
     def tearDown(self):
-        os.remove(self.sqliteDB_path)
+        os.remove(self.sqlite_filepath)

@@ -91,7 +91,7 @@ def folder_to_sqlite(folder, outfile_path, batch_size=10000):
         c.execute(query)
 
         offset = 0
-        batch = 10000
+        batch = batch_size
         while offset < num_files:
             pairs = []
             for filename in filenames[offset: offset + batch]:
