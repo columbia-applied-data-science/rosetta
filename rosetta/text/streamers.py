@@ -9,6 +9,8 @@ import abc
 import sys
 import os
 from scipy import sparse
+import sqlite3
+import random
 
 try:
     import MySQLdb
@@ -452,6 +454,156 @@ class TextFileStreamer(BaseStreamer):
             for group_results in results_iterator:
                 for sstr in group_results:
                     open_outfile.write(sstr + '\n')
+
+
+class SqliteDBStreamer(BaseStreamer):
+    """
+    For streaming from text files.
+    """
+    def __init__(
+        self, sqliteDB_path=None, file_type='*', name_strip=r'\..*',
+        tokenizer=None, tokenizer_func=None, limit=None, shuffle=True):
+        """
+        Parameters
+        ----------
+        sqliteDB_path : string or None
+            Base path to sqlite file.
+        file_type : String
+            String to filter files with.  E.g. '*.txt'.
+            Note that the filenames will be converted to lowercase before
+            this comparison.
+        name_strip : raw string
+            Regex to strip doc_id.
+        tokenizer : Subclass of BaseTokenizer
+            Should have a text_to_token_list method.  Try using MakeTokenizer
+            to convert a function to a valid tokenizer.
+        tokenizer_func : Function
+            Transforms a string (representing one file) to a list of strings
+            (the 'tokens').
+        limit : int or None
+            Limit for number of docs processed.
+        shuffle : Boolean
+            If True, shuffle paths once (and only once) before streaming
+        """
+        self.sqliteDB_path = sqliteDB_path
+        self.file_type = file_type
+        self.name_strip = name_strip
+        self.limit = limit
+        self.tokenizer = tokenizer
+        self.tokenizer_func = tokenizer_func
+        self.shuffle = shuffle
+        assert (tokenizer is None) or (tokenizer_func is None)
+        if tokenizer_func:
+            self.tokenizer = text_processors.MakeTokenizer(tokenizer_func)
+
+    
+    def info_stream(self, filenames=None, doc_id=None, limit=None):
+        """
+        Returns an iterator over paths yielding dictionaries with information
+        about the file contained within.
+
+        Parameters
+        ----------
+        filenames : list of strings
+        doc_id : list of strings or ints
+        limit : Integer
+            Use limit in place of self.limit.
+        """
+        if limit is None:
+            limit = self.limit
+
+        if doc_id is not None:
+            filenames = [self._doc_id_to_filename[str(doc)] for doc in doc_id]
+        elif filenames is None:
+            filenames = self.filenames
+
+        # Add appostrophies to make query work better.
+        filenames = ["'" + filename + "'" for filename in filenames]
+
+        with sqlite3.connect(self.sqliteDB_path) as conn:
+            conn.text_factory = str
+            c = conn.cursor()
+            query = "SELECT filename, contents FROM rosetta_file "
+            query += 'WHERE filename IN ({0})'.format(', '.join(filenames))
+
+            index = 0
+            regex = re.compile(self.name_strip)
+            for filename, contents in c.execute(query):
+                if index == limit:
+                    raise StopIteration
+                index += 1
+
+                doc_id = regex.sub('', filename)
+                info_dict = {'text': contents, 'doc_id': doc_id,
+                             'filename': filename}
+                if self.tokenizer:
+                    info_dict['tokens'] = (
+                        self.tokenizer.text_to_token_list(contents))
+
+                yield info_dict
+
+
+    def record_stream(self, doc_id=None, limit=None):
+        return self.info_stream(doc_id, limit)
+
+    @lazyprop
+    def filenames(self):
+        """
+        Get all filenames that we will use.
+        """
+        with sqlite3.connect(self.sqliteDB_path) as conn:
+            conn.text_factory = str
+            c = conn.cursor()
+            query = "select filename from rosetta_file;"
+            filenames = [filename for filename, in c.execute(query)]
+            if self.shuffle:
+                shuffle(filenames)
+            if self.limit:
+                filenames = filenames[: self.limit]
+        return filenames
+
+    @lazyprop
+    def doc_id(self):
+        """
+        Get all doc_ids that we will use.
+        """
+        regex = re.compile(self.name_strip)
+        doc_id = [regex.sub('', filename) for filename in self.filenames]
+        return doc_id
+
+    @lazyprop
+    def _doc_id_to_filename(self):
+        """
+        Build the dictionary mapping doc_id to filename.  doc_id is based on
+        the filename.
+        """
+        return dict(zip(self.doc_id, self.filenames))
+
+    def to_vw(self, outfile):
+        """
+        Write our filestream to a VW (Vowpal Wabbit) formatted file.
+
+        Parameters
+        ----------
+        outfile : String
+            Path to vw file which will be created.
+        """
+        my_tokenizer = self.tokenizer
+        formatter = text_processors.VWFormatter()
+
+        stream = self.info_stream()
+
+        with smart_open(outfile, 'w') as open_outfile:
+            for result in stream:
+                sstr = ''
+                doc_id = str(result['doc_id'])
+                tokens = result['tokens']
+                feature_values = Counter(tokens)
+                sstr += formatter.get_sstr(feature_values=feature_values,
+                                           importance=1, doc_id=doc_id)
+                sstr += '\n'
+                
+                open_outfile.write(sstr)
 
 
 class TextIterStreamer(BaseStreamer):

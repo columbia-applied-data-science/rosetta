@@ -3,6 +3,7 @@ import re
 import sys
 import subprocess
 import shutil
+import sqlite3
 
 try:
     from docx import opendocx, getdocumenttext
@@ -59,6 +60,85 @@ def file_to_txt(file_path, dst_dir, new_file_name=None, ret_fname=False,
     else:
         sys.stdout.write('file type %s not supported, skipping %s \n'%(ext,
             file_name))
+
+
+def folder_to_sqliteDB(folder, outfile_path, name_func=None):
+    '''
+    Convert all textfiles inside folder to sqliteDB.
+
+    Parameters
+    ----------
+    folder : String
+        Name of folder containing text files.
+    outfile_path : String
+        Name of file to save.
+    name_func : String --> Int
+        Function giving unique name to each text file.
+
+    Example
+    -------
+    One can use name_func to keep information about the filenames. E.g. if one
+    defines 
+        name_func(string) = int(string.split('.')[0])
+    then
+        name_func('1234.txt') = 1234
+
+    Default name_func is simply to generate a new identifier for each textfile.
+    '''
+    if name_func == None:
+        name_func = _default_name_func()
+
+    if os.path.isfile(outfile_path):
+        os.remove(outfile_path)
+
+    outconn = sqlite3.connect(outfile_path)
+    outconn.text_factory = str
+    outc = outconn.cursor()
+    query = 'CREATE TABLE rosetta_file (name int UNIQUE, contents text)'
+    outc.execute(query)
+
+    filenames = os.listdir(folder)
+
+    offset = 0
+    batch = 10000
+    while filenames[offset: offset + batch]:
+        pairs = []
+        for filename in filenames[offset: offset + batch]:
+            path = os.path.join(folder, filename)
+            with open(path) as f:
+                name = name_func(filename)
+                pairs.append((name, f.read()))
+
+        outc.executemany('INSERT INTO rosetta_file VALUES (?, ?)', pairs)
+        outconn.commit()
+        offset += batch
+
+    outconn.close()
+
+
+def records_to_sqliteDB(records, outfile_path):
+    '''
+    Convert records into a sqliteDB.
+
+    Parameters
+    ----------
+    records : 2-tuple (filename : string, contents : string)
+        The filenames must be unique.
+    oufile : string
+        Path to save rosetta file to.
+    '''
+    if os.path.isfile(outfile_path):
+        os.remove(outfile_path)
+
+    outconn = sqlite3.connect(outfile_path)
+    outconn.text_factory = str
+    outc = outconn.cursor()
+    query = 'CREATE TABLE rosetta_file (filename text UNIQUE, contents text)'
+    outc.execute(query)
+
+    outc.executemany('INSERT INTO rosetta_file VALUES (?, ?)', records)
+    outconn.commit()
+    outconn.close()
 
 
 def _filepath_clean(file_path):
@@ -185,4 +265,10 @@ def _rtf_to_txt(file_path, dst_dir, file_name):
     return 0
 
 
+class _default_name_func(object):
+    def __init__(self, identifier=0):
+        self.identifier = identifier
 
+    def __call__(self, filename):
+        self.identifier += 1
+        return self.identifier
