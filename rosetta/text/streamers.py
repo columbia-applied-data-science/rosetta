@@ -554,8 +554,10 @@ class SqliteStreamer(BaseStreamer):
             raise StopIteration
 
 
-    def record_stream(self, filenames=None, doc_id=None, limit=None):
-        return self.info_stream(filenames, doc_id, limit)
+    def record_stream(self, filenames=None, doc_id=None, limit=None,
+                      batch_size=10000):
+        return self.info_stream(filenames=filenames, doc_id=doc_id,
+                                limit=limit, batch_size=batch_size)
 
     @lazyprop
     def filenames(self):
@@ -590,7 +592,7 @@ class SqliteStreamer(BaseStreamer):
         """
         return dict(zip(self.doc_id, self.filenames))
 
-    def to_vw(self, outfile):
+    def to_vw(self, outfile, batch_size=10000):
         """
         Write our filestream to a VW (Vowpal Wabbit) formatted file.
 
@@ -602,7 +604,7 @@ class SqliteStreamer(BaseStreamer):
         my_tokenizer = self.tokenizer
         formatter = text_processors.VWFormatter()
 
-        stream = self.info_stream()
+        stream = self.info_stream(batch_size=batch_size)
 
         with smart_open(outfile, 'w') as open_outfile:
             for result in stream:
