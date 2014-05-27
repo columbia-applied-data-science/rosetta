@@ -248,6 +248,7 @@ class LDAResults(object):
         self.num_tokens = len(topics)
         self.topics = topics.columns.tolist()
         self.tokens = topics.index.tolist()
+        self.tokendict = {k: 1 for k in self.tokens}
         self.docs = predictions.index.tolist()
 
         # Check that the topics/docs/token names are unique with no overlap
@@ -468,7 +469,7 @@ class LDAResults(object):
 
         counts = Counter(tokenized_text)
         counts = pd.Series(
-            {k: counts[k] for k in counts if k in set(self.tokens)}
+            {k: counts[k] for k in counts if k in self.tokendict}
             ).astype(float)
 
         if len(counts) == 0 and raise_on_unknown:
