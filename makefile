@@ -50,7 +50,7 @@ test-common:
 	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*common*' -v
 
 test-cmd:
-	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*cmd*' -v
+	$(PYTHON) -m $(UNITTEST) discover -s $(TESTDIR) -p '*cmdutils*' -v
 
 trailing-spaces:
 	find rosetta -name "*.py" | xargs perl -pi -e 's/[ \t]*$$//'
