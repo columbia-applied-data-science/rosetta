@@ -8,6 +8,9 @@ from rosetta import TokenizerBasic
 from rosetta.text.streamers import TextFileStreamer, TextIterStreamer
 from rosetta.text.streamers import MySQLStreamer, MongoStreamer
 
+from rosetta.text.streamers import SqliteStreamer
+from rosetta.text.converters import records_to_sqlite
+
 try:
     import MySQLdb
     import MySQLdb.cursors
@@ -320,3 +323,68 @@ class TestMongoStreamer(unittest.TestCase):
     def tearDown(self):
         os.remove(self.temp_vw_path) if (
                 os.path.exists(self.temp_vw_path)) else None
+
+
+class TestSqliteStreamer(unittest.TestCase):
+    def setUp(self):
+        self.test_path = os.path.abspath('./rosetta/tests')
+        self.testdata_path = os.path.join(self.test_path, 'temp')
+        ###create some temp files to work with
+        self.sqlite_filepath = os.path.join(self.testdata_path, 'sqliteDB')
+        records = [('doc1.txt', 'doomed to failure\n'),
+                   ('doc2.txt', 'set for success\n')]
+        records_to_sqlite(records, self.sqlite_filepath)
+        self.tokenizer = TokenizerBasic()
+
+
+    def test_info_stream(self):
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
+                                  tokenizer=self.tokenizer)
+        token_benchmark = [['doomed', 'failure'],
+                           ['set', 'success']]
+        text_benchmark = ['doomed to failure\n', 'set for success\n']
+
+        token_result = []
+        text_result = []
+        for each in stream.info_stream():
+            token_result.append(each['tokens'])
+            text_result.append(each['text'])
+
+        self.assertEqual(token_benchmark, token_result)
+        self.assertEqual(text_benchmark, text_result)
+
+    def test_token_stream(self):
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
+                                  tokenizer=self.tokenizer)
+        token_benchmark = [['doomed', 'failure'],
+                           ['set', 'success']]
+        id_benchmark = ['doc1', 'doc2']
+        token_result = []
+        for each in stream.token_stream(cache_list=['doc_id']):
+            token_result.append(each)
+
+        self.assertEqual(token_benchmark, token_result)
+        self.assertEqual(id_benchmark, stream.__dict__['doc_id_cache'])
+
+    def test_to_vw(self):
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
+                                  tokenizer=self.tokenizer)
+        result = StringIO()
+        stream.to_vw(result)
+
+        benchmark = (" 1 doc1| failure:1 doomed:1\n "
+                     "1 doc2| set:1 success:1\n")
+        self.assertEqual(benchmark, result.getvalue())
+
+    def test_to_scipyspare(self):
+        stream = SqliteStreamer(sqlite_filepath=self.sqlite_filepath,
+                                  tokenizer=self.tokenizer)
+
+        result = stream.to_scipysparse()
+        benchmark = sparse.csr_matrix([[1, 1, 0, 0], [0, 0, 1, 1]])
+
+        compare = result.toarray() == benchmark.toarray()
+        self.assertTrue(compare.all())
+
+    def tearDown(self):
+        os.remove(self.sqlite_filepath)
