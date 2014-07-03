@@ -263,11 +263,7 @@ class LDAResults(object):
     @tokens.setter
     def tokens(self, tokenlist):
         self._tokens = tokenlist
-        self._tokenset = set(tokenlist)
-
-    @property
-    def tokenset(self):
-        return self._tokenset
+        self.tokenset = set(tokenlist)
 
     def __repr__(self):
         st = "LDAResults for %d topics, %d docs, %d topics, %d tokens" % (
@@ -481,7 +477,7 @@ class LDAResults(object):
 
         counts = Counter(tokenized_text)
         counts = pd.Series(
-            {k: counts[k] for k in counts if k in self._tokenset}
+            {k: counts[k] for k in counts if k in self.tokenset}
             ).astype(float)
 
         if len(counts) == 0 and raise_on_unknown:
