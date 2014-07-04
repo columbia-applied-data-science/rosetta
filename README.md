@@ -16,7 +16,7 @@ Examples
 Packages
 --------
 
-### `cmd` 
+### `cmdutils` 
 * Unix-like command line utilities.  Filters (read from stdin/write to stdout) for files.
 * Focus on stream processing and csv files.
 
