@@ -247,7 +247,7 @@ class LDAResults(object):
         self.num_docs = len(predictions)
         self.num_tokens = len(topics)
         self.topics = topics.columns.tolist()
-        self.tokens = topics.index.tolist()        
+        self.tokens = topics.index.tolist()
         self.docs = predictions.index.tolist()
 
         # Check that the topics/docs/token names are unique with no overlap
@@ -255,15 +255,6 @@ class LDAResults(object):
 
         # Set probabilities
         self._set_probabilities(topics, predictions)
-
-    @property
-    def tokens(self):
-        return self._tokens
-
-    @tokens.setter
-    def tokens(self, tokenlist):
-        self._tokens = tokenlist
-        self._tokenset = set(tokenlist)
 
     def __repr__(self):
         st = "LDAResults for %d topics, %d docs, %d topics, %d tokens" % (
@@ -477,7 +468,7 @@ class LDAResults(object):
 
         counts = Counter(tokenized_text)
         counts = pd.Series(
-            {k: counts[k] for k in counts if k in self._tokenset}
+            {k: counts[k] for k in counts if k in set(self.tokens)}
             ).astype(float)
 
         if len(counts) == 0 and raise_on_unknown:
