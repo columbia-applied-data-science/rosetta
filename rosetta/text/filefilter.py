@@ -4,12 +4,14 @@ Contains a collection of function that clean, decode and move files around.
 from fnmatch import fnmatch
 import os
 import re
+import subprocess
 
 from ..common import lazyprop
 
 
 def get_paths(
-    base_path, file_type="*", relative=False, get_iter=False, limit=None):
+    base_path, file_type="*", relative=False, get_iter=False, limit=None, 
+    wc=None):
     """
     Crawls subdirectories and returns an iterator over paths to files that
     match the file_type.
@@ -26,9 +28,16 @@ def get_paths(
         If False, get absolute paths
     get_iter : Boolean
         If True, return an iterator over paths rather than a list.
+    limit : None or int
+        If limit, stops iteration after limit is reached.
+    wc : None or dict
+        If wc, checks the return of the wc unix utility; wc dict must contain 
+        keys "option" "count" and "min_max." For example, 
+        wc = {'option': 'l', 'count': 10, 'min_max': 'min'} will only yield paths
+        with >= 10 lines. 
     """
     path_iter = _get_paths_iter(
-        base_path, file_type=file_type, relative=relative, limit=limit)
+        base_path, file_type=file_type, relative=relative, limit=limit, wc=wc)
 
     if get_iter:
         return path_iter
@@ -36,11 +45,21 @@ def get_paths(
         return [path for path in path_iter]
 
 
-def _get_paths_iter(base_path, file_type="*", relative=False, limit=None):
+def _get_paths_iter(base_path, file_type="*", relative=False, limit=None,
+        wc=None):
     counter = 0
     for path, subdirs, files in os.walk(base_path, followlinks=True):
         for name in files:
             if fnmatch(name.lower(), file_type):
+                if wc:
+                    wc_stat = subprocess.check_output(
+                            ['wc', '-%s'%wc['option'], 
+                                os.path.join(path, name)]).split()[0]
+                    wc_stat = int(wc_stat)
+                    if wc['min_max']=='min':
+                        if not wc_stat>=wc['count']: continue
+                    elif wc['min_max']=='max':
+                        if not wc_stat<=wc['count']: continue
                 if relative:
                     path = path.replace(base_path, "")
                     if path.startswith('/'):
