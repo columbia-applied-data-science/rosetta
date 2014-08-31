@@ -28,13 +28,17 @@ def get_paths(
         If False, get absolute paths
     get_iter : Boolean
         If True, return an iterator over paths rather than a list.
-    limit : None or int
-        If limit, stops iteration after limit is reached.
-    wc : None or dict
-        If wc, checks the return of the wc unix utility; wc dict must contain 
-        keys "option" "count" and "min_max." For example, 
-        wc = {'option': 'l', 'count': 10, 'min_max': 'min'} will only yield paths
-        with >= 10 lines. 
+    limit : Integer
+        Limit the paths returned to this number
+    wc : Dict
+        Checks against output of the wc unix utility; wc dict keys are 
+        "option" "count" and "min_max." For example, 
+        wc = {'option': 'l', 'count': 10, 'min_max': 'min'} will only yield 
+        paths with >= 10 lines.
+
+    Notes
+    -----
+    wc can add significant overhead, so use with caution on large crawls. 
     """
     path_iter = _get_paths_iter(
         base_path, file_type=file_type, relative=relative, limit=limit, wc=wc)
@@ -110,7 +114,7 @@ class PathFinder(object):
     """
     def __init__(
         self, text_base_path=None, file_type='*', name_strip=r'\..*',
-        limit=None):
+        limit=None, wc=None):
         """
         Parameters
         ----------
@@ -123,11 +127,21 @@ class PathFinder(object):
             Default pattern r'\..*' strips everything after the first period
         limit : Integer
             Limit the paths returned to this number
+        wc : Dict
+            Checks against output of the wc unix utility; wc dict keys are 
+            "option" "count" and "min_max." For example, 
+            wc = {'option': 'l', 'count': 10, 'min_max': 'min'} will only yield 
+            paths with >= 10 lines.
+
+        Notes
+        -----
+        wc can add significant overhead, so use with caution on large crawls. 
         """
         self.text_base_path = text_base_path
         self.file_type = file_type
         self.name_strip = name_strip
         self.limit = limit
+        self.wc = wc
 
     @lazyprop
     def paths(self):
@@ -136,7 +150,8 @@ class PathFinder(object):
         """
         if self.text_base_path:
             paths = get_paths(
-                self.text_base_path, self.file_type, limit=self.limit)
+                self.text_base_path, self.file_type, limit=self.limit, 
+                wc=self.wc)
         else:
             paths = None
 
