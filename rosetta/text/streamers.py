@@ -36,7 +36,7 @@ class BaseStreamer(object):
     def info_stream(self, **kwargs):
         """
         Abstract method.  All derived classes will implement to
-        return an interator over the text documents with processing
+        return an iterator over the text documents with processing
         as appropriate.
         """
         return
@@ -278,7 +278,7 @@ class TextFileStreamer(BaseStreamer):
     def __init__(
         self, text_base_path=None, path_list=None, file_type='*',
         name_strip=r'\..*', tokenizer=None, tokenizer_func=None, limit=None,
-        shuffle=True):
+        shuffle=True, wc=None):
         """
         Parameters
         ----------
@@ -302,6 +302,16 @@ class TextFileStreamer(BaseStreamer):
             Limit for number of docs processed.
         shuffle : Boolean
             If True, shuffle paths once (and only once) before streaming
+        wc : Dict
+            Checks against output of the wc unix utility; wc dict keys are 
+            "option" "count" and "min_max." For example, 
+            wc = {'option': 'l', 'count': 10, 'min_max': 'min'} will only yield 
+            paths with >= 10 lines.
+
+        Notes
+        -----
+        wc can add significant overhead, so use with caution on large crawls. 
+
         """
         self.text_base_path = text_base_path
         self.path_list = path_list
@@ -311,6 +321,7 @@ class TextFileStreamer(BaseStreamer):
         self.tokenizer = tokenizer
         self.tokenizer_func = tokenizer_func
         self.shuffle = shuffle
+        self.wc = wc
         assert (text_base_path is None) or (path_list is None)
         assert (tokenizer is None) or (tokenizer_func is None)
         if tokenizer_func:
@@ -323,7 +334,9 @@ class TextFileStreamer(BaseStreamer):
         """
         if self.text_base_path:
             paths = filefilter.get_paths(
-                self.text_base_path, file_type=self.file_type)
+                self.text_base_path, file_type=self.file_type, wc=self.wc)
+            #note: shuffle comes before limit, so that if both are
+            #evoked this generates a random sample of the entire paths set
             if self.shuffle:
                 shuffle(paths)
             if self.limit:
