@@ -276,8 +276,8 @@ class TextFileStreamer(BaseStreamer):
     For streaming from text files.
     """
     def __init__(
-        self, text_base_path=None, path_list=None, file_type='*',
-        name_strip=r'\..*', tokenizer=None, tokenizer_func=None, limit=None,
+        self, text_base_path=None, path_list=None, name_strip=r'\..*', 
+        filters = None, tokenizer=None, tokenizer_func=None, limit=None,
         shuffle=True):
         """
         Parameters
@@ -292,6 +292,9 @@ class TextFileStreamer(BaseStreamer):
             this comparison.
         name_strip : raw string
             Regex to strip doc_id.
+        filters : list of tuples
+                List of (file_filter, **kwargs_dict); each function takes path 
+                argument, dict of kwargs and return bool
         tokenizer : Subclass of BaseTokenizer
             Should have a text_to_token_list method.  Try using MakeTokenizer
             to convert a function to a valid tokenizer.
@@ -301,12 +304,18 @@ class TextFileStreamer(BaseStreamer):
         limit : int or None
             Limit for number of docs processed.
         shuffle : Boolean
-            If True, shuffle paths once (and only once) before streaming
+            If True, shuffle all paths once (and only once) before streaming
+
+        Notes
+        -----
+        Since the full list of paths is shuffled, envoking shuffle and limit
+        is equivalent to random sample of size limit. 
         """
         self.text_base_path = text_base_path
         self.path_list = path_list
         self.file_type = file_type
         self.name_strip = name_strip
+        self.filters = filters
         self.limit = limit
         self.tokenizer = tokenizer
         self.tokenizer_func = tokenizer_func
@@ -323,7 +332,9 @@ class TextFileStreamer(BaseStreamer):
         """
         if self.text_base_path:
             paths = filefilter.get_paths(
-                self.text_base_path, file_type=self.file_type)
+                self.text_base_path, filters=self.filters)
+            ##shuffle comes before limit to ensure a shuffling of the 
+            ###FULL path list 
             if self.shuffle:
                 shuffle(paths)
             if self.limit:
