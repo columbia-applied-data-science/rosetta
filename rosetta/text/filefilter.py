@@ -51,6 +51,11 @@ def _get_paths_iter(base_path, file_type="*", relative=False, limit=None):
                 yield os.path.join(path, name)
                 counter += 1
 
+def _fpmatch_filter(path, pattern="*"):
+    """
+    Filepath matching with shell style patters. 
+    """
+    return fnmatch(path, pattern)
 
 def path_to_name(path, strip_ext=True):
     """
