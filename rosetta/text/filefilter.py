@@ -91,7 +91,7 @@ def _wc_filter(path, option, count, max_min):
     assert option in ['c', 'l', 'm', 'w'], 'wc option must be one of c,l,m,w'
     assert max_min in ['max', 'min'], 'max min must be either "max" or "min"'
     wc_stat = subprocess.check_output(
-            ['wc', '-%s'%wc['option'], path]).split()[0]
+            ['wc', '-%s'%option, path]).split()[0]
     wc_stat = int(wc_stat)
     if max_min=='min':
         return wc_stat>=wc['count']
