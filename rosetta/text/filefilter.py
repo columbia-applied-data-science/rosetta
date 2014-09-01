@@ -1,15 +1,17 @@
 """
 Contains a collection of function that clean, decode and move files around.
 """
-from fnmatch import fnmatch
 import os
 import re
+import subprocess
+
+from fnmatch import fnmatch
 
 from ..common import lazyprop
 
 
 def get_paths(
-    base_path, file_type="*", relative=False, get_iter=False, limit=None):
+    base_path, relative=False, get_iter=False, limit=None, filters=None):
     """
     Crawls subdirectories and returns an iterator over paths to files that
     match the file_type.
@@ -18,17 +20,17 @@ def get_paths(
     ----------
     base_path : String
         Path to the directory that will be crawled
-    file_type : String
-        String to filter files with.  E.g. '*.txt'.  Note that the filenames
-        will be converted to lowercase before this comparison.
     relative : Boolean
         If True, get paths relative to base_path
         If False, get absolute paths
     get_iter : Boolean
         If True, return an iterator over paths rather than a list.
+    filters : list of tuples
+        List of (file_filter, **kwargs_dict); each function takes path dict of
+        kwargs and return bool
     """
     path_iter = _get_paths_iter(
-        base_path, file_type=file_type, relative=relative, limit=limit)
+        base_path, relative=relative, limit=limit, filters=filters)
 
     if get_iter:
         return path_iter
@@ -36,11 +38,13 @@ def get_paths(
         return [path for path in path_iter]
 
 
-def _get_paths_iter(base_path, file_type="*", relative=False, limit=None):
+def _get_paths_iter(base_path, relative=False, limit=None, filters=None):
     counter = 0
+    if filters is None:
+        filters=[]
     for path, subdirs, files in os.walk(base_path, followlinks=True):
         for name in files:
-            if fnmatch(name.lower(), file_type):
+            if all([f[0](path, **f[1]) for f in filters]):
                 if relative:
                     path = path.replace(base_path, "")
                     if path.startswith('/'):
@@ -54,8 +58,46 @@ def _get_paths_iter(base_path, file_type="*", relative=False, limit=None):
 def _fpmatch_filter(path, pattern="*"):
     """
     Filepath matching with shell style patters. 
+
+    Notes
+    -----
+    path is cast to lower before patter match.
     """
-    return fnmatch(path, pattern)
+    return fnmatch(path.lower(), pattern)
+
+def _wc_filter(path, option, count, max_min):
+    """
+    Filters files by stats from the wc unix utility. 
+
+    Parameters
+    ----------
+    path : str
+        path to file
+    option : str
+        wc option, one of 'c' 'l' 'm' or 'w'
+    count : int
+    max_min : str
+        specifies upper or lower bound for count compared to wc output
+
+    Returns
+    -------
+    bool
+
+    Notes
+    -----
+    example: _wc_filter(path, 'l', 100, 'max') will return True for files 
+    with at most 100 lines
+    """
+    assert option in ['c', 'l', 'm', 'w'], 'wc option must be one of c,l,m,w'
+    assert max_min in ['max', 'min'], 'max min must be either "max" or "min"'
+    wc_stat = subprocess.check_output(
+            ['wc', '-%s'%wc['option'], path]).split()[0]
+    wc_stat = int(wc_stat)
+    if max_min=='min':
+        return wc_stat>=wc['count']
+    elif max_min=='max':
+        return wc_stat<=wc['count']
+
 
 def path_to_name(path, strip_ext=True):
     """
