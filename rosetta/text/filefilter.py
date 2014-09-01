@@ -26,8 +26,8 @@ def get_paths(
     get_iter : Boolean
         If True, return an iterator over paths rather than a list.
     filters : list of tuples
-        List of (file_filter, **kwargs_dict); each function takes path dict of
-        kwargs and return bool
+        List of (file_filter, **kwargs_dict); each function takes path argument,
+        dict of kwargs and return bool
     """
     path_iter = _get_paths_iter(
         base_path, relative=relative, limit=limit, filters=filters)
@@ -44,7 +44,8 @@ def _get_paths_iter(base_path, relative=False, limit=None, filters=None):
         filters=[]
     for path, subdirs, files in os.walk(base_path, followlinks=True):
         for name in files:
-            if all([f[0](path, **f[1]) for f in filters]):
+            path_name = os.path.join(path, name)
+            if all([f[0](path=path_name, **f[1]) for f in filters]):
                 if relative:
                     path = path.replace(base_path, "")
                     if path.startswith('/'):
@@ -52,7 +53,7 @@ def _get_paths_iter(base_path, relative=False, limit=None, filters=None):
                 if counter == limit:
                     raise StopIteration
 
-                yield os.path.join(path, name)
+                yield path_name
                 counter += 1
 
 def _fpmatch_filter(path, pattern="*"):
@@ -94,9 +95,9 @@ def _wc_filter(path, option, count, max_min):
             ['wc', '-%s'%option, path]).split()[0]
     wc_stat = int(wc_stat)
     if max_min=='min':
-        return wc_stat>=wc['count']
+        return wc_stat>=count
     elif max_min=='max':
-        return wc_stat<=wc['count']
+        return wc_stat<=count
 
 
 def path_to_name(path, strip_ext=True):
