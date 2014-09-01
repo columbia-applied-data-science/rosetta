@@ -56,49 +56,6 @@ def _get_paths_iter(base_path, relative=False, limit=None, filters=None):
                 yield path_name
                 counter += 1
 
-def _fpmatch_filter(path, pattern="*"):
-    """
-    Filepath matching with shell style patters. 
-
-    Notes
-    -----
-    path is cast to lower before patter match.
-    """
-    return fnmatch(path.lower(), pattern)
-
-def _wc_filter(path, option, count, max_min):
-    """
-    Filters files by stats from the wc unix utility. 
-
-    Parameters
-    ----------
-    path : str
-        path to file
-    option : str
-        wc option, one of 'c' 'l' 'm' or 'w'
-    count : int
-    max_min : str
-        specifies upper or lower bound for count compared to wc output
-
-    Returns
-    -------
-    bool
-
-    Notes
-    -----
-    example: _wc_filter(path, 'l', 100, 'max') will return True for files 
-    with at most 100 lines
-    """
-    assert option in ['c', 'l', 'm', 'w'], 'wc option must be one of c,l,m,w'
-    assert max_min in ['max', 'min'], 'max min must be either "max" or "min"'
-    wc_stat = subprocess.check_output(
-            ['wc', '-%s'%option, path]).split()[0]
-    wc_stat = int(wc_stat)
-    if max_min=='min':
-        return wc_stat>=count
-    elif max_min=='max':
-        return wc_stat<=count
-
 
 def path_to_name(path, strip_ext=True):
     """
@@ -199,3 +156,48 @@ class PathFinder(object):
             identifiers = [identifiers]
 
         return [self._doc_id_to_path[str(doc_id)] for doc_id in identifiers]
+
+
+#####basic file filters
+def _fpmatch_filter(path, pattern="*"):
+    """
+    Filepath matching with shell style patters. 
+
+    Notes
+    -----
+    path is cast to lower before patter match.
+    """
+    return fnmatch(path.lower(), pattern)
+
+def _wc_filter(path, option, count, max_min):
+    """
+    Filters files by stats from the wc unix utility. 
+
+    Parameters
+    ----------
+    path : str
+        path to file
+    option : str
+        wc option, one of 'c' 'l' 'm' or 'w'
+    count : int
+    max_min : str
+        specifies upper or lower bound for count compared to wc output
+
+    Returns
+    -------
+    bool
+
+    Notes
+    -----
+    example: _wc_filter(path, 'l', 100, 'max') will return True for files 
+    with at most 100 lines
+    """
+    assert option in ['c', 'l', 'm', 'w'], 'wc option must be one of c,l,m,w'
+    assert max_min in ['max', 'min'], 'max min must be either "max" or "min"'
+    wc_stat = subprocess.check_output(
+            ['wc', '-%s'%option, path]).split()[0]
+    wc_stat = int(wc_stat)
+    if max_min=='min':
+        return wc_stat>=count
+    elif max_min=='max':
+        return wc_stat<=count
