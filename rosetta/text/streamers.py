@@ -313,7 +313,6 @@ class TextFileStreamer(BaseStreamer):
         """
         self.text_base_path = text_base_path
         self.path_list = path_list
-        self.file_type = file_type
         self.name_strip = name_strip
         self.filters = filters
         self.limit = limit
