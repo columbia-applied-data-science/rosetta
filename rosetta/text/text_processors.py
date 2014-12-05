@@ -520,13 +520,14 @@ class SFileFilter(SaveLoad):
         assert not self.sfile_loaded
 
         # Build token2id
-        token2id, token_score, doc_freq, num_docs = (
+        token2id, token_score, doc_freq, num_docs, idf = (
             self._load_sfile_fwd(sfile))
 
         self.token2id = token2id
         self.token_score = token_score
         self.doc_freq = doc_freq
         self.num_docs = num_docs
+        self.idf = idf
 
         self.sfile_loaded = True
         self.collisions_resolved = False
@@ -539,9 +540,7 @@ class SFileFilter(SaveLoad):
         token_score = defaultdict(float)
         doc_freq = defaultdict(int)
         num_docs = 0
-
         idf = defaultdict(float)
-        tf_idf = {}
 
         hash_fun = self._get_hash_fun()
 
@@ -553,26 +552,17 @@ class SFileFilter(SaveLoad):
                 doc_id = record_dict['doc_id']
                 # tf_idf is _not_ a default dict on purpose because so that it
                 # has an empty list for a document without tokens.
-                tf_idf[doc_id] = []
                 for token, value in record_dict['feature_values'].iteritems():
                     hash_value = hash_fun(token)
                     token2id[token] = hash_value
                     token_score[token] += value
                     doc_freq[token] += 1
-
                     idf[token] += 1
-                    tf_idf[doc_id].append((token, value))
 
         for token in idf.iterkeys():
             idf[token] = math.log(num_docs / idf[token])
 
-        for doc_id in tf_idf.iterkeys():
-            token_vals = tf_idf[doc_id]
-            token_vals = [(token, val * idf[token])
-                            for token, val in token_vals]
-            tf_idf[doc_id] = dict(token_vals)
-
-        return token2id, token_score, doc_freq, num_docs, tf_idf
+        return token2id, token_score, doc_freq, num_docs, idf
 
     def set_id2token(self, seed=None):
         """
@@ -671,7 +661,8 @@ class SFileFilter(SaveLoad):
         self.bit_precision_required = int(np.ceil(np.log2(max_id)))
 
     def filter_sfile(
-        self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True):
+        self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True,
+        min_tf_idf=0):
         """
         Alter an sfile by converting tokens to id values, and removing tokens
         not in self.token2id.  Optionally filters on doc_id.
@@ -706,7 +697,9 @@ class SFileFilter(SaveLoad):
                         self.token2id[token]: value
                         for token, value
                         in record_dict['feature_values'].iteritems()
-                        if token in self.token2id}
+                        if token in self.token2id
+                        and self.idf[token] * value >= min_tf_idf}
+
                     new_sstr = self.formatter.get_sstr(**record_dict)
                     g.write(new_sstr + '\n')
 

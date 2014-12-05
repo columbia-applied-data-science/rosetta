@@ -1,6 +1,6 @@
 import unittest
 from StringIO import StringIO
-from collections import Counter, OrderedDict
+from collections import Counter, OrderedDict, defaultdict
 import os
 import subprocess
 import sys
@@ -387,12 +387,16 @@ class TestSFileFilter(unittest.TestCase):
             " 1 doc2| word1:1.1 word3:2")
 
     def test_load_sfile_fwd_1(self):
-        token2id, token_score, doc_freq, num_docs = (
+        token2id, token_score, doc_freq, num_docs, idf = (
             self.sff._load_sfile_fwd(self.sfile_1))
         self.assertEqual(num_docs, 2)
         self.assertEqual(len(token2id), 3)
         self.assertEqual(token_score, {'word1': 2.1, 'word2': 2, 'word3': 2})
         self.assertEqual(doc_freq, {'word1': 2, 'word2': 1, 'word3': 1})
+        # Should use assertDictAlmostEqual, but that doesn'ts eem to exist.
+        self.assertDictEqual(idf, {'word1': 0.0,
+                                   'word3': 0.6931471805599453,
+                                   'word2': 0.6931471805599453})
 
     def test_set_id2token_1(self):
         # No collisions
