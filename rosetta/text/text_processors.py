@@ -19,6 +19,7 @@ from collections import Counter, defaultdict
 import hashlib
 import random
 import re
+import math
 
 import nltk
 import numpy as np
@@ -539,6 +540,9 @@ class SFileFilter(SaveLoad):
         doc_freq = defaultdict(int)
         num_docs = 0
 
+        idf = defaultdict(float)
+        tf_idf = {}
+
         hash_fun = self._get_hash_fun()
 
         with smart_open(sfile) as open_file:
@@ -546,13 +550,29 @@ class SFileFilter(SaveLoad):
             for line in open_file:
                 num_docs += 1
                 record_dict = self.formatter.sstr_to_dict(line)
+                doc_id = record_dict['doc_id']
+                # tf_idf is _not_ a default dict on purpose because so that it
+                # has an empty list for a document without tokens.
+                tf_idf[doc_id] = []
                 for token, value in record_dict['feature_values'].iteritems():
                     hash_value = hash_fun(token)
                     token2id[token] = hash_value
                     token_score[token] += value
                     doc_freq[token] += 1
 
-        return token2id, token_score, doc_freq, num_docs
+                    idf[token] += 1
+                    tf_idf[doc_id].append((token, value))
+
+        for token in idf.iterkeys():
+            idf[token] = math.log(num_docs / idf[token])
+
+        for doc_id in tf_idf.iterkeys():
+            token_vals = tf_idf[doc_id]
+            token_vals = [(token, val * idf[token])
+                            for token, val in token_vals]
+            tf_idf[doc_id] = dict(token_vals)
+
+        return token2id, token_score, doc_freq, num_docs, tf_idf
 
     def set_id2token(self, seed=None):
         """
