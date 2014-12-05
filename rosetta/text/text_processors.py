@@ -676,6 +676,9 @@ class SFileFilter(SaveLoad):
         enforce_all_doc_id : Boolean
             If True (and doc_id is not None), raise exception unless all doc_id
             in doc_id_list are seen.
+        min_tf_idf : int or float
+            Keep only tokens whose term frequency-inverse document frequency
+            are greater than this threshold.
         """
         assert self.sfile_loaded, "Must load an sfile before you can filter"
         if not hasattr(self, 'id2token'):
