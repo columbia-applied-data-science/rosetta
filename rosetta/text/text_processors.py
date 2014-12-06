@@ -550,8 +550,6 @@ class SFileFilter(SaveLoad):
                 num_docs += 1
                 record_dict = self.formatter.sstr_to_dict(line)
                 doc_id = record_dict['doc_id']
-                # tf_idf is _not_ a default dict on purpose because so that it
-                # has an empty list for a document without tokens.
                 for token, value in record_dict['feature_values'].iteritems():
                     hash_value = hash_fun(token)
                     token2id[token] = hash_value
