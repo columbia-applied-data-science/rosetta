@@ -19,6 +19,7 @@ from collections import Counter, defaultdict
 import hashlib
 import random
 import re
+import math
 
 import nltk
 import numpy as np
@@ -519,13 +520,14 @@ class SFileFilter(SaveLoad):
         assert not self.sfile_loaded
 
         # Build token2id
-        token2id, token_score, doc_freq, num_docs = (
+        token2id, token_score, doc_freq, num_docs, idf = (
             self._load_sfile_fwd(sfile))
 
         self.token2id = token2id
         self.token_score = token_score
         self.doc_freq = doc_freq
         self.num_docs = num_docs
+        self.idf = idf
 
         self.sfile_loaded = True
         self.collisions_resolved = False
@@ -538,6 +540,7 @@ class SFileFilter(SaveLoad):
         token_score = defaultdict(float)
         doc_freq = defaultdict(int)
         num_docs = 0
+        idf = defaultdict(float)
 
         hash_fun = self._get_hash_fun()
 
@@ -551,8 +554,12 @@ class SFileFilter(SaveLoad):
                     token2id[token] = hash_value
                     token_score[token] += value
                     doc_freq[token] += 1
+                    idf[token] += 1
 
-        return token2id, token_score, doc_freq, num_docs
+        for token in idf.iterkeys():
+            idf[token] = math.log(num_docs / idf[token])
+
+        return token2id, token_score, doc_freq, num_docs, idf
 
     def set_id2token(self, seed=None):
         """
@@ -651,7 +658,8 @@ class SFileFilter(SaveLoad):
         self.bit_precision_required = int(np.ceil(np.log2(max_id)))
 
     def filter_sfile(
-        self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True):
+        self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True,
+        min_tf_idf=0):
         """
         Alter an sfile by converting tokens to id values, and removing tokens
         not in self.token2id.  Optionally filters on doc_id.
@@ -665,6 +673,18 @@ class SFileFilter(SaveLoad):
         enforce_all_doc_id : Boolean
             If True (and doc_id is not None), raise exception unless all doc_id
             in doc_id_list are seen.
+        min_tf_idf : int or float
+            Keep only tokens whose term frequency-inverse document frequency
+            is greater than this threshold. Given a token t and a document d
+            in a corpus of documents D, tf_idf is given by the following
+            formula:
+                tf_idf(t, d, D) = tf(t, d) x idf(t, D),
+            where
+                (1) tf(t, d) is the number of times the term t shows up in the
+                    document d,
+                (2) idf(t, D) = log (N / M), where N is the total number of
+                    documents in D and M is the number of documents in D which
+                    contain the token t. The logarithm is base e.
         """
         assert self.sfile_loaded, "Must load an sfile before you can filter"
         if not hasattr(self, 'id2token'):
@@ -686,7 +706,9 @@ class SFileFilter(SaveLoad):
                         self.token2id[token]: value
                         for token, value
                         in record_dict['feature_values'].iteritems()
-                        if token in self.token2id}
+                        if token in self.token2id
+                        and self.idf[token] * value >= min_tf_idf}
+
                     new_sstr = self.formatter.get_sstr(**record_dict)
                     g.write(new_sstr + '\n')
 
