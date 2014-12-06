@@ -549,7 +549,6 @@ class SFileFilter(SaveLoad):
             for line in open_file:
                 num_docs += 1
                 record_dict = self.formatter.sstr_to_dict(line)
-                doc_id = record_dict['doc_id']
                 for token, value in record_dict['feature_values'].iteritems():
                     hash_value = hash_fun(token)
                     token2id[token] = hash_value
@@ -676,7 +675,16 @@ class SFileFilter(SaveLoad):
             in doc_id_list are seen.
         min_tf_idf : int or float
             Keep only tokens whose term frequency-inverse document frequency
-            are greater than this threshold.
+            is greater than this threshold. Given a token t and a document d
+            in a corpus of documents D, tf_idf is given by the following
+            formula:
+                tf_idf(t, d, D) = tf(t, d) x idf(t, D),
+            where
+                (1) tf(t, d) is the number of times the term t shows up in the
+                    document d,
+                (2) idf(t, D) = log (N / M), where N is the total number of
+                    documents in D and M is the number of documents in D which
+                    contain the token t. The logarithm is base e.
         """
         assert self.sfile_loaded, "Must load an sfile before you can filter"
         if not hasattr(self, 'id2token'):

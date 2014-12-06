@@ -4,6 +4,7 @@ from collections import Counter, OrderedDict
 import os
 import subprocess
 import sys
+from math import log
 
 import numpy as np
 from numpy.testing import assert_allclose
@@ -394,9 +395,9 @@ class TestSFileFilter(unittest.TestCase):
         self.assertEqual(token_score, {'word1': 2.1, 'word2': 2, 'word3': 2})
         self.assertEqual(doc_freq, {'word1': 2, 'word2': 1, 'word3': 1})
         # Should use assertDictAlmostEqual, but that doesn'ts eem to exist.
-        self.assertDictEqual(idf, {'word1': 0.0,
-                                   'word3': 0.6931471805599453,
-                                   'word2': 0.6931471805599453})
+        self.assertDictEqual(idf, {'word1': log(2.0 / 2.0),
+                                   'word2': log(2.0 / 1.0),
+                                   'word3': log(2.0 / 1.0)})
 
     def test_set_id2token_1(self):
         # No collisions
