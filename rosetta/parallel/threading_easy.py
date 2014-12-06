@@ -62,7 +62,7 @@ class LockIterateApply(threading.Thread):
 def threading_easy(func, iterable, n_threads, sep='\n', out_stream=sys.stdout):
     """
     Wraps the python threading library; takes an iterator, a function which
-    acts on each element the iterator yields and starts up the perscribed
+    acts on each element the iterator yields and starts up the prescribed
     number of threads. The output of each thread process is pass to an
     out_stream.
 
