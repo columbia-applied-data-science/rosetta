@@ -1,6 +1,6 @@
 import unittest
 from StringIO import StringIO
-from collections import Counter, OrderedDict, defaultdict
+from collections import Counter, OrderedDict
 import os
 import subprocess
 import sys
