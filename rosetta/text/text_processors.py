@@ -659,7 +659,7 @@ class SFileFilter(SaveLoad):
 
     def filter_sfile(
         self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True,
-        min_tf_idf=0):
+        min_tf_idf=0, filters=[]):
         """
         Alter an sfile by converting tokens to id values, and removing tokens
         not in self.token2id.  Optionally filters on doc_id.
@@ -695,24 +695,40 @@ class SFileFilter(SaveLoad):
                 "call: self.compactify() then either self.set_id2token() or "
                 " self.save() before filtering")
 
-        extra_filter = self._get_extra_filter(doc_id_list)
+        _filters = []
+        if doc_id_list is not None:
+            _filters.append(get_doc_id_filter(doc_id_list))
+
+        if min_tf_idf != 0:
+            _filters.append(get_tf_idf_filter(self, min_tf_idf))
+        #extra_filter = self._get_extra_filter(doc_id_list)
+
+        filters = _filters + filters
 
         with smart_open(infile) as f, smart_open(outfile, 'w') as g:
             # Each line represents one document
             for line in f:
                 record_dict = self.formatter.sstr_to_dict(line)
-                if extra_filter(record_dict):
+
+                keep_doc = True
+
+                for func in filters:
+                    keep_doc, record_dict = func(record_dict)
+                    if not keep_doc:
+                        break
+
+                if keep_doc:
                     record_dict['feature_values'] = {
                         self.token2id[token]: value
                         for token, value
                         in record_dict['feature_values'].iteritems()
-                        if token in self.token2id
-                        and self.idf[token] * value >= min_tf_idf}
+                        if token in self.token2id}
 
                     new_sstr = self.formatter.get_sstr(**record_dict)
                     g.write(new_sstr + '\n')
 
-        self._done_check(enforce_all_doc_id)
+        # Removed so _doc_id_seen not necessary.
+        #self._done_check(enforce_all_doc_id)
 
     def _get_extra_filter(self, doc_id_list):
         self._doc_id_seen = set()
@@ -874,3 +890,31 @@ class CollisionError(Exception):
     pass
 
 
+def get_doc_id_filter(doc_id_list):
+    doc_id_list = set(doc_id_list)
+    def doc_id_filter(record_dict):
+        doc_id = record_dict['doc_id']
+        keep_doc = doc_id in doc_id_list
+        return keep_doc, record_dict
+    return doc_id_filter
+
+
+def get_tf_idf_filter(self, min_tf_idf):
+    idf = self.idf
+    def tf_idf_filter(record_dict):
+        record_dict['feature_values'] = {
+            token: value
+            for token, value
+            in record_dict['feature_values'].iteritems()
+            if idf[token] * value >= min_tf_idf}
+        keep_doc = True
+        return keep_doc, record_dict
+    return tf_idf_filter
+
+
+def get_min_token_filter(min_tokens):
+    def min_token_filter(record_dict):
+        token_count = sum(record_dict['feature_values'].values())
+        keep_doc = token_count >= min_tokens
+        return keep_doc, record_dict
+    return min_token_filter
