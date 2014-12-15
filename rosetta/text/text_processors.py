@@ -662,7 +662,8 @@ class SFileFilter(SaveLoad):
         min_tf_idf=0, filters=[]):
         """
         Alter an sfile by converting tokens to id values, and removing tokens
-        not in self.token2id.  Optionally filters on doc_id.
+        not in self.token2id.  Optionally filters on doc_id, tf_idf and
+        user-defined filters.
 
         Parameters
         ----------
@@ -685,6 +686,12 @@ class SFileFilter(SaveLoad):
                 (2) idf(t, D) = log (N / M), where N is the total number of
                     documents in D and M is the number of documents in D which
                     contain the token t. The logarithm is base e.
+        filters : iterable over functions
+            Each function must take a record_dict as a parameter and return a
+            boolean. The record_dict may (and usually should) be altered in
+            place. If the return value is False, the record_dict (corresponding
+            to a document) is filtered out of the sfile. Both the doc_id_list
+            and min_tf_idf parameters are implemented in this style internally.
         """
         assert self.sfile_loaded, "Must load an sfile before you can filter"
         if not hasattr(self, 'id2token'):
@@ -695,58 +702,42 @@ class SFileFilter(SaveLoad):
                 "call: self.compactify() then either self.set_id2token() or "
                 " self.save() before filtering")
 
-        _filters = []
+        prefilters = []
         if doc_id_list is not None:
-            _filters.append(get_doc_id_filter(doc_id_list))
+            self._doc_id_set = set(doc_id_list)
+            prefilters.append(get_doc_id_filter(self))
+        else:
+            self._doc_id_set = set()
 
         if min_tf_idf != 0:
-            _filters.append(get_tf_idf_filter(self, min_tf_idf))
-        #extra_filter = self._get_extra_filter(doc_id_list)
+            self.min_tf_idf = min_tf_idf
+            prefilters.append(get_tf_idf_filter(self))
 
-        filters = _filters + filters
+        postfilters = [get_token_to_id_filter(self)]
+
+        filters = prefilters + filters + postfilters
+
+        self._doc_id_seen = set()
 
         with smart_open(infile) as f, smart_open(outfile, 'w') as g:
             # Each line represents one document
             for line in f:
                 record_dict = self.formatter.sstr_to_dict(line)
 
-                keep_doc = True
+                doc_id = record_dict['doc_id']
+                self._doc_id_seen.add(doc_id)
 
+                keep_doc = True
                 for func in filters:
-                    keep_doc, record_dict = func(record_dict)
+                    keep_doc = func(record_dict)
                     if not keep_doc:
                         break
 
                 if keep_doc:
-                    record_dict['feature_values'] = {
-                        self.token2id[token]: value
-                        for token, value
-                        in record_dict['feature_values'].iteritems()
-                        if token in self.token2id}
-
                     new_sstr = self.formatter.get_sstr(**record_dict)
                     g.write(new_sstr + '\n')
 
-        # Removed so _doc_id_seen not necessary.
-        #self._done_check(enforce_all_doc_id)
-
-    def _get_extra_filter(self, doc_id_list):
-        self._doc_id_seen = set()
-
-        # Possible filters to use
-        if doc_id_list is not None:
-            self._doc_id_set = set(doc_id_list)
-
-            def doc_id_filter(record_dict):
-                doc_id = record_dict['doc_id']
-                self._doc_id_seen.add(doc_id)
-                return doc_id in self._doc_id_set
-        else:
-            self._doc_id_set = set()
-            doc_id_filter = lambda record_dict: True
-
-        # Add together all the filters into one function
-        return lambda record_dict: doc_id_filter(record_dict)
+        self._done_check(enforce_all_doc_id)
 
     def _done_check(self, enforce_all_doc_id):
         """
@@ -890,31 +881,57 @@ class CollisionError(Exception):
     pass
 
 
-def get_doc_id_filter(doc_id_list):
-    doc_id_list = set(doc_id_list)
+def get_doc_id_filter(self):
+    """
+    A record_dict filter to be used in SFileFilter.filter_sfile().
+    """
+    doc_id_set = self._doc_id_set
     def doc_id_filter(record_dict):
         doc_id = record_dict['doc_id']
-        keep_doc = doc_id in doc_id_list
-        return keep_doc, record_dict
+        keep_doc = doc_id in doc_id_set
+        return keep_doc
     return doc_id_filter
 
 
-def get_tf_idf_filter(self, min_tf_idf):
+def get_tf_idf_filter(self):
+    """
+    A record_dict filter to be used in SFileFilter.filter_sfile().
+    """
+    min_tf_idf = self.min_tf_idf
     idf = self.idf
     def tf_idf_filter(record_dict):
-        record_dict['feature_values'] = {
-            token: value
-            for token, value
-            in record_dict['feature_values'].iteritems()
-            if idf[token] * value >= min_tf_idf}
+        feature_values = record_dict['feature_values']
+        tokens = feature_values.keys()
+        for token in tokens:
+            if idf[token] * feature_values[token] < min_tf_idf:
+                del feature_values[token]
         keep_doc = True
-        return keep_doc, record_dict
+        return keep_doc
     return tf_idf_filter
 
 
 def get_min_token_filter(min_tokens):
+    """
+    A record_dict filter to be used in SFileFilter.filter_sfile().
+    """
     def min_token_filter(record_dict):
         token_count = sum(record_dict['feature_values'].values())
         keep_doc = token_count >= min_tokens
-        return keep_doc, record_dict
+        return keep_doc
     return min_token_filter
+
+
+def get_token_to_id_filter(self):
+    """
+    A record_dict filter to be used in SFileFilter.filter_sfile().
+    """
+    token2id = self.token2id
+    def token_to_id_filter(record_dict):
+        record_dict['feature_values'] = {
+            token2id[token]: value
+            for token, value
+            in record_dict['feature_values'].iteritems()
+            if token in token2id}
+        keep_doc = True
+        return keep_doc
+    return token_to_id_filter
