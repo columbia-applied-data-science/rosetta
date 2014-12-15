@@ -510,6 +510,23 @@ class TestSFileFilter(unittest.TestCase):
             self.sff.filter_sfile(
                 self.sfile_1, self.outfile, doc_id_list=['doc1', 'unseen'])
 
+    def test_filter_sfile_6(self):
+        self.sff.load_sfile(self.sfile_1)
+        self.sff.filter_sfile(self.sfile_1, self.outfile,
+                              filters=[lambda x: False])
+        result = self.outfile.getvalue()
+        benchmark = ""
+        self.assertEqual(result, benchmark)
+
+    def test_filter_sfile_7(self):
+        self.sff.load_sfile(self.sfile_1)
+        self.sff.filter_sfile(self.sfile_1, self.outfile,
+                              filters=[lambda x: x['doc_id'] == 'doc2'])
+        result = self.outfile.getvalue()
+        benchmark = " 1 doc2| %d:1.1 %d:2\n" % (
+            self.hash_fun('word1'), self.hash_fun('word3'))
+        self.assertEqual(result, benchmark)
+
     def test_compactify_1(self):
         self.sff.token2id = {'a': 1, 'b': 100, 'c': 1000}
         self.sff.compactify()
