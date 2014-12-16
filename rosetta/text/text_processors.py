@@ -659,7 +659,7 @@ class SFileFilter(SaveLoad):
 
     def filter_sfile(
         self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True,
-        min_tf_idf=0, filters=[]):
+        min_tf_idf=0, filters=None):
         """
         Alter an sfile by converting tokens to id values, and removing tokens
         not in self.token2id.  Optionally filters on doc_id, tf_idf and
@@ -702,22 +702,24 @@ class SFileFilter(SaveLoad):
                 "call: self.compactify() then either self.set_id2token() or "
                 " self.save() before filtering")
 
+        if filters is None:
+            filters = []
+
         prefilters = []
         if doc_id_list is not None:
-            self._doc_id_set = set(doc_id_list)
-            prefilters.append(get_doc_id_filter(self))
+            doc_id_set = set(doc_id_list)
+            prefilters.append(get_doc_id_filter(doc_id_set))
         else:
-            self._doc_id_set = set()
+            doc_id_set = set()
 
         if min_tf_idf != 0:
-            self.min_tf_idf = min_tf_idf
-            prefilters.append(get_tf_idf_filter(self))
+            prefilters.append(get_tf_idf_filter(min_tf_idf))
 
         postfilters = [get_token_to_id_filter(self)]
 
         filters = prefilters + filters + postfilters
 
-        self._doc_id_seen = set()
+        doc_id_seen = set()
 
         with smart_open(infile) as f, smart_open(outfile, 'w') as g:
             # Each line represents one document
@@ -725,27 +727,15 @@ class SFileFilter(SaveLoad):
                 record_dict = self.formatter.sstr_to_dict(line)
 
                 doc_id = record_dict['doc_id']
-                self._doc_id_seen.add(doc_id)
+                doc_id_seen.add(doc_id)
 
-                keep_doc = True
-                for func in filters:
-                    keep_doc = func(record_dict)
-                    if not keep_doc:
-                        break
-
-                if keep_doc:
+                if all(func(record_dict) for func in filters):
                     new_sstr = self.formatter.get_sstr(**record_dict)
                     g.write(new_sstr + '\n')
 
-        self._done_check(enforce_all_doc_id)
-
-    def _done_check(self, enforce_all_doc_id):
-        """
-        QA check to perform once we're done filtering an sfile.
-        """
-        # Make sure we saw all the doc_id we're supposed to
         if enforce_all_doc_id:
-            assert self._doc_id_set.issubset(self._doc_id_seen), (
+            # Make sure we saw all the doc_id we're supposed to
+            assert doc_id_set.issubset(doc_id_seen), (
                 "Did not see every doc_id in the passed doc_id_list")
 
     def filter_extremes(
@@ -881,11 +871,15 @@ class CollisionError(Exception):
     pass
 
 
-def get_doc_id_filter(self):
+def get_doc_id_filter(doc_id_set):
     """
-    A record_dict filter to be used in SFileFilter.filter_sfile().
+    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
+    drops unwanted doc_ids.
+
+    Parameters
+    ----------
+    doc_id_set : set
     """
-    doc_id_set = self._doc_id_set
     def doc_id_filter(record_dict):
         doc_id = record_dict['doc_id']
         keep_doc = doc_id in doc_id_set
@@ -893,12 +887,16 @@ def get_doc_id_filter(self):
     return doc_id_filter
 
 
-def get_tf_idf_filter(self):
+def get_tf_idf_filter(min_tf_idf):
     """
-    A record_dict filter to be used in SFileFilter.filter_sfile().
+    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
+    removes tokens with tf_idf below a threshold.
+
+    Parameters
+    ----------
+    sfile_filter : instance or subclass SFileFilter
     """
-    min_tf_idf = self.min_tf_idf
-    idf = self.idf
+    idf = sfile_filter.idf
     def tf_idf_filter(record_dict):
         feature_values = record_dict['feature_values']
         tokens = feature_values.keys()
@@ -912,7 +910,12 @@ def get_tf_idf_filter(self):
 
 def get_min_token_filter(min_tokens):
     """
-    A record_dict filter to be used in SFileFilter.filter_sfile().
+    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
+    drops documents if the total number of tokens is below min_tokens.
+
+    Parameters
+    ----------
+    min_tokens : int
     """
     def min_token_filter(record_dict):
         token_count = sum(record_dict['feature_values'].values())
@@ -921,11 +924,16 @@ def get_min_token_filter(min_tokens):
     return min_token_filter
 
 
-def get_token_to_id_filter(self):
+def get_token_to_id_filter(sfile_filter):
     """
-    A record_dict filter to be used in SFileFilter.filter_sfile().
+    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
+    converts tokens to their id counter-parts.
+
+    Parameters
+    ----------
+    sfile_filter : instance or subclass SFileFilter
     """
-    token2id = self.token2id
+    token2id = sfile_filter.token2id
     def token_to_id_filter(record_dict):
         record_dict['feature_values'] = {
             token2id[token]: value
