@@ -29,6 +29,7 @@ from ..common import smart_open, DocIDError
 from ..common_abc import SaveLoad
 from . import nlp
 
+from . import streaming_filters
 
 class BaseTokenizer(SaveLoad):
     """
@@ -708,14 +709,15 @@ class SFileFilter(SaveLoad):
         prefilters = []
         if doc_id_list is not None:
             doc_id_set = set(doc_id_list)
-            prefilters.append(get_doc_id_filter(doc_id_set))
+            prefilters.append(streaming_filters.get_doc_id_filter(doc_id_set))
         else:
             doc_id_set = set()
 
         if min_tf_idf != 0:
-            prefilters.append(get_tf_idf_filter(min_tf_idf))
+            prefilters.append(
+                streaming_filters.get_tf_idf_filter(self, min_tf_idf))
 
-        postfilters = [get_token_to_id_filter(self)]
+        postfilters = [streaming_filters.get_token_to_id_filter(self)]
 
         filters = prefilters + filters + postfilters
 
@@ -869,77 +871,3 @@ def collision_probability(vocab_size, bit_precision):
 
 class CollisionError(Exception):
     pass
-
-
-def get_doc_id_filter(doc_id_set):
-    """
-    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
-    drops unwanted doc_ids.
-
-    Parameters
-    ----------
-    doc_id_set : set
-    """
-    def doc_id_filter(record_dict):
-        doc_id = record_dict['doc_id']
-        keep_doc = doc_id in doc_id_set
-        return keep_doc
-    return doc_id_filter
-
-
-def get_tf_idf_filter(min_tf_idf):
-    """
-    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
-    removes tokens with tf_idf below a threshold.
-
-    Parameters
-    ----------
-    sfile_filter : instance or subclass SFileFilter
-    """
-    idf = sfile_filter.idf
-    def tf_idf_filter(record_dict):
-        feature_values = record_dict['feature_values']
-        tokens = feature_values.keys()
-        for token in tokens:
-            if idf[token] * feature_values[token] < min_tf_idf:
-                del feature_values[token]
-        keep_doc = True
-        return keep_doc
-    return tf_idf_filter
-
-
-def get_min_token_filter(min_tokens):
-    """
-    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
-    drops documents if the total number of tokens is below min_tokens.
-
-    Parameters
-    ----------
-    min_tokens : int
-    """
-    def min_token_filter(record_dict):
-        token_count = sum(record_dict['feature_values'].values())
-        keep_doc = token_count >= min_tokens
-        return keep_doc
-    return min_token_filter
-
-
-def get_token_to_id_filter(sfile_filter):
-    """
-    A record_dict filter to be used in SFileFilter.filter_sfile(). This filter
-    converts tokens to their id counter-parts.
-
-    Parameters
-    ----------
-    sfile_filter : instance or subclass SFileFilter
-    """
-    token2id = sfile_filter.token2id
-    def token_to_id_filter(record_dict):
-        record_dict['feature_values'] = {
-            token2id[token]: value
-            for token, value
-            in record_dict['feature_values'].iteritems()
-            if token in token2id}
-        keep_doc = True
-        return keep_doc
-    return token_to_id_filter
