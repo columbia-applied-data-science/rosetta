@@ -510,7 +510,7 @@ class TestSFileFilter(unittest.TestCase):
             self.sff.filter_sfile(
                 self.sfile_1, self.outfile, doc_id_list=['doc1', 'unseen'])
 
-    def test_filter_sfile_6(self):
+    def test_filter_sfile_all_false_filter(self):
         self.sff.load_sfile(self.sfile_1)
         self.sff.filter_sfile(self.sfile_1, self.outfile,
                               filters=[lambda x: False])
@@ -518,7 +518,7 @@ class TestSFileFilter(unittest.TestCase):
         benchmark = ""
         self.assertEqual(result, benchmark)
 
-    def test_filter_sfile_7(self):
+    def test_filter_sfile_doc_id_filter(self):
         self.sff.load_sfile(self.sfile_1)
         self.sff.filter_sfile(self.sfile_1, self.outfile,
                               filters=[lambda x: x['doc_id'] == 'doc2'])
