@@ -142,7 +142,7 @@ def groupby_to_series_to_frame(
     # Set the index
     if hasattr(groupby_kwargs['by'], 'name'):
         indexname = groupby_kwargs['by'].name
-    elif isinstance(groupby_kwargs['by'], str):
+    elif isinstance(groupby_kwargs['by'], basestring):
         indexname = groupby_kwargs['by']
     else:
         indexname = None
