@@ -154,12 +154,6 @@ class TestPandasEasy(unittest.TestCase):
         pass
 
     def test_groupby_to_scalar_to_series_1(self):
-        df = pd.DataFrame({'a': [6, 2, 2], 'b': [4, 5, 6]})
-        benchmark = df.groupby('a').apply(max)
-        result = pandas_easy.groupby_to_scalar_to_series(df, max, 1, by='a')
-        assert_series_equal(result, benchmark)
-
-    def test_groupby_to_scalar_to_series_2(self):
         s = pd.Series([1, 2, 3, 4])
         labels = ['a', 'a', 'b', 'b']
         benchmark = s.groupby(labels).apply(max)
@@ -182,6 +176,13 @@ class TestPandasEasy(unittest.TestCase):
         result = pandas_easy.groupby_to_series_to_frame(
             df, frame_to_series, 1, use_apply=False, by=labels)
         assert_frame_equal(result, benchmark)
+
+    def test_groupby_to_series_to_frame_3(self):
+        df = pd.DataFrame({'a': [6, 2, 2], 'b': [4, 5, 6]})
+        benchmark = df.groupby('a').apply(max)
+        result = pandas_easy.groupby_to_series_to_frame(df, max, 1, by='a')
+        assert_frame_equal(result, benchmark)
+
 
 
 class TestLockIterateApply(unittest.TestCase):
