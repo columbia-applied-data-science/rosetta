@@ -693,6 +693,12 @@ class SFileFilter(SaveLoad):
             place. If the return value is False, the record_dict (corresponding
             to a document) is filtered out of the sfile. Both the doc_id_list
             and min_tf_idf parameters are implemented in this style internally.
+            If the doc_id_list or min_tf_idf flags are set, those filters will
+            run before the those found in filters. See
+                rosetta/text/streaming_filters.py
+            in the rosetta repository for the implementation details of the
+            record_dict and built-in filters as well as explanations of how to
+            define more filters.
         """
         assert self.sfile_loaded, "Must load an sfile before you can filter"
         if not hasattr(self, 'id2token'):
