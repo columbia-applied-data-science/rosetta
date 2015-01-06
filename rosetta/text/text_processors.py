@@ -706,6 +706,11 @@ class SFileFilter(SaveLoad):
         if filters is None:
             filters = []
 
+        # The doc_id_filter should be run before everything else to avoid
+        # unnecessary computations. The min_tf_idf filter is run next. If for
+        # some reason this is not the desired the ordering, the user needs to
+        # leave the the doc_id_list and min_tf_idf flags must be unset and pass
+        # user-defined filters to the filters flag explicitly.
         prefilters = []
         if doc_id_list is not None:
             doc_id_set = set(doc_id_list)
@@ -717,6 +722,8 @@ class SFileFilter(SaveLoad):
             prefilters.append(
                 streaming_filters.get_tf_idf_filter(self, min_tf_idf))
 
+        # The token_to_id_filter should be run last so that only the necessary
+        # conversions are made.
         postfilters = [streaming_filters.get_token_to_id_filter(self)]
 
         filters = prefilters + filters + postfilters
