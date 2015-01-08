@@ -29,6 +29,7 @@ from ..common import smart_open, DocIDError
 from ..common_abc import SaveLoad
 from . import nlp
 
+from . import streaming_filters
 
 class BaseTokenizer(SaveLoad):
     """
@@ -659,10 +660,11 @@ class SFileFilter(SaveLoad):
 
     def filter_sfile(
         self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True,
-        min_tf_idf=0):
+        min_tf_idf=0, filters=None):
         """
         Alter an sfile by converting tokens to id values, and removing tokens
-        not in self.token2id.  Optionally filters on doc_id.
+        not in self.token2id.  Optionally filters on doc_id, tf_idf and
+        user-defined filters.
 
         Parameters
         ----------
@@ -685,6 +687,18 @@ class SFileFilter(SaveLoad):
                 (2) idf(t, D) = log (N / M), where N is the total number of
                     documents in D and M is the number of documents in D which
                     contain the token t. The logarithm is base e.
+        filters : iterable over functions
+            Each function must take a record_dict as a parameter and return a
+            boolean. The record_dict may (and usually should) be altered in
+            place. If the return value is False, the record_dict (corresponding
+            to a document) is filtered out of the sfile. Both the doc_id_list
+            and min_tf_idf parameters are implemented in this style internally.
+            If the doc_id_list or min_tf_idf flags are set, those filters will
+            run before the those found in filters. See
+                rosetta/text/streaming_filters.py
+            in the rosetta repository for the implementation details of the
+            record_dict and built-in filters as well as explanations of how to
+            define more filters.
         """
         assert self.sfile_loaded, "Must load an sfile before you can filter"
         if not hasattr(self, 'id2token'):
@@ -695,50 +709,48 @@ class SFileFilter(SaveLoad):
                 "call: self.compactify() then either self.set_id2token() or "
                 " self.save() before filtering")
 
-        extra_filter = self._get_extra_filter(doc_id_list)
+        if filters is None:
+            filters = []
+
+        # The doc_id_filter should be run before everything else to avoid
+        # unnecessary computations. The min_tf_idf filter is run next. If for
+        # some reason this is not the desired the ordering, the user needs to
+        # leave the the doc_id_list and min_tf_idf flags must be unset and pass
+        # user-defined filters to the filters flag explicitly.
+        prefilters = []
+        if doc_id_list is not None:
+            doc_id_set = set(doc_id_list)
+            prefilters.append(streaming_filters.get_doc_id_filter(doc_id_set))
+        else:
+            doc_id_set = set()
+
+        if min_tf_idf != 0:
+            prefilters.append(
+                streaming_filters.get_tf_idf_filter(self, min_tf_idf))
+
+        # The token_to_id_filter should be run last so that only the necessary
+        # conversions are made.
+        postfilters = [streaming_filters.get_token_to_id_filter(self)]
+
+        filters = prefilters + filters + postfilters
+
+        doc_id_seen = set()
 
         with smart_open(infile) as f, smart_open(outfile, 'w') as g:
             # Each line represents one document
             for line in f:
                 record_dict = self.formatter.sstr_to_dict(line)
-                if extra_filter(record_dict):
-                    record_dict['feature_values'] = {
-                        self.token2id[token]: value
-                        for token, value
-                        in record_dict['feature_values'].iteritems()
-                        if token in self.token2id
-                        and self.idf[token] * value >= min_tf_idf}
 
+                doc_id = record_dict['doc_id']
+                doc_id_seen.add(doc_id)
+
+                if all(func(record_dict) for func in filters):
                     new_sstr = self.formatter.get_sstr(**record_dict)
                     g.write(new_sstr + '\n')
 
-        self._done_check(enforce_all_doc_id)
-
-    def _get_extra_filter(self, doc_id_list):
-        self._doc_id_seen = set()
-
-        # Possible filters to use
-        if doc_id_list is not None:
-            self._doc_id_set = set(doc_id_list)
-
-            def doc_id_filter(record_dict):
-                doc_id = record_dict['doc_id']
-                self._doc_id_seen.add(doc_id)
-                return doc_id in self._doc_id_set
-        else:
-            self._doc_id_set = set()
-            doc_id_filter = lambda record_dict: True
-
-        # Add together all the filters into one function
-        return lambda record_dict: doc_id_filter(record_dict)
-
-    def _done_check(self, enforce_all_doc_id):
-        """
-        QA check to perform once we're done filtering an sfile.
-        """
-        # Make sure we saw all the doc_id we're supposed to
         if enforce_all_doc_id:
-            assert self._doc_id_set.issubset(self._doc_id_seen), (
+            # Make sure we saw all the doc_id we're supposed to
+            assert doc_id_set.issubset(doc_id_seen), (
                 "Did not see every doc_id in the passed doc_id_list")
 
     def filter_extremes(
@@ -872,5 +884,3 @@ def collision_probability(vocab_size, bit_precision):
 
 class CollisionError(Exception):
     pass
-
-
