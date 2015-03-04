@@ -579,7 +579,7 @@ class LDAResults(object):
             outstr += "\n" + sorted_topic.to_string() + "\n"
 
         with smart_open(outfile, 'w') as f:
-            f.write(outstr)
+            f.write(outstr.encode('utf-8'))
 
     @property
     def pr_token_g_topic(self):
