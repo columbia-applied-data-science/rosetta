@@ -7,7 +7,7 @@ from collections import Counter
 
 import pandas as pd
 import numpy as np
-from scipy.special import gammaln, digamma, psi # gamma function utils
+from scipy.special import psi  # gamma function utils
 
 from . import text_processors
 from ..common import smart_open, TokenError
@@ -55,8 +55,9 @@ def parse_varinfo(varinfo_file):
     # Rename columns to decent Python names
     varinfo = varinfo.rename(
         columns={'FeatureName': 'feature_name', 'HashVal': 'hash_val',
-            'MaxVal': 'max_val', 'MinVal': 'min_val', 'RelScore': 'rel_score',
-            'Weight': 'weight'}).set_index('hash_val')
+                 'MaxVal': 'max_val', 'MinVal': 'min_val',
+                 'RelScore': 'rel_score', 'Weight': 'weight'}
+    ).set_index('hash_val')
 
     return varinfo
 
@@ -153,8 +154,8 @@ def find_start_line_lda_predictions(predictions_file, num_topics):
     return start_line
 
 
-def parse_lda_predictions(
-    predictions_file, num_topics, start_line, normalize=True):
+def parse_lda_predictions(predictions_file, num_topics, start_line,
+                          normalize=True):
     """
     Return a DataFrame representation of a VW prediction file.
 
@@ -207,9 +208,8 @@ class LDAResults(object):
 
     https://github.com/columbia-applied-data-science/rosetta/blob/master/examples/vw_helpers.md
     """
-    def __init__(
-        self, topics_file, predictions_file, sfile_filter, num_topics=None,
-        alpha=None, verbose=False):
+    def __init__(self, topics_file, predictions_file, sfile_filter,
+                 num_topics=None, alpha=None, verbose=False):
         """
         Parameters
         ----------
@@ -310,8 +310,8 @@ class LDAResults(object):
         self.pr_token_topic.index.name = 'token'
         self.pr_doc_topic = predictions / predictions.sum().sum()
 
-    def prob_token_topic(
-        self, token=None, topic=None, c_token=None, c_topic=None):
+    def prob_token_topic(self, token=None, topic=None, c_token=None,
+                         c_topic=None):
         """
         Return joint densities of (token, topic),
         restricted to subsets, conditioned on variables.
@@ -443,10 +443,8 @@ class LDAResults(object):
 
         return df
 
-
-
-    def predict(
-        self, tokenized_text, maxiter=50, atol=1e-3, raise_on_unknown=False):
+    def predict(self, tokenized_text, maxiter=50, atol=1e-3,
+                raise_on_unknown=False):
         """
         Returns a probability distribution over topics given that one
         (tokenized) document is equal to tokenized_text.
@@ -556,8 +554,8 @@ class LDAResults(object):
         """
         return psi(alpha) - psi(alpha.sum())
 
-    def print_topics(
-        self, num_words=5, outfile=sys.stdout, show_doc_fraction=True):
+    def print_topics(self, num_words=5, outfile=sys.stdout,
+                     show_doc_fraction=True):
         """
         Print the top results for self.pr_token_g_topic for all topics
 
