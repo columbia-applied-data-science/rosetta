@@ -62,7 +62,7 @@ def parse_varinfo(varinfo_file):
     return varinfo
 
 
-def parse_lda_topics(topics_file, num_topics, max_token_line_num=1e+100,
+def parse_lda_topics(topics_file, num_topics, max_token_hash=1e+100,
                      normalize=True):
     """
     Returns a DataFrame representation of the topics output of an lda VW run.
@@ -73,9 +73,10 @@ def parse_lda_topics(topics_file, num_topics, max_token_line_num=1e+100,
         The --readable_model output of a VW lda run
     num_topics : Integer
         The number of topics in every valid row
-    max_token_line_num : Integer
-        Reading of token probabilities from the topics_file will stop after this
-        line number. Useful, when you know the max hash value of your tokens.
+    max_token_hash : Integer
+        Reading of token probabilities from the topics_file will ignore all
+        token with hash above this value. Useful, when you know the max hash
+        value of your tokens.
     normalize : Boolean
         Normalize the rows so that they represent probabilities of topic
         given hash_val
@@ -95,14 +96,14 @@ def parse_lda_topics(topics_file, num_topics, max_token_line_num=1e+100,
         # any exceptions!
         in_valid_rows = False
         for i, line in enumerate(open_file):
-            if i > max_token_line_num:
-                break
             try:
                 # If this row raises an exception, then it isn't a valid row
                 # Sometimes trailing space...that's the reason for split()
                 # rather than csv.reader or a direct pandas read.
                 split_line = line.split()
                 hash_val = int(split_line[0])
+                if hash_val > max_token_hash:
+                    break
                 topic_weights = [float(item) for item in split_line[1:]]
                 assert len(topic_weights) == num_topics
                 for i, weight in enumerate(topic_weights):
