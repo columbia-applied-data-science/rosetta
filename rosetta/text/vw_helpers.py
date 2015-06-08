@@ -63,7 +63,7 @@ def parse_varinfo(varinfo_file):
 
 
 def parse_lda_topics(topics_file, num_topics, max_token_hash=1e+100,
-                     normalize=True):
+                     normalize=True, get_iter=False):
     """
     Returns a DataFrame representation of the topics output of an lda VW run.
 
@@ -78,17 +78,33 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=1e+100,
         token with hash above this value. Useful, when you know the max hash
         value of your tokens.
     normalize : Boolean
-        Normalize the rows so that they represent probabilities of topic
-        given hash_val
+        Normalize the rows of the data frame so that they represent
+        probabilities of topic given hash_val. Note: must have get_iter=False.
+    get_iter : Boolean
+        if True will return a iterator yielding dict of hash and token vals
 
     Notes
     -----
     The trick is dealing with lack of a marker for the information printed
     on top, and the inconsistant delimiter choice.
     """
+    topics_iter = _parse_lda_topics_iter(topics_file=topics_file,
+                                         num_topics=num_topics,
+                                         max_token_hash=max_token_hash)
+    assert not (get_iter and normalize), ('get_iter must be set to False to ' +
+                                          'return normalized results')
+    if get_iter:
+        return topics_iter
+    else:
+        topics = [t for t in topics_iter]
+        topics = pd.DataFrame.from_records(topics, index='hash_val')
+        if normalize:
+            topics = topics.div(topics.sum(axis=1), axis=0)
+        return topics
+
+
+def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash=1e+100):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
-    topics = {fmt % i: [] for i in range(num_topics)}
-    topics['hash_val'] = []
     # The topics file contains a bunch of informational printout stuff at
     # the top.  Figure out what line this ends on
     with smart_open(topics_file, 'r') as open_file:
@@ -100,6 +116,7 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=1e+100,
                 # If this row raises an exception, then it isn't a valid row
                 # Sometimes trailing space...that's the reason for split()
                 # rather than csv.reader or a direct pandas read.
+                topic_item = {}
                 split_line = line.split()
                 hash_val = int(split_line[0])
                 if hash_val > max_token_hash:
@@ -107,18 +124,13 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=1e+100,
                 topic_weights = [float(item) for item in split_line[1:]]
                 assert len(topic_weights) == num_topics
                 for i, weight in enumerate(topic_weights):
-                    topics[fmt % i].append(weight)
-                topics['hash_val'].append(hash_val)
+                    topic_item[fmt % i] = weight
+                topic_item['hash_val'] = hash_val
                 in_valid_rows = True
+                yield topic_item
             except (ValueError, IndexError, AssertionError):
                 if in_valid_rows:
                     raise
-
-    topics = pd.DataFrame(topics).set_index('hash_val')
-    if normalize:
-        topics = topics.div(topics.sum(axis=1), axis=0)
-
-    return topics
 
 
 def find_start_line_lda_predictions(predictions_file, num_topics):
