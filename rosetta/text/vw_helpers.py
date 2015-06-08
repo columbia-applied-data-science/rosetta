@@ -168,7 +168,7 @@ def find_start_line_lda_predictions(predictions_file, num_topics):
 
 
 def parse_lda_predictions(predictions_file, num_topics, start_line,
-                          normalize=True):
+                          normalize=True, get_iter=False):
     """
     Return a DataFrame representation of a VW prediction file.
 
@@ -184,10 +184,27 @@ def parse_lda_predictions(predictions_file, num_topics, start_line,
         You generally do not want every prediction.
     normalize : Boolean
         Normalize the rows so that they represent probabilities of topic
-        given doc_id.
+        given doc_id. Note: must have get_iter=False.
+    get_iter : Boolean
+        if True will return a iterator yielding dict of doc_id and topic probs
     """
-    doc_id_stored = []
-    lines = []
+    assert not (get_iter and normalize), ('get_iter must be set to False to ' +
+                                          'return normalized results')
+
+    predictions_iter = _parse_lda_predictions_iter(predictions_file, num_topics,
+                                                   start_line)
+    if get_iter:
+        return predictions_iter
+    else:
+        predictions = [p for p in predictions_iter]
+        predictions = pd.DataFrame.from_records(predictions, index='doc_id')
+        if normalize:
+            predictions = predictions.div(predictions.sum(axis=1), axis=0)
+        return predictions
+
+
+def _parse_lda_predictions_iter(predictions_file, num_topics, start_line):
+    fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
     # Use this rather than pandas.read_csv due to inconsistent use of sep
     with smart_open(predictions_file) as open_file:
         # We may have already opened and read this file in order to
@@ -196,22 +213,14 @@ def parse_lda_predictions(predictions_file, num_topics, start_line,
         for line_num, line in enumerate(open_file):
             if line_num < start_line:
                 continue
+            topic_item = {}
             split_line = line.split()
-            topic_weights = split_line[: -1]
+            topic_weights = [float(item) for item in split_line[: -1]]
             assert len(topic_weights) == num_topics, "Is num_topics correct?"
-            lines.append(topic_weights)
-            doc_id_stored.append(split_line[-1])
-
-    fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
-    topic_names = [fmt % i for i in range(num_topics)]
-    predictions = pd.DataFrame(
-        lines, index=doc_id_stored, columns=topic_names).astype(float)
-    predictions.index.name = 'doc_id'
-
-    if normalize:
-        predictions = predictions.div(predictions.sum(axis=1), axis=0)
-
-    return predictions
+            for i, weight in enumerate(topic_weights):
+                topic_item[fmt % i] = weight
+            topic_item['doc_id'] = split_line[-1]
+            yield topic_item
 
 
 class LDAResults(object):
@@ -617,4 +626,4 @@ class LDAResults(object):
 
     @property
     def pr_topic_g_doc(self):
-        return self.pr_topic_doc.div(self.pr_doc, axis=0).T
+        return self.pr_topic_doc.div(self.pr_doc, axis=0).i
