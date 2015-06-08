@@ -626,4 +626,4 @@ class LDAResults(object):
 
     @property
     def pr_topic_g_doc(self):
-        return self.pr_topic_doc.div(self.pr_doc, axis=0).i
+        return self.pr_topic_doc.div(self.pr_doc, axis=0).T
