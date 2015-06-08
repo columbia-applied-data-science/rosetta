@@ -62,7 +62,7 @@ def parse_varinfo(varinfo_file):
     return varinfo
 
 
-def parse_lda_topics(topics_file, num_topics, max_token_hash=1e+100,
+def parse_lda_topics(topics_file, num_topics, max_token_hash=None,
                      normalize=True, get_iter=False):
     """
     Returns a DataFrame representation of the topics output of an lda VW run.
@@ -103,7 +103,7 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=1e+100,
         return topics
 
 
-def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash=1e+100):
+def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
     # The topics file contains a bunch of informational printout stuff at
     # the top.  Figure out what line this ends on
@@ -119,7 +119,7 @@ def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash=1e+100):
                 topic_item = {}
                 split_line = line.split()
                 hash_val = int(split_line[0])
-                if hash_val > max_token_hash:
+                if max_token_hash is not None and hash_val > max_token_hash:
                     break
                 topic_weights = [float(item) for item in split_line[1:]]
                 assert len(topic_weights) == num_topics
