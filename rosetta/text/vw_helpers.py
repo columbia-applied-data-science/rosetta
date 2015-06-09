@@ -7,7 +7,7 @@ from collections import Counter
 
 import pandas as pd
 import numpy as np
-from scipy.special import gammaln, digamma, psi # gamma function utils
+from scipy.special import psi  # gamma function utils
 
 from . import text_processors
 from ..common import smart_open, TokenError
@@ -55,13 +55,15 @@ def parse_varinfo(varinfo_file):
     # Rename columns to decent Python names
     varinfo = varinfo.rename(
         columns={'FeatureName': 'feature_name', 'HashVal': 'hash_val',
-            'MaxVal': 'max_val', 'MinVal': 'min_val', 'RelScore': 'rel_score',
-            'Weight': 'weight'}).set_index('hash_val')
+                 'MaxVal': 'max_val', 'MinVal': 'min_val',
+                 'RelScore': 'rel_score', 'Weight': 'weight'}
+    ).set_index('hash_val')
 
     return varinfo
 
 
-def parse_lda_topics(topics_file, num_topics, normalize=True):
+def parse_lda_topics(topics_file, num_topics, max_token_hash=None,
+                     normalize=True, get_iter=False):
     """
     Returns a DataFrame representation of the topics output of an lda VW run.
 
@@ -71,46 +73,66 @@ def parse_lda_topics(topics_file, num_topics, normalize=True):
         The --readable_model output of a VW lda run
     num_topics : Integer
         The number of topics in every valid row
+    max_token_hash : Integer
+        Reading of token probabilities from the topics_file will ignore all
+        token with hash above this value. Useful, when you know the max hash
+        value of your tokens.
     normalize : Boolean
-        Normalize the rows so that they represent probabilities of topic
-        given hash_val
+        Normalize the rows of the data frame so that they represent
+        probabilities of topic given hash_val.
+    get_iter : Boolean
+        if True will return a iterator yielding dict of hash and token vals
 
     Notes
     -----
     The trick is dealing with lack of a marker for the information printed
     on top, and the inconsistant delimiter choice.
     """
+    topics_iter = _parse_lda_topics_iter(topics_file=topics_file,
+                                         num_topics=num_topics,
+                                         max_token_hash=max_token_hash,
+                                         normalize=normalize)
+    if get_iter:
+        return topics_iter
+    else:
+        topics = [t for t in topics_iter]
+        topics = pd.DataFrame.from_records(topics, index='hash_val')
+        if normalize:
+            topics = topics.div(topics.sum(axis=1), axis=0)
+        return topics
+
+
+def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash,
+                           normalize):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
-    topics = {fmt % i: [] for i in range(num_topics)}
-    topics['hash_val'] = []
     # The topics file contains a bunch of informational printout stuff at
     # the top.  Figure out what line this ends on
     with smart_open(topics_file, 'r') as open_file:
         # Once we detect that we're in the valid rows, there better not be
         # any exceptions!
         in_valid_rows = False
-        for line in open_file:
+        for i, line in enumerate(open_file):
             try:
                 # If this row raises an exception, then it isn't a valid row
                 # Sometimes trailing space...that's the reason for split()
                 # rather than csv.reader or a direct pandas read.
+                topic_item = pd.Series()
                 split_line = line.split()
                 hash_val = int(split_line[0])
+                if max_token_hash is not None and hash_val > max_token_hash:
+                    break
                 topic_weights = [float(item) for item in split_line[1:]]
                 assert len(topic_weights) == num_topics
                 for i, weight in enumerate(topic_weights):
-                    topics[fmt % i].append(weight)
-                topics['hash_val'].append(hash_val)
+                    topic_item[fmt % i] = weight
+                if normalize:
+                    topic_item = topic_item/topic_item.sum()
+                topic_item['hash_val'] = hash_val
                 in_valid_rows = True
+                yield topic_item.to_dict()
             except (ValueError, IndexError, AssertionError):
                 if in_valid_rows:
                     raise
-
-    topics = pd.DataFrame(topics).set_index('hash_val')
-    if normalize:
-        topics = topics.div(topics.sum(axis=1), axis=0)
-
-    return topics
 
 
 def find_start_line_lda_predictions(predictions_file, num_topics):
@@ -147,8 +169,8 @@ def find_start_line_lda_predictions(predictions_file, num_topics):
     return start_line
 
 
-def parse_lda_predictions(
-    predictions_file, num_topics, start_line, normalize=True):
+def parse_lda_predictions(predictions_file, num_topics, start_line,
+                          normalize=True, get_iter=False):
     """
     Return a DataFrame representation of a VW prediction file.
 
@@ -165,9 +187,25 @@ def parse_lda_predictions(
     normalize : Boolean
         Normalize the rows so that they represent probabilities of topic
         given doc_id.
+    get_iter : Boolean
+        if True will return a iterator yielding dict of doc_id and topic probs
     """
-    doc_id_stored = []
-    lines = []
+
+    predictions_iter = _parse_lda_predictions_iter(predictions_file, num_topics,
+                                                   start_line, normalize)
+    if get_iter:
+        return predictions_iter
+    else:
+        predictions = [p for p in predictions_iter]
+        predictions = pd.DataFrame.from_records(predictions, index='doc_id')
+        if normalize:
+            predictions = predictions.div(predictions.sum(axis=1), axis=0)
+        return predictions
+
+
+def _parse_lda_predictions_iter(predictions_file, num_topics, start_line,
+                                normalize):
+    fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
     # Use this rather than pandas.read_csv due to inconsistent use of sep
     with smart_open(predictions_file) as open_file:
         # We may have already opened and read this file in order to
@@ -176,22 +214,16 @@ def parse_lda_predictions(
         for line_num, line in enumerate(open_file):
             if line_num < start_line:
                 continue
+            topic_item = pd.Series()
             split_line = line.split()
-            topic_weights = split_line[: -1]
+            topic_weights = [float(item) for item in split_line[: -1]]
             assert len(topic_weights) == num_topics, "Is num_topics correct?"
-            lines.append(topic_weights)
-            doc_id_stored.append(split_line[-1])
-
-    fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
-    topic_names = [fmt % i for i in range(num_topics)]
-    predictions = pd.DataFrame(
-        lines, index=doc_id_stored, columns=topic_names).astype(float)
-    predictions.index.name = 'doc_id'
-
-    if normalize:
-        predictions = predictions.div(predictions.sum(axis=1), axis=0)
-
-    return predictions
+            for i, weight in enumerate(topic_weights):
+                topic_item[fmt % i] = weight
+            if normalize:
+                topic_item = topic_item/topic_item.sum()
+            topic_item['doc_id'] = split_line[-1]
+            yield topic_item.to_dict()
 
 
 class LDAResults(object):
@@ -201,9 +233,8 @@ class LDAResults(object):
 
     https://github.com/columbia-applied-data-science/rosetta/blob/master/examples/vw_helpers.md
     """
-    def __init__(
-        self, topics_file, predictions_file, sfile_filter, num_topics=None,
-        alpha=None, verbose=False):
+    def __init__(self, topics_file, predictions_file, sfile_filter,
+                 num_topics=None, alpha=None, verbose=False):
         """
         Parameters
         ----------
@@ -212,7 +243,7 @@ class LDAResults(object):
         predictions_file : filepath or buffer
             The -p output of a VW lda run
         num_topics : Integer or None
-            The number of topics in every valid row; if None will infer num 
+            The number of topics in every valid row; if None will infer num
             topics from predictions_file
         sfile_filter : filepath, buffer, or loaded text_processors.SFileFilter
             Contains the token2id and id2token mappings
@@ -234,7 +265,9 @@ class LDAResults(object):
         self.sfile_frame = sfile_filter.to_frame()
 
         # Load the topics file
-        topics = parse_lda_topics(topics_file, num_topics, normalize=False)
+        topics = parse_lda_topics(topics_file, num_topics,
+                                  max(sfile_filter.id2token.keys()),
+                                  normalize=False)
         topics = topics.reindex(index=sfile_filter.id2token.keys())
         topics = topics.rename(index=sfile_filter.id2token)
 
@@ -247,7 +280,7 @@ class LDAResults(object):
         self.num_docs = len(predictions)
         self.num_tokens = len(topics)
         self.topics = topics.columns.tolist()
-        self.tokens = topics.index.tolist()        
+        self.tokens = topics.index.tolist()
         self.docs = predictions.index.tolist()
 
         # Check that the topics/docs/token names are unique with no overlap
@@ -302,8 +335,8 @@ class LDAResults(object):
         self.pr_token_topic.index.name = 'token'
         self.pr_doc_topic = predictions / predictions.sum().sum()
 
-    def prob_token_topic(
-        self, token=None, topic=None, c_token=None, c_topic=None):
+    def prob_token_topic(self, token=None, topic=None, c_token=None,
+                         c_topic=None):
         """
         Return joint densities of (token, topic),
         restricted to subsets, conditioned on variables.
@@ -435,10 +468,8 @@ class LDAResults(object):
 
         return df
 
-
-
-    def predict(
-        self, tokenized_text, maxiter=50, atol=1e-3, raise_on_unknown=False):
+    def predict(self, tokenized_text, maxiter=50, atol=1e-3,
+                raise_on_unknown=False):
         """
         Returns a probability distribution over topics given that one
         (tokenized) document is equal to tokenized_text.
@@ -548,8 +579,8 @@ class LDAResults(object):
         """
         return psi(alpha) - psi(alpha.sum())
 
-    def print_topics(
-        self, num_words=5, outfile=sys.stdout, show_doc_fraction=True):
+    def print_topics(self, num_words=5, outfile=sys.stdout,
+                     show_doc_fraction=True):
         """
         Print the top results for self.pr_token_g_topic for all topics
 

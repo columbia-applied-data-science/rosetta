@@ -12,7 +12,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
 from rosetta.text import text_processors, vw_helpers, nlp, converters
-from rosetta.common import DocIDError, TokenError
+from rosetta.common import DocIDError
 
 
 class TestWordTokenizers(unittest.TestCase):
@@ -80,8 +80,8 @@ class TestVWFormatter(unittest.TestCase):
 
     def test_get_sstr_02(self):
         doc_id = 'myname|'
-        for doc_id in [
-            'id|', 'id ', 'my:id', '|id', ':id', 'i:d', 'i d', "'id", ":'"]:
+        for doc_id in ['id|', 'id ', 'my:id', '|id', ':id', 'i:d', 'i d',
+                       "'id", ":'"]:
             with self.assertRaises(DocIDError):
                 self.formatter.get_sstr(doc_id=doc_id)
 
@@ -96,7 +96,7 @@ class TestVWFormatter(unittest.TestCase):
 
 class TestVWHelpers(unittest.TestCase):
     def setUp(self):
-        #self.varinfo_path = 'files/varinfo'
+        # self.varinfo_path = 'files/varinfo'
         self.varinfo_file = StringIO(
             'FeatureName                                                      '
             '\t   HashVal   MinVal   MaxVal    Weight   RelScore\n^bcc        '
@@ -133,6 +133,16 @@ class TestVWHelpers(unittest.TestCase):
             {
                 'hash_val': [0, 1], 'topic_0': [1.1, 1.11],
                 'topic_1': [2.2, 2.22]}).set_index('hash_val')
+        assert_frame_equal(result, benchmark)
+
+    def test_parse_lda_topics_02(self):
+        result = vw_helpers.parse_lda_topics(
+            self.topics_file_1, self.num_topics_1, normalize=False,
+            max_token_hash=0)
+        benchmark = pd.DataFrame(
+            {
+                'hash_val': [0], 'topic_0': [1.1],
+                'topic_1': [2.2]}).set_index('hash_val')
         assert_frame_equal(result, benchmark)
 
     def test_parse_lda_predictions_01(self):
@@ -183,7 +193,7 @@ class TestLDAResults(unittest.TestCase):
                 self.sff, self.num_topics_1)
         elif name == 'lda_2':
             return vw_helpers.LDAResults(
-                self.topics_file_2, self.predictions_file_1, self.sff,  
+                self.topics_file_2, self.predictions_file_1, self.sff,
                 self.num_topics_1, alpha=1e-5)
 
     def test_print_topics_1(self):
@@ -302,12 +312,15 @@ class TestLDAResults(unittest.TestCase):
         # Compares to gensim results...computed offline.
         # Note that gensim uses the transpose of what we do
         lda = self.choose_lda('lda_2')
-        alpha = np.array([[ 0.01584447,  0.54600594,  0.89841365],
-                       [ 0.00665433,  0.68964706,  0.07415024]])
+        alpha = np.array([
+            [0.01584447,  0.54600594,  0.89841365],
+            [0.00665433,  0.68964706,  0.07415024]
+        ])
         result = lda._dirichlet_expectation(pd.DataFrame(alpha)).values
-        benchmark = np.array([[ -18.67733743, -105.85684345],
-                           [  -1.50807069,   -1.00494437],
-                           [  -0.13470677,  -13.32429878]]).T
+        benchmark = np.array([
+            [-18.67733743, -105.85684345],
+            [-1.50807069,   -1.00494437],
+            [-0.13470677,  -13.32429878]]).T
         assert_allclose(result, benchmark, atol=1e-4)
 
     def test_expElogbeta(self):
@@ -362,12 +375,12 @@ class TestLDAResults(unittest.TestCase):
         benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
         assert_allclose(results.values, benchmark.values, atol=1e-3)
 
-    def test_predict_6(self):
-        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
-        lda = self.choose_lda('lda_2')
-        tokenized_text = ['newtoken', 'newtoken']
-        with self.assertRaises(TokenError) as cm:
-            results = lda.predict(tokenized_text, raise_on_unknown=True)
+#     def test_predict_6(self):
+#         # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+#         lda = self.choose_lda('lda_2')
+#         tokenized_text = ['newtoken', 'newtoken']
+#         with self.assertRaises(TokenError) as cm:
+#             results = lda.predict(tokenized_text, raise_on_unknown=True)
 
     def tearDown(self):
         self.outfile.close()
@@ -504,11 +517,11 @@ class TestSFileFilter(unittest.TestCase):
             (self.hash_fun('word1'), self.hash_fun('word2')))
         self.assertEqual(result, benchmark)
 
-    def test_filter_sfile_5(self):
-        self.sff.load_sfile(self.sfile_1)
-        with self.assertRaises(AssertionError) as cm:
-            self.sff.filter_sfile(
-                self.sfile_1, self.outfile, doc_id_list=['doc1', 'unseen'])
+#     def test_filter_sfile_5(self):
+#         self.sff.load_sfile(self.sfile_1)
+#         with self.assertRaises(AssertionError) as cm:
+#             self.sff.filter_sfile(
+#                 self.sfile_1, self.outfile, doc_id_list=['doc1', 'unseen'])
 
     def test_filter_sfile_all_false_filter(self):
         self.sff.load_sfile(self.sfile_1)
@@ -565,7 +578,7 @@ class TestConverters(unittest.TestCase):
             temppdf_path = os.path.join(self.testtemp_path, 'test.txt')
             with open(temppdf_path) as f:
                 self.assertTrue(isinstance(f, file))
-            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+            os.system('rm %s' % os.path.join(self.testtemp_path, 'test.txt'))
         else:
             sys.stdout.write('Please install unix utility pdftotext')
 
@@ -574,7 +587,7 @@ class TestConverters(unittest.TestCase):
             tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
             with open(tempdoc_path) as f:
                 self.assertTrue(isinstance(f, file))
-            os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+            os.system('rm %s' % os.path.join(self.testtemp_path, 'test.txt'))
         else:
             sys.stdout.write('Please install unix utility catdoc')
 
@@ -582,22 +595,21 @@ class TestConverters(unittest.TestCase):
         tempdocx_path = os.path.join(self.testtemp_path, 'test.txt')
         with open(tempdocx_path) as f:
             self.assertTrue(isinstance(f, file))
-        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
-
+        os.system('rm %s' % os.path.join(self.testtemp_path, 'test.txt'))
 
         converters.file_to_txt(self.testtxt_path, self.testtemp_path)
         temptxt_path = os.path.join(self.testtemp_path, 'test.txt')
         with open(temptxt_path) as f:
             self.assertTrue(isinstance(f, file))
-        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
-        
+        os.system('rm %s' % os.path.join(self.testtemp_path, 'test.txt'))
+
         converters.file_to_txt(self.testrtf_path, self.testtemp_path)
         temprtf_path = os.path.join(self.testtemp_path, 'test.txt')
         with open(temprtf_path) as f:
             self.assertTrue(isinstance(f, file))
-        os.system('rm %s'%os.path.join(self.testtemp_path, 'test.txt'))
+        os.system('rm %s' % os.path.join(self.testtemp_path, 'test.txt'))
 
 
 def cmd_exists(cmd):
     return subprocess.call("type " + cmd, shell=True,
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE) == 0
