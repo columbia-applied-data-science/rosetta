@@ -79,7 +79,7 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=None,
         value of your tokens.
     normalize : Boolean
         Normalize the rows of the data frame so that they represent
-        probabilities of topic given hash_val. Note: must have get_iter=False.
+        probabilities of topic given hash_val.
     get_iter : Boolean
         if True will return a iterator yielding dict of hash and token vals
 
@@ -90,9 +90,8 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=None,
     """
     topics_iter = _parse_lda_topics_iter(topics_file=topics_file,
                                          num_topics=num_topics,
-                                         max_token_hash=max_token_hash)
-    assert not (get_iter and normalize), ('get_iter must be set to False to ' +
-                                          'return normalized results')
+                                         max_token_hash=max_token_hash,
+                                         normalize=normalize)
     if get_iter:
         return topics_iter
     else:
@@ -103,7 +102,8 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=None,
         return topics
 
 
-def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash):
+def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash,
+                           normalize):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
     # The topics file contains a bunch of informational printout stuff at
     # the top.  Figure out what line this ends on
@@ -116,7 +116,7 @@ def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash):
                 # If this row raises an exception, then it isn't a valid row
                 # Sometimes trailing space...that's the reason for split()
                 # rather than csv.reader or a direct pandas read.
-                topic_item = {}
+                topic_item = pd.Series()
                 split_line = line.split()
                 hash_val = int(split_line[0])
                 if max_token_hash is not None and hash_val > max_token_hash:
@@ -125,9 +125,11 @@ def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash):
                 assert len(topic_weights) == num_topics
                 for i, weight in enumerate(topic_weights):
                     topic_item[fmt % i] = weight
+                if normalize:
+                    topic_item = topic_item/topic_item.sum()
                 topic_item['hash_val'] = hash_val
                 in_valid_rows = True
-                yield topic_item
+                yield topic_item.to_dict()
             except (ValueError, IndexError, AssertionError):
                 if in_valid_rows:
                     raise
@@ -184,15 +186,13 @@ def parse_lda_predictions(predictions_file, num_topics, start_line,
         You generally do not want every prediction.
     normalize : Boolean
         Normalize the rows so that they represent probabilities of topic
-        given doc_id. Note: must have get_iter=False.
+        given doc_id.
     get_iter : Boolean
         if True will return a iterator yielding dict of doc_id and topic probs
     """
-    assert not (get_iter and normalize), ('get_iter must be set to False to ' +
-                                          'return normalized results')
 
     predictions_iter = _parse_lda_predictions_iter(predictions_file, num_topics,
-                                                   start_line)
+                                                   start_line, normalize)
     if get_iter:
         return predictions_iter
     else:
@@ -203,7 +203,8 @@ def parse_lda_predictions(predictions_file, num_topics, start_line,
         return predictions
 
 
-def _parse_lda_predictions_iter(predictions_file, num_topics, start_line):
+def _parse_lda_predictions_iter(predictions_file, num_topics, start_line,
+                                normalize):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
     # Use this rather than pandas.read_csv due to inconsistent use of sep
     with smart_open(predictions_file) as open_file:
@@ -213,14 +214,16 @@ def _parse_lda_predictions_iter(predictions_file, num_topics, start_line):
         for line_num, line in enumerate(open_file):
             if line_num < start_line:
                 continue
-            topic_item = {}
+            topic_item = pd.Series()
             split_line = line.split()
             topic_weights = [float(item) for item in split_line[: -1]]
             assert len(topic_weights) == num_topics, "Is num_topics correct?"
             for i, weight in enumerate(topic_weights):
                 topic_item[fmt % i] = weight
+            if normalize:
+                topic_item = topic_item/topic_item.sum()
             topic_item['doc_id'] = split_line[-1]
-            yield topic_item
+            yield topic_item.to_dict()
 
 
 class LDAResults(object):
