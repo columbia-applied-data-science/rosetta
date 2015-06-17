@@ -12,7 +12,7 @@ import pandas as pd
 from pandas.util.testing import assert_frame_equal, assert_series_equal
 
 from rosetta.text import text_processors, vw_helpers, nlp, converters
-from rosetta.common import DocIDError
+from rosetta.common import DocIDError, TokenError
 
 
 class TestWordTokenizers(unittest.TestCase):
@@ -375,12 +375,12 @@ class TestLDAResults(unittest.TestCase):
         benchmark = pd.Series({'topic_0': 0.5, 'topic_1': 0.5})
         assert_allclose(results.values, benchmark.values, atol=1e-3)
 
-#     def test_predict_6(self):
-#         # Use fact that w0  <--> topic_0,  w1 <--> topic_1
-#         lda = self.choose_lda('lda_2')
-#         tokenized_text = ['newtoken', 'newtoken']
-#         with self.assertRaises(TokenError) as cm:
-#             results = lda.predict(tokenized_text, raise_on_unknown=True)
+    def test_predict_6(self):
+        # Use fact that w0  <--> topic_0,  w1 <--> topic_1
+        lda = self.choose_lda('lda_2')
+        tokenized_text = ['newtoken', 'newtoken']
+        with self.assertRaises(TokenError):
+            lda.predict(tokenized_text, raise_on_unknown=True)
 
     def tearDown(self):
         self.outfile.close()
@@ -517,11 +517,11 @@ class TestSFileFilter(unittest.TestCase):
             (self.hash_fun('word1'), self.hash_fun('word2')))
         self.assertEqual(result, benchmark)
 
-#     def test_filter_sfile_5(self):
-#         self.sff.load_sfile(self.sfile_1)
-#         with self.assertRaises(AssertionError) as cm:
-#             self.sff.filter_sfile(
-#                 self.sfile_1, self.outfile, doc_id_list=['doc1', 'unseen'])
+    def test_filter_sfile_5(self):
+        self.sff.load_sfile(self.sfile_1)
+        with self.assertRaises(AssertionError):
+            self.sff.filter_sfile(
+                self.sfile_1, self.outfile, doc_id_list=['doc1', 'unseen'])
 
     def test_filter_sfile_all_false_filter(self):
         self.sff.load_sfile(self.sfile_1)
