@@ -16,8 +16,10 @@ from unidecode import unidecode
 ###############################################################################
 # Functions for converting various format files to .txt
 ###############################################################################
-def file_to_txt(file_path, dst_dir, new_file_name=None, ret_fname=False, 
-        clean_path=False):
+
+
+def file_to_txt(file_path, dst_dir, new_file_name=None, ret_fname=False,
+                clean_path=False):
     """
     Takes a file path and writes the file in txt format to dst_dir.
     If file is already .txt, then simply copies the file.
@@ -44,21 +46,23 @@ def file_to_txt(file_path, dst_dir, new_file_name=None, ret_fname=False,
         try:
             file_path = _filepath_clean(file_path)
         except IOError:
-            sys.stdout.write('unable to clean file_name %s \n'%file_path)
+            sys.stdout.write('unable to clean file_name %s \n' % file_path)
     file_name = os.path.split(file_path)[1]
     name, ext = os.path.splitext(file_name)
     ext = re.sub(r'\.', '', ext)
     if new_file_name:
         file_name = new_file_name
-    converter_func_name = '_%s_to_txt'%ext
+    converter_func_name = '_%s_to_txt' % ext
     if converter_func_name in globals().keys():
-        #calls one of the _to_txt()
-        out = eval(converter_func_name)(file_path, dst_dir, file_name) 
-        if out: sys.stdout.write('unable to process file %s'%file_path)
-        if ret_fname: return file_name
+        # calls one of the _to_txt()
+        out = eval(converter_func_name)(file_path, dst_dir, file_name)
+        if out:
+            sys.stdout.write('unable to process file %s' % file_path)
+        if ret_fname:
+            return file_name
     else:
-        sys.stdout.write('file type %s not supported, skipping %s \n'%(ext,
-            file_name))
+        sys.stdout.write('file type %s not supported, skipping %s \n' %
+                         (ext, file_name))
 
 
 def _filepath_clean(file_path):
@@ -179,10 +183,7 @@ def _rtf_to_txt(file_path, dst_dir, file_name):
     file_dst = os.path.join(dst_dir, re.sub(r'\.rtf$', '.txt', file_name))
     doc = Rtf15Reader.read(open(file_path))
     txt = PlaintextWriter.write(doc).getvalue()
-    txt = unidecode(txt)
+    txt = txt.decode('ascii')
     with open(file_dst, 'w') as f:
         f.write(txt)
     return 0
-
-
-
