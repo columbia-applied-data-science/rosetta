@@ -582,14 +582,14 @@ class TestConverters(unittest.TestCase):
         else:
             sys.stdout.write('Please install unix utility pdftotext')
 
-        if cmd_exists('catdoc'):
+        if cmd_exists('antiword'):
             converters.file_to_txt(self.testdoc_path, self.testtemp_path)
             tempdoc_path = os.path.join(self.testtemp_path, 'test.txt')
             with open(tempdoc_path) as f:
                 self.assertTrue(isinstance(f, file))
             os.system('rm %s' % os.path.join(self.testtemp_path, 'test.txt'))
         else:
-            sys.stdout.write('Please install unix utility catdoc')
+            sys.stdout.write('Please install unix utility antiword')
 
         converters.file_to_txt(self.testpdf_path, self.testtemp_path)
         tempdocx_path = os.path.join(self.testtemp_path, 'test.txt')

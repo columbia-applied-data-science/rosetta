@@ -137,20 +137,21 @@ def _pdf_to_txt(file_path, dst_dir, file_name):
 
 def _doc_to_txt(file_path, dst_dir, file_name):
     """
-    Uses catdoc unix util to convert file_name
+    Uses antiword unix util to convert file_name
     to .txt and save in dst_dir.
 
     Notes
     -----
-    To install catdoc:
-        apt-get catdoc on unix/linux
-        brew install on mac
+    To install antiword:
+        apt-get install antiword (on unix/linux)
+        brew install antiword (on mac)
     """
     if file_name is None:
         file_name = os.path.split(file_path)[1]
     file_dst = os.path.join(dst_dir, re.sub(r'\.doc$', '.txt', file_name))
     with open(file_dst, 'w') as f:
-        return subprocess.call(["catdoc",  "-w", file_path, file_dst], stdout=f)
+        return subprocess.call(["antiword", file_path, ">",  file_dst],
+                               stdout=f)
 
 
 def _docx_to_txt(file_path, dst_dir, file_name):
