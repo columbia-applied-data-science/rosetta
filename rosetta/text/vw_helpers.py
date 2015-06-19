@@ -325,6 +325,7 @@ class LDAResults(object):
         word_sums = topics.sum(axis=1)
         self.pr_token = word_sums / word_sums.sum()
         self.pr_token_topic = topics / self._lambda_word_sums.sum()
+        self.pr_token_topic.index.name = 'token'
 
         # docs & topics
         doc_sums = predictions.sum(axis=1)
