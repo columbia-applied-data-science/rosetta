@@ -318,21 +318,18 @@ class LDAResults(object):
         Others can be derived and appear as "properties"
         (in the decorator sense).
         """
-        topic_sums = topics.sum()
-        self.pr_topic = topic_sums / topic_sums.sum()
+        self._lambda_word_sums = topics.sum()
+        self.pr_topic = self._lambda_word_sums / self._lambda_word_sums.sum()
 
+        # tokens & topic
         word_sums = topics.sum(axis=1)
         self.pr_token = word_sums / word_sums.sum()
-        self.pr_topic_token = topics / topics.sum().sum()
-
-        doc_sums = predictions.sum(axis=1)
-        self.pr_doc = doc_sums / doc_sums.sum()
-        self.pr_topic_doc = predictions / predictions.sum().sum()
-
-        # New stuff
-        self._lambda_word_sums = topics.sum()
         self.pr_token_topic = topics / self._lambda_word_sums.sum()
         self.pr_token_topic.index.name = 'token'
+
+        # docs & topics
+        doc_sums = predictions.sum(axis=1)
+        self.pr_doc = doc_sums / doc_sums.sum()
         self.pr_doc_topic = predictions / predictions.sum().sum()
 
     def prob_token_topic(self, token=None, topic=None, c_token=None,
@@ -614,19 +611,19 @@ class LDAResults(object):
 
     @property
     def pr_token_g_topic(self):
-        return self.pr_topic_token.div(self.pr_topic, axis=1)
+        return self.pr_token_topic.div(self.pr_topic, axis=1)
 
     @property
     def pr_topic_g_token(self):
-        return self.pr_topic_token.div(self.pr_token, axis=0).T
+        return self.pr_token_topic.div(self.pr_token, axis=0).T
 
     @property
     def pr_doc_g_topic(self):
         # Note:  self.pr_topic is computed using a different file than
-        # self.pr_topic_doc....the resultant implied pr_topic series differ
+        # self.pr_doc_topic....the resultant implied pr_topic series differ
         # unless many passes are used.
-        return self.pr_topic_doc.div(self.pr_topic, axis=1)
+        return self.pr_doc_topic.div(self.pr_topic, axis=1)
 
     @property
     def pr_topic_g_doc(self):
-        return self.pr_topic_doc.div(self.pr_doc, axis=0).T
+        return self.pr_doc_topic.div(self.pr_doc, axis=0).T
