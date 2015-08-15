@@ -2,9 +2,12 @@
 Common abstract base classes (or mixins..if we get krazy) that will be shared
 across modules.
 """
-import cPickle
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 
-from common import smart_open
+from .common import smart_open
 
 
 class SaveLoad(object):

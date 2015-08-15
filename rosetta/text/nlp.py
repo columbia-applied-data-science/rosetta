@@ -1,6 +1,10 @@
 import re
 
-from itertools import izip, chain
+try:
+    from itertools import izip, chain
+except ImportError:
+    from itertools import chain
+    izip = zip
 
 
 ###############################################################################
@@ -29,7 +33,7 @@ def word_tokenize(text, L=1, numeric=True):
     numeric : bool, True if you want to include numerics
     """
     text = re.sub(
-        r'(?:\s|\[|\]|\(|\)|\{|\}|;|,|\.(\s|$)|:|\n|\r|\?|\!|\"|\-)', r'  ', 
+        r'(?:\s|\[|\]|\(|\)|\{|\}|;|,|\.(\s|$)|:|\n|\r|\?|\!|\"|\-)', r'  ',
         text)
     if numeric:
         word_list = re.findall(
@@ -37,7 +41,7 @@ def word_tokenize(text, L=1, numeric=True):
             (?:(?<=.|\s)[A-Z]\.)+)(?:\s|$)' % (L, L), text)
     else:
         word_list = re.findall(
-            r'(?:\s|^)([A-Za-z\.\'&]{%s,}|(?:(?<=.|\s)[A-Z]\.)+)(?:\s|$)' % L, 
+            r'(?:\s|^)([A-Za-z\.\'&]{%s,}|(?:(?<=.|\s)[A-Z]\.)+)(?:\s|$)' % L,
             text)
 
     return word_list

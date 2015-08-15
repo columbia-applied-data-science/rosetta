@@ -10,7 +10,10 @@ Functions to assist in parallel processing with Python 2.7.
 import itertools
 from multiprocessing import cpu_count, Pool, Process, Manager, Lock
 from multiprocessing.pool import IMapUnorderedIterator, IMapIterator
-import cPickle
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
 import sys
 
 
