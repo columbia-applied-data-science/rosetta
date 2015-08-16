@@ -105,6 +105,7 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=None,
 def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash,
                            normalize):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
+    fmt_array = [fmt % i for i in xrange(num_topics)]
     # The topics file contains a bunch of informational printout stuff at
     # the top.  Figure out what line this ends on
     with smart_open(topics_file, 'r') as open_file:
@@ -116,20 +117,19 @@ def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash,
                 # If this row raises an exception, then it isn't a valid row
                 # Sometimes trailing space...that's the reason for split()
                 # rather than csv.reader or a direct pandas read.
-                topic_item = pd.Series()
                 split_line = line.split()
                 hash_val = int(split_line[0])
                 if max_token_hash is not None and hash_val > max_token_hash:
                     break
-                topic_weights = [float(item) for item in split_line[1:]]
-                assert len(topic_weights) == num_topics
-                for i, weight in enumerate(topic_weights):
-                    topic_item[fmt % i] = weight
+                topic_weights = np.array(split_line[1:]).astype(float)
+                topic_len = len(topic_weights)
+                assert topic_len == num_topics
                 if normalize:
-                    topic_item = topic_item/topic_item.sum()
-                topic_item['hash_val'] = hash_val
+                    topic_weights = topic_weights/topic_weights.sum()
+                topic_dict = dict(zip(fmt_array, topic_weights))
+                topic_dict.update({'hash_val': hash_val})
                 in_valid_rows = True
-                yield topic_item.to_dict()
+                yield topic_dict
             except (ValueError, IndexError, AssertionError):
                 if in_valid_rows:
                     raise
@@ -206,6 +206,7 @@ def parse_lda_predictions(predictions_file, num_topics, start_line,
 def _parse_lda_predictions_iter(predictions_file, num_topics, start_line,
                                 normalize):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
+    fmt_array = [fmt % i for i in xrange(num_topics)]
     # Use this rather than pandas.read_csv due to inconsistent use of sep
     with smart_open(predictions_file) as open_file:
         # We may have already opened and read this file in order to
@@ -214,16 +215,15 @@ def _parse_lda_predictions_iter(predictions_file, num_topics, start_line,
         for line_num, line in enumerate(open_file):
             if line_num < start_line:
                 continue
-            topic_item = pd.Series()
             split_line = line.split()
-            topic_weights = [float(item) for item in split_line[: -1]]
-            assert len(topic_weights) == num_topics, "Is num_topics correct?"
-            for i, weight in enumerate(topic_weights):
-                topic_item[fmt % i] = weight
+            topic_weights = np.array(split_line[:-1]).astype(float)
+            topic_len = len(topic_weights)
+            assert topic_len == num_topics
             if normalize:
-                topic_item = topic_item/topic_item.sum()
-            topic_item['doc_id'] = split_line[-1]
-            yield topic_item.to_dict()
+                topic_weights = topic_weights/topic_weights.sum()
+            topic_dict = dict(zip(fmt_array, topic_weights))
+            topic_dict.update({'doc_id': split_line[-1]})
+            yield topic_dict
 
 
 class LDAResults(object):

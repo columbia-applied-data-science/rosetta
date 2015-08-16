@@ -212,15 +212,15 @@ class TestLDAResults(unittest.TestCase):
     def test_set_probabilities_marginals(self):
         lda = self.choose_lda()
         pr_doc = pd.Series({'doc1': 3./(3+39+58), 'doc2': (39.+58)/(3+39+58)})
-        assert_series_equal(lda.pr_doc, pr_doc)
+        assert_series_equal(lda.pr_doc, pr_doc, check_names=False)
 
         pr_topic = pd.Series({'topic_0': 4./10, 'topic_1': 6./10})
-        assert_series_equal(lda.pr_topic, pr_topic)
+        assert_series_equal(lda.pr_topic, pr_topic, check_names=False)
 
         # Use the topics file for the token marginals
         # Should be almost equal to results obtained with the predictions file
         pr_token = pd.Series({'w0': 3./10, 'w1': 7./10})
-        assert_series_equal(lda.pr_token, pr_token)
+        assert_series_equal(lda.pr_token, pr_token, check_names=False)
 
     def test_prob_1(self):
         result = self.choose_lda().prob_token_topic(token='w0', c_token=['w1'])
