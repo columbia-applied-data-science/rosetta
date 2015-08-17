@@ -1,7 +1,7 @@
 """
 Common functions/classes for dataprep.
 """
-from __future__ import print_function
+from __future__ import division, print_function, unicode_literals
 import numpy as np
 try:
     import cPickle

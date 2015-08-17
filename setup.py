@@ -19,12 +19,6 @@ PACKAGES =  ['rosetta'] + [
     'rosetta.' + name for name in
     ['cmdutils', 'modeling', 'parallel', 'text', 'workflow']]
 
-
-#PY_MODULES =  ['rosetta'] + [
-#    'rosetta/' + name for name in
-#    ['cmdutils', 'modeling', 'parallel', 'text', 'workflow']]
-
-
 setup(
     name=DISTNAME,
     version='0.2.5',
