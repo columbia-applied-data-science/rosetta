@@ -6,7 +6,7 @@ from scipy import sparse
 
 from rosetta import TokenizerBasic
 from rosetta.text.streamers import TextFileStreamer, TextIterStreamer
-from rosetta.text.streamers import MySQLStreamer, MongoStreamer
+from rosetta.text.database_streamers import MySQLStreamer, MongoStreamer
 
 try:
     import MySQLdb
@@ -16,14 +16,12 @@ except ImportError:
     HAS_MYSQLDB = False
 
 
-from rosetta.common import DocIDError, TokenError
-
-
 class TestTextFileStreamer(unittest.TestCase):
     def setUp(self):
         self.test_path = os.path.abspath('./rosetta/tests')
         self.testdata_path = os.path.join(self.test_path, 'temp')
-        ###create some temp files to work with
+
+        # create some temp files to work with
         self.doc1 = os.path.join(self.testdata_path, 'doc1.txt')
         self.doc2 = os.path.join(self.testdata_path, 'doc2.txt')
         with open(self.doc1, 'w') as f:
@@ -32,9 +30,8 @@ class TestTextFileStreamer(unittest.TestCase):
             f.write('set for success\n')
         self.tokenizer = TokenizerBasic()
 
-
     def test_info_stream(self):
-        stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
+        stream = TextFileStreamer(path_list=[self.doc1, self.doc2],
                                   tokenizer=self.tokenizer)
         token_benchmark = [['doomed', 'failure'],
                            ['set', 'success']]
@@ -50,7 +47,7 @@ class TestTextFileStreamer(unittest.TestCase):
         self.assertEqual(text_benchmark, text_result)
 
     def test_token_stream(self):
-        stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
+        stream = TextFileStreamer(path_list=[self.doc1, self.doc2],
                                   tokenizer=self.tokenizer)
         token_benchmark = [['doomed', 'failure'],
                            ['set', 'success']]
@@ -63,7 +60,7 @@ class TestTextFileStreamer(unittest.TestCase):
         self.assertEqual(id_benchmark, stream.__dict__['doc_id_cache'])
 
     def test_to_vw(self):
-        stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
+        stream = TextFileStreamer(path_list=[self.doc1, self.doc2],
                                   tokenizer=self.tokenizer)
         result = StringIO()
         stream.to_vw(result)
@@ -72,7 +69,7 @@ class TestTextFileStreamer(unittest.TestCase):
         self.assertEqual(benchmark, result.getvalue())
 
     def test_to_scipyspare(self):
-        stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
+        stream = TextFileStreamer(path_list=[self.doc1, self.doc2],
                                   tokenizer=self.tokenizer)
 
         result = stream.to_scipysparse()
@@ -122,23 +119,15 @@ class TestTextIterStreamer(unittest.TestCase):
         self.assertEqual(token_benchmark, token_result)
         self.assertEqual(id_benchmark, stream.__dict__['doc_id_cache'])
 
-
-    def test_to_scipyspare(self):
-        stream = TextFileStreamer(path_list = [self.doc1, self.doc2],
-                                  tokenizer=self.tokenizer)
-
-        result = stream.to_scipysparse()
-        benchmark = sparse.csr_matrix([[1, 1, 0, 0], [0, 0, 1, 1]])
-
     def test_to_vw(self):
         stream = TextIterStreamer(text_iter=self.text_iter,
                                   tokenizer=self.tokenizer)
         stream.to_vw(open(self.temp_vw_path, 'w'))
-        result  = open(self.temp_vw_path).read()
+        result = open(self.temp_vw_path).read()
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result)
 
-    def test_to_scipyspare(self):
+    def test_to_scipysparse(self):
         stream = TextIterStreamer(text_iter=self.text_iter,
                                   tokenizer=self.tokenizer)
 
@@ -150,7 +139,8 @@ class TestTextIterStreamer(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.temp_vw_path) if (
-                os.path.exists(self.temp_vw_path)) else None
+            os.path.exists(self.temp_vw_path)) else None
+
 
 class TestMySQLStreamer(unittest.TestCase):
     def setUp(self):
@@ -216,7 +206,7 @@ class TestMySQLStreamer(unittest.TestCase):
                                tokenizer=self.tokenizer)
         stream.cursor = self.mock_cursor
         stream.to_vw(open(self.temp_vw_path, 'w'))
-        result  = open(self.temp_vw_path).read()
+        result = open(self.temp_vw_path).read()
 
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result)
@@ -235,7 +225,8 @@ class TestMySQLStreamer(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.temp_vw_path) if (
-                os.path.exists(self.temp_vw_path)) else None
+            os.path.exists(self.temp_vw_path)) else None
+
 
 class TestMongoStreamer(unittest.TestCase):
     def setUp(self):
@@ -301,7 +292,7 @@ class TestMongoStreamer(unittest.TestCase):
                                tokenizer=self.tokenizer)
         stream.cursor = self.mock_cursor
         stream.to_vw(open(self.temp_vw_path, 'w'))
-        result  = open(self.temp_vw_path).read()
+        result = open(self.temp_vw_path).read()
 
         benchmark = " 1 a| failure:1 doomed:1\n 1 1| set:1 success:1\n"
         self.assertEqual(benchmark, result)
@@ -319,4 +310,4 @@ class TestMongoStreamer(unittest.TestCase):
 
     def tearDown(self):
         os.remove(self.temp_vw_path) if (
-                os.path.exists(self.temp_vw_path)) else None
+            os.path.exists(self.temp_vw_path)) else None

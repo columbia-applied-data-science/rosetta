@@ -1,11 +1,16 @@
 """
 Common functions/classes for dataprep.
 """
+from __future__ import division, print_function, unicode_literals
 import numpy as np
-import cPickle
-import itertools
-import os
-import sys
+try:
+    import cPickle
+except ImportError:
+    import pickle as cPickle
+try:
+    from itertools import izip_longest
+except ImportError:
+    from itertools import zip_longest as izip_longest
 import functools
 
 from collections import defaultdict
@@ -206,9 +211,9 @@ def printdict(d, max_print_len=None):
     for key, value in d.iteritems():
         s += str(key) + ': ' + str(value) + '\n'
     if max_print_len:
-        print s[:max_print_len]
+        print(s[:max_print_len])
     else:
-        print s
+        print(s)
 
 
 ###############################################################################
@@ -293,7 +298,7 @@ def grouper(iterable, chunksize, fillvalue=None):
     """
     args = [iter(iterable)] * chunksize
 
-    return itertools.izip_longest(fillvalue=fillvalue, *args)
+    return izip_longest(fillvalue=fillvalue, *args)
 
 
 def compose(*functions):
