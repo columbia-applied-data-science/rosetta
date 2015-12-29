@@ -195,7 +195,7 @@ def get_min_max_token_filter(min_tokens, max_tokens):
     If the goal is to only keep documents whose final token count is greater
     than min_tokens, this filter should be used last.
     """
-    def min_max_token_filter(record_dict, min_tokens, max_tokens):
+    def min_max_token_filter(record_dict):
         num = len(record_dict['feature_values'])
         keep_doc = (num >= min_tokens and num <= max_tokens)
         return keep_doc
