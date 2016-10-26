@@ -171,3 +171,32 @@ def get_token_to_id_filter(sfile_filter):
         keep_doc = True
         return keep_doc
     return token_to_id_filter
+
+
+def get_min_max_token_filter(min_tokens, max_tokens):
+    """
+    This function returns a filter which drops any document whose total number
+    of tokens is less than min_tokens or greater than that of max_tokens.
+
+    This filter does not alter record_dict, but instead returns either true or
+    false indicating whether to document should be kept or not.
+
+    Parameters
+    ----------
+    min_tokens : numeric
+    max_tokens : numeric
+
+    Returns
+    -------
+    min_max_token_filter : function
+
+    Note
+    ----
+    If the goal is to only keep documents whose final token count is greater
+    than min_tokens, this filter should be used last.
+    """
+    def min_max_token_filter(record_dict):
+        num = len(record_dict['feature_values'])
+        keep_doc = (num >= min_tokens and num <= max_tokens)
+        return keep_doc
+    return min_max_token_filter

@@ -660,7 +660,7 @@ class SFileFilter(SaveLoad):
 
     def filter_sfile(
         self, infile, outfile, doc_id_list=None, enforce_all_doc_id=True,
-        min_tf_idf=0, filters=None):
+        min_tf_idf=0, min_tokens=0, max_tokens=10000, filters=None):
         """
         Alter an sfile by converting tokens to id values, and removing tokens
         not in self.token2id.  Optionally filters on doc_id, tf_idf and
@@ -687,6 +687,10 @@ class SFileFilter(SaveLoad):
                 (2) idf(t, D) = log (N / M), where N is the total number of
                     documents in D and M is the number of documents in D which
                     contain the token t. The logarithm is base e.
+        min_tokens : int
+            min number of tokens a doc can have
+        max_tokens : int
+            max number of tokens a doc can have
         filters : iterable over functions
             Each function must take a record_dict as a parameter and return a
             boolean. The record_dict may (and usually should) be altered in
@@ -730,7 +734,9 @@ class SFileFilter(SaveLoad):
 
         # The token_to_id_filter should be run last so that only the necessary
         # conversions are made.
-        postfilters = [streaming_filters.get_token_to_id_filter(self)]
+        postfilters = [streaming_filters.get_token_to_id_filter(self),
+                       streaming_filters.get_min_max_token_filter(min_tokens,
+                                                                  max_tokens)]
 
         filters = prefilters + filters + postfilters
 
