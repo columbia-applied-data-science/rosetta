@@ -165,7 +165,7 @@ class Topics(object):
             number of words to write with each topic
         """
         with common.smart_open(outfile, 'w') as f:
-            for t in xrange(self.num_topics):
+            for t in range(self.num_topics):
                 f.write('topic %s' % t + '\n')
                 f.write(self.lda.print_topic(t, topn=num_words) + '\n')
 
@@ -207,7 +207,7 @@ class Topics(object):
         id2token = dict(self.dictionary.items())
         words_df = pd.DataFrame(
                 {id2token[tokenid]: [tokenid, docfreq]
-                 for tokenid, docfreq in self.dictionary.dfs.iteritems()},
+                 for tokenid, docfreq in self.dictionary.dfs.items()},
                 index=['tokenid', 'docfreq']).T
         words_df = words_df.sort_index(by='docfreq', ascending=False)
         if plot_path:

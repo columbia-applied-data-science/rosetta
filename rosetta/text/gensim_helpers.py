@@ -187,7 +187,7 @@ def get_words_docfreq(dictionary):
     id2token = dict(dictionary.items())
     words_df = pd.DataFrame(
         {id2token[tokenid]: [tokenid, docfreq]
-         for tokenid, docfreq in dictionary.dfs.iteritems()},
+         for tokenid, docfreq in dictionary.dfs.items()},
         index=['tokenid', 'docfreq']).T
     words_df = words_df.sort_index(by='docfreq', ascending=False)
 

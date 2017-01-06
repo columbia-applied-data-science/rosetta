@@ -55,7 +55,7 @@ class smart_open(object):
             First arg will be 'mode', e.g. 'r', 'rb', 'w'
             Second arg will be 'buffering', read the docs for open
         """
-        if isinstance(filename, basestring):
+        if isinstance(filename, str):
             self.fh = open(filename, *args)
             self.closing = True
         else:
@@ -208,7 +208,7 @@ class DocIDError(Exception):
 
 def printdict(d, max_print_len=None):
     s = ''
-    for key, value in d.iteritems():
+    for key, value in d.items():
         s += str(key) + ': ' + str(value) + '\n'
     if max_print_len:
         print(s[:max_print_len])
@@ -261,7 +261,7 @@ def nested_keysearch(ndict, key_list):
         E.g. {'a': {'b': 2}}
     key_list : List of strings
     """
-    if isinstance(key_list, basestring):
+    if isinstance(key_list, str):
         key_list = [key_list]
 
     first_key = key_list[0]

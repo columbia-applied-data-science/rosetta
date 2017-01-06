@@ -105,7 +105,7 @@ def parse_lda_topics(topics_file, num_topics, max_token_hash=None,
 def _parse_lda_topics_iter(topics_file, num_topics, max_token_hash,
                            normalize):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
-    fmt_array = [fmt % i for i in xrange(num_topics)]
+    fmt_array = [fmt % i for i in range(num_topics)]
     # The topics file contains a bunch of informational printout stuff at
     # the top.  Figure out what line this ends on
     with smart_open(topics_file, 'r') as open_file:
@@ -206,7 +206,7 @@ def parse_lda_predictions(predictions_file, num_topics, start_line,
 def _parse_lda_predictions_iter(predictions_file, num_topics, start_line,
                                 normalize):
     fmt = 'topic_%0' + str(len(str(num_topics))) + 'd'
-    fmt_array = [fmt % i for i in xrange(num_topics)]
+    fmt_array = [fmt % i for i in range(num_topics)]
     # Use this rather than pandas.read_csv due to inconsistent use of sep
     with smart_open(predictions_file) as open_file:
         # We may have already opened and read this file in order to

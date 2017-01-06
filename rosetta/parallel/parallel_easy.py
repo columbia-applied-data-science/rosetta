@@ -75,7 +75,7 @@ def parallel_apply(func, iterable, n_jobs, sep='\n', out_stream=sys.stdout):
 
     # start pool workers
     pool = []
-    for i in xrange(n_jobs):
+    for i in range(n_jobs):
         p = Process(target=_do_work_off_queue,
                     args=(lock, in_q, func, out_q, sep))
         p.start()

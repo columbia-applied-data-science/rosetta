@@ -166,7 +166,7 @@ def get_token_to_id_filter(sfile_filter):
         record_dict['feature_values'] = {
             token2id[token]: value
             for token, value
-            in record_dict['feature_values'].iteritems()
+            in record_dict['feature_values'].items()
             if token in token2id}
         keep_doc = True
         return keep_doc

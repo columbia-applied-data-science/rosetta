@@ -29,7 +29,7 @@ class SaveLoad(object):
         protocol : 0, 1, 2, -1
             0 < 1 < 2 in terms of performance.  -1 means use highest available.
         """
-        with smart_open(savefile, 'w') as f:
+        with smart_open(savefile, 'wb') as f:
             cPickle.dump(self, f, protocol=protocol)
 
     @classmethod
