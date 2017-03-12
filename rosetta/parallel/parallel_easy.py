@@ -54,7 +54,18 @@ def _write_to_output(out_q, stream, n_jobs):
         stream.write(x)
 
 
-def parallel_apply(func, iterable, n_jobs, sep='\n', out_stream=sys.stdout):
+def parallel_apply(func, iterable, n_jobs, sep='\n', use_pathos=False,
+                   out_stream=sys.stdout):
+    """
+    Writes the result of applying func to iterable using n_jobs to out_stream
+    """
+    if use_pathos:
+        _parallel_apply_pathos(func, iterable, n_jobs, sep, out_stream)
+    else:
+        _parallel_apply(func, iterable, n_jobs, sep, out_stream)
+
+
+def _parallel_apply(func, iterable, n_jobs, sep='\n', out_stream=sys.stdout):
     """
     Writes the result of applying func to iterable using n_jobs to out_stream
     """
@@ -97,7 +108,52 @@ def parallel_apply(func, iterable, n_jobs, sep='\n', out_stream=sys.stdout):
     out_p.join()
 
 
-def imap_easy(func, iterable, n_jobs, chunksize, ordered=True):
+def _parallel_apply_pathos(func, iterable, n_jobs, sep='\n',
+                           out_stream=sys.stdout):
+    """
+    Writes the result of applying func to iterable using n_jobs to out_stream
+    """
+    from multiprocess import Process as pProcess, Lock as pLock, Queue as pQueue
+    # if there is only one job, simply read from iterable, apply function
+    # and write to outpu
+    if n_jobs == 1:
+        for each in iterable:
+            out_stream.write(str(func(each)) + sep)
+        out_stream.flush()
+        return
+
+    # if there is more than one job, use two queues to communicate
+    # between processes.
+    in_q = pQueue(maxsize=2 * n_jobs)
+    out_q = pQueue(maxsize=2 * n_jobs)
+    lock = pLock()
+
+    # start pool workers
+    pool = []
+    for i in xrange(n_jobs):
+        p = pProcess(target=_do_work_off_queue,
+                     args=(lock, in_q, func, out_q, sep))
+        p.start()
+        pool.append(p)
+
+    # start output worker
+    out_p = pProcess(target=_write_to_output,
+                     args=(out_q, out_stream, n_jobs))
+    out_p.start()
+
+    # put data on input queue
+    iters = itertools.chain(iterable, (None,) * n_jobs)
+    for each in iters:
+        in_q.put(each)
+
+    # finish job
+    for p in pool:
+        p.join()
+    out_p.join()
+
+
+def imap_easy(func, iterable, n_jobs, chunksize, use_pathos=False,
+              ordered=True):
     """
     Returns a parallel iterator of func over iterable.
 
@@ -109,7 +165,8 @@ def imap_easy(func, iterable, n_jobs, chunksize, ordered=True):
     ----------
     func : Function of one variable
         You can use functools.partial to build this.
-        A lambda function will not work
+        A lambda function should work if you set use_pathos=True and have pathos
+        installed
     iterable : List, iterator, etc...
         func is applied to this
     n_jobs : Integer
@@ -141,6 +198,13 @@ def imap_easy(func, iterable, n_jobs, chunksize, ordered=True):
     6
     12
     """
+    if use_pathos:
+        return _imap_easy_pathos(func, iterable, n_jobs, chunksize, ordered)
+    else:
+        return _imap_easy(func, iterable, n_jobs, chunksize, ordered)
+
+
+def _imap_easy(func, iterable, n_jobs, chunksize, ordered=True):
     n_jobs = _n_jobs_wrap(n_jobs)
 
     if n_jobs == 1:
@@ -157,7 +221,23 @@ def imap_easy(func, iterable, n_jobs, chunksize, ordered=True):
     return results_iter
 
 
-def map_easy(func, iterable, n_jobs):
+def _imap_easy_pathos(func, iterable, n_jobs, chunksize, ordered=True):
+    n_jobs = _n_jobs_wrap(n_jobs)
+    from multiprocess import Pool as pPool
+    if n_jobs == 1:
+        results_iter = itertools.imap(func, iterable)
+    else:
+        pool = pPool(n_jobs)
+        if ordered:
+            results_iter = pool.imap(func, iterable, chunksize=chunksize)
+        else:
+            results_iter = pool.imap_unordered(
+                func, iterable, chunksize=chunksize)
+
+    return results_iter
+
+
+def map_easy(func, iterable, n_jobs, use_pathos=False):
     """
     Returns a parallel map of func over iterable.
     Returns all results at once, so if results are big memory issues may arise
@@ -166,7 +246,8 @@ def map_easy(func, iterable, n_jobs):
     ----------
     func : Function of one variable
         You can use functools.partial to build this.
-        A lambda function will not work
+        A lambda function should work if you set use_pathos=True and have pathos
+        installed
     iterable : List, iterator, etc...
         func is applied to this
     n_jobs : Integer
@@ -186,6 +267,13 @@ def map_easy(func, iterable, n_jobs):
     >>> map_easy(func, some_numbers)
     [0, 6, 12, 18, 24]
     """
+    if use_pathos:
+        return _map_easy_pathos(func, iterable, n_jobs)
+    else:
+        return _map_easy(func, iterable, n_jobs)
+
+
+def _map_easy(func, iterable, n_jobs):
     n_jobs = _n_jobs_wrap(n_jobs)
 
     if n_jobs == 1:
@@ -196,7 +284,19 @@ def map_easy(func, iterable, n_jobs):
         return pool.map_async(func, iterable).get(GOOGLE)
 
 
-def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None):
+def _map_easy_pathos(func, iterable, n_jobs):
+    from multiprocess import Pool as pPool
+    n_jobs = _n_jobs_wrap(n_jobs)
+
+    if n_jobs == 1:
+        return map(func, iterable)
+    else:
+        pool = pPool(n_jobs)
+        return pool.map_async(func, iterable).get(GOOGLE)
+
+
+def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None,
+                           use_pathos=False):
     """
     Returns a parallel map of func over iterable, computed by splitting
     iterable into padded blocks, then piecing the result together.
@@ -205,7 +305,8 @@ def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None):
     ----------
     func : Function of one variable
         You can use functools.partial to build this.
-        A lambda function will not work
+        A lambda function should work if you set use_pathos=True and have pathos
+        installed
     iterable : List, iterator, etc...
         func is applied to this
     n_jobs : Integer
@@ -250,7 +351,7 @@ def map_easy_padded_blocks(func, iterable, n_jobs, pad, blocksize=None):
     block_iter = (mylist[start: end] for start, end in block_idx)
 
     # Process each block
-    processed_blocks = map_easy(func, block_iter, n_jobs)
+    processed_blocks = map_easy(func, block_iter, n_jobs, use_pathos)
 
     result = []
     for block, (leftpad, rightpad) in zip(processed_blocks, pads_used):
@@ -392,6 +493,8 @@ def _trypickle(func):
     Cause 2) You are pickling an object that had an attribute equal to a
         method or lambda func, e.g. self.myfunc = self.mymethod.
     Solution 2)  Don't do this.
+
+    Try installing pathos' multiprocess lib and setting use_pathos=True!
     """
 
     try:

@@ -56,7 +56,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual(result, self.benchmark)
 
     def test_map_easy_3job_lambda(self):
-        result = parallel_easy.map_easy(sqlambda, self.numbers, 3)
+        result = parallel_easy.map_easy(sqlambda, self.numbers, 3, use_pathos=True)
         self.assertEqual(result, self.sqbenchmark)
 
     def test_imap_easy_1job(self):
@@ -74,7 +74,7 @@ class TestBase(unittest.TestCase):
         self.assertEqual(result, self.benchmark)
 
     def test_imap_easy_3job_lambda(self):
-        result_iterator = parallel_easy.imap_easy(sqlambda, self.numbers, 3, 1)
+        result_iterator = parallel_easy.imap_easy(sqlambda, self.numbers, 3, 1, use_pathos=True)
         result = []
         for number in result_iterator:
             result.append(number)
