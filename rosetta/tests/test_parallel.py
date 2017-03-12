@@ -17,6 +17,7 @@ def _abfunc(x, a, b=1):
     return x * a * b
 abfunc = partial(_abfunc, 2, 3)
 
+sqlambda = lambda x: x ** 2
 
 def frame_to_series(frame):
     x = frame.iloc[0, 0]
@@ -44,6 +45,7 @@ class TestBase(unittest.TestCase):
     def setUp(self):
         self.numbers = range(5)
         self.benchmark = [0, 6, 12, 18, 24]
+        self.sqbenchmark = [0, 1, 4, 9, 16]
 
     def test_map_easy_1job(self):
         result = parallel_easy.map_easy(abfunc, self.numbers, 1)
@@ -52,6 +54,10 @@ class TestBase(unittest.TestCase):
     def test_map_easy_3job(self):
         result = parallel_easy.map_easy(abfunc, self.numbers, 3)
         self.assertEqual(result, self.benchmark)
+
+    def test_map_easy_3job_lambda(self):
+        result = parallel_easy.map_easy(sqlambda, self.numbers, 3, use_pathos=True)
+        self.assertEqual(result, self.sqbenchmark)
 
     def test_imap_easy_1job(self):
         result_iterator = parallel_easy.imap_easy(abfunc, self.numbers, 1, 1)
@@ -66,6 +72,13 @@ class TestBase(unittest.TestCase):
         for number in result_iterator:
             result.append(number)
         self.assertEqual(result, self.benchmark)
+
+    def test_imap_easy_3job_lambda(self):
+        result_iterator = parallel_easy.imap_easy(sqlambda, self.numbers, 3, 1, use_pathos=True)
+        result = []
+        for number in result_iterator:
+            result.append(number)
+        self.assertEqual(result, self.sqbenchmark)
 
     def test_n_jobs_wrap_positive(self):
         """
