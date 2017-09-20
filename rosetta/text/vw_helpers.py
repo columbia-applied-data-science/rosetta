@@ -332,6 +332,9 @@ class LDAResults(object):
         self.pr_doc = doc_sums / doc_sums.sum()
         self.pr_doc_topic = predictions / predictions.sum().sum()
 
+        lam = self._lambda_word_sums * self.pr_token_topic
+        self._constExpElogbeta = np.exp(self._dirichlet_expectation(lam + EPS))
+
     def prob_token_topic(self, token=None, topic=None, c_token=None,
                          c_topic=None):
         """
@@ -565,9 +568,7 @@ class LDAResults(object):
         topic-word weights.
         """
         # Get lambda, the dirichlet parameter originally returned by VW.
-        lam = self._lambda_word_sums * self.pr_token_topic
-
-        return np.exp(self._dirichlet_expectation(lam + EPS))
+        return self._constExpElogbeta
 
     def _dirichlet_expectation(self, alpha):
         """
