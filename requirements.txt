@@ -7,3 +7,6 @@ pyth
 pymongo
 MySQL-python
 scipy
+unidecode
+multiprocess
+nltk
