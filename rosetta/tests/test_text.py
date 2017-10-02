@@ -323,16 +323,6 @@ class TestLDAResults(unittest.TestCase):
             [-0.13470677,  -13.32429878]]).T
         assert_allclose(result, benchmark, atol=1e-4)
 
-    def test_expElogbeta(self):
-        # Make sure equal to exponential of dirichlet_expectation when we
-        # pass in all ones
-        lda = self.choose_lda('lda')
-        lda._lambda_word_sums = pd.Series(
-            np.ones(lda.num_topics), index=lda.topics)
-        result = lda._expElogbeta
-        benchmark = np.exp(lda._dirichlet_expectation(lda.pr_token_topic))
-        assert_frame_equal(result, benchmark)
-
     def test_predict_1(self):
         # Use fact that w0  <--> topic_0,  w1 <--> topic_1
         lda = self.choose_lda('lda_2')
