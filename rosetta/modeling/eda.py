@@ -246,7 +246,7 @@ def plot_reducedY_vs_binnedX(
     # and there are different key word args available.
     if plot_count_X:
         if quantiles:
-            print "Warning!  plot_count_X is meaningless if quantiles==True"
+            print("Warning!  plot_count_X is meaningless if quantiles==True")
         fig, axes = plt.subplots(1, 2, figsize=plt_kwargs['figsize'])
         y_reduced.plot(ax=axes[0], **plt_kwargs)
         count_X.plot(ax=axes[1], title=count_X.name, **plt_kwargs)
