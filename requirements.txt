@@ -1,4 +1,4 @@
-pandas
+pandas==0.16.2
 scikit-learn
 statsmodels
 gensim
@@ -7,3 +7,6 @@ pyth
 pymongo
 MySQL-python
 scipy
+unidecode
+multiprocess
+nltk
